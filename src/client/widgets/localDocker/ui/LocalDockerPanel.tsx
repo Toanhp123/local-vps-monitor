@@ -8,10 +8,12 @@ import {
 
 export function LocalDockerPanel({
 	error,
+	isScanDisabled,
 	isScanning,
 	onScan,
 }: {
 	error: string;
+	isScanDisabled: boolean;
 	isScanning: boolean;
 	onScan: () => void;
 }) {
@@ -42,7 +44,7 @@ export function LocalDockerPanel({
 					type="button"
 					className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
 					onClick={onScan}
-					disabled={isScanning}
+					disabled={isScanDisabled}
 				>
 					{isScanning ? (
 						<LoaderCircle size={16} className="animate-spin" />

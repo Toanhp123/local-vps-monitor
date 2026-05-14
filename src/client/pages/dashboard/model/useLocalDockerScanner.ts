@@ -58,10 +58,27 @@ export function useLocalDockerScanner(
 		}
 	}, [refreshOverview]);
 
+	const scanInBackground = useCallback(async () => {
+		setError("");
+
+		try {
+			await scanLocalDocker();
+			await refreshOverview();
+		} catch (requestError) {
+			const message = errorMessage(requestError);
+			setError(message);
+			setToast({
+				tone: "error",
+				message,
+			});
+		}
+	}, [refreshOverview]);
+
 	return {
 		error,
 		isScanning,
 		scan,
+		scanInBackground,
 		serverId: localDockerServerId,
 		toast,
 	};

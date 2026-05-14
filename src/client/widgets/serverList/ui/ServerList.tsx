@@ -8,6 +8,7 @@ import { ServerTableHeader } from "./ServerTableHeader";
 export function ServerList({
 	activeScanId,
 	hasActiveFilter,
+	isScanDisabled,
 	now,
 	onScanServer,
 	query,
@@ -15,6 +16,7 @@ export function ServerList({
 }: {
 	activeScanId: string | null;
 	hasActiveFilter: boolean;
+	isScanDisabled: boolean;
 	now: number;
 	onScanServer: (serverId: string) => void;
 	query: string;
@@ -75,7 +77,7 @@ export function ServerList({
 									<Fragment key={server.serverId}>
 										<ServerTableRow
 											isExpanded={isExpanded}
-											isScanDisabled={Boolean(activeScanId)}
+											isScanDisabled={isScanDisabled}
 											isScanning={isScanning}
 											now={now}
 											onScan={() => onScanServer(server.serverId)}

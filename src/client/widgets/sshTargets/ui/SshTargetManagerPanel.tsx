@@ -29,6 +29,7 @@ export function SshTargetManagerPanel({
 	activeScanId,
 	error,
 	isLoading,
+	isScanDisabled,
 	isSaving,
 	onAddTarget,
 	onRemoveTarget,
@@ -38,6 +39,7 @@ export function SshTargetManagerPanel({
 	activeScanId: string | null;
 	error: string;
 	isLoading: boolean;
+	isScanDisabled: boolean;
 	isSaving: boolean;
 	onAddTarget: (input: SshTargetCreateInput) => Promise<boolean>;
 	onRemoveTarget: (targetId: string) => void;
@@ -289,7 +291,7 @@ export function SshTargetManagerPanel({
 															)
 														}
 														disabled={Boolean(
-															activeScanId,
+															isScanDisabled,
 														)}
 														aria-label={`Scan ${target.name}`}
 													>
