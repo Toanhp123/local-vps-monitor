@@ -26,7 +26,6 @@ export function ApplicationTable({ apps }: { apps: AppSnapshot[] }) {
 						<th className={headerCellClass}>Status</th>
 						<th className={headerCellClass}>CPU</th>
 						<th className={headerCellClass}>Memory</th>
-						<th className={headerCellClass}>Restarts</th>
 						<th className={headerCellClass}>Image</th>
 						<th className={headerCellClass}>Ports</th>
 					</tr>
@@ -56,9 +55,6 @@ export function ApplicationTable({ apps }: { apps: AppSnapshot[] }) {
 								</td>
 								<td className={bodyCellClass}>
 									{formatBytes(app.memoryBytes)}
-								</td>
-								<td className={bodyCellClass}>
-									{app.restarts ?? "-"}
 								</td>
 								<td
 									className={`${bodyCellClass} max-w-62 overflow-hidden text-ellipsis font-mono text-xs text-slate-500`}
@@ -91,7 +87,7 @@ export function ApplicationTable({ apps }: { apps: AppSnapshot[] }) {
 					{apps.length === 0 && (
 						<tr>
 							<td
-								colSpan={8}
+								colSpan={7}
 								className="h-18 border-t border-slate-200 text-center text-slate-500"
 							>
 								No Docker or PM2 apps reported

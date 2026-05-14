@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+html {
+	overflow-y: scroll;
+	background: #eef1f5;
+}
+
+body {
+	background: #eef1f5;
+}

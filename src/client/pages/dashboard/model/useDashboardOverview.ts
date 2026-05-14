@@ -43,19 +43,12 @@ export function useDashboardOverview() {
 	const [requestStatus, setRequestStatus] = useState<RequestStatus>("idle");
 	const [realtimeStatus, setRealtimeStatus] =
 		useState<RealtimeStatus>("connecting");
-	const [lastDataUpdate, setLastDataUpdate] = useState("");
 	const socketRef = useRef<WebSocket | null>(null);
 
-	const applyOverview = useCallback(
-		(nextOverview: OverviewResponse, markUpdated = false) => {
-			setOverview(nextOverview);
-			if (markUpdated) {
-				setLastDataUpdate(new Date().toISOString());
-			}
-			setRequestStatus("idle");
-		},
-		[],
-	);
+	const applyOverview = useCallback((nextOverview: OverviewResponse) => {
+		setOverview(nextOverview);
+		setRequestStatus("idle");
+	}, []);
 
 	const loadOverview = useCallback(async () => {
 		setRequestStatus((current) =>
@@ -63,7 +56,7 @@ export function useDashboardOverview() {
 		);
 
 		try {
-			applyOverview(await fetchOverview(), true);
+			applyOverview(await fetchOverview());
 		} catch {
 			setRequestStatus("error");
 		}
@@ -123,10 +116,7 @@ export function useDashboardOverview() {
 
 				lastMessageAt = Date.now();
 				setRealtimeStatus("live");
-				applyOverview(
-					message.payload,
-					message.type === "overview.updated",
-				);
+				applyOverview(message.payload);
 			};
 
 			socket.onerror = () => {
@@ -180,7 +170,6 @@ export function useDashboardOverview() {
 
 	return {
 		filteredServers,
-		lastDataUpdate,
 		loadOverview,
 		overview,
 		query,

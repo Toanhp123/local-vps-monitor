@@ -6,12 +6,12 @@ import { ServerList } from "../../../widgets/serverList/ui/ServerList";
 import { SshTargetManagerPanel } from "../../../widgets/sshTargets/ui/SshTargetManagerPanel";
 import { SummaryStats } from "../../../widgets/summaryStats/ui/SummaryStats";
 import { useNow } from "../../../shared/lib/useNow";
+import { Toast } from "../../../shared/ui/Toast";
 
 export function DashboardPage() {
 	const now = useNow();
 	const {
 		filteredServers,
-		lastDataUpdate,
 		loadOverview,
 		overview,
 		query,
@@ -38,17 +38,12 @@ export function DashboardPage() {
 					</div>
 				)}
 
-				<SummaryStats
-					now={now}
-					overview={overview}
-					lastDataUpdate={lastDataUpdate}
-				/>
+				<SummaryStats overview={overview} />
 				<SshTargetManagerPanel
 					activeScanId={sshTargetManager.activeScanId}
 					error={sshTargetManager.error}
 					isLoading={sshTargetManager.isLoading}
 					isSaving={sshTargetManager.isSaving}
-					lastScanMessage={sshTargetManager.lastScanMessage}
 					onAddTarget={sshTargetManager.addTarget}
 					onRemoveTarget={sshTargetManager.removeTarget}
 					onScanAllTargets={sshTargetManager.scanAllTargets}
@@ -60,9 +55,11 @@ export function DashboardPage() {
 					activeScanId={sshTargetManager.activeScanId}
 					now={now}
 					onScanServer={sshTargetManager.scanTarget}
+					query={query}
 					servers={filteredServers}
 				/>
 			</div>
+			<Toast toast={sshTargetManager.toast} />
 		</main>
 	);
 }
