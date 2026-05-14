@@ -10,334 +10,249 @@ Ví dụ:
 
 - Một số app chạy bằng Docker.
 - Một số app chạy bằng PM2.
-- App nằm rải rác trên 3-4 VPS.
+- App nằm rải rác trên nhiều VPS.
 - Khi có lỗi, phải SSH vào từng VPS để xem container hoặc process nào đang down.
 
-`VPS Monitor` giải quyết bài toán này bằng cách tạo một dashboard trung tâm, nơi có thể xem tình trạng tất cả VPS và app từ một màn hình duy nhất.
+`VPS Monitor` giải quyết bài toán này bằng cách tạo một dashboard local để xem trạng thái tất cả VPS và ứng dụng từ một màn hình duy nhất.
 
-## 2. Ý tưởng tổng quan
+## 2. Hướng kiến trúc hiện tại: Local SSH mode
 
-Hệ thống gồm 2 thành phần chính:
+Hướng chính hiện tại là **Local SSH mode**.
 
-- Central Dashboard: server trung tâm dùng để nhận dữ liệu, tổng hợp trạng thái và hiển thị UI.
-- VPS Agent: process nhỏ cài trên từng VPS để tự động collect thông tin và gửi về dashboard.
+Người dùng clone project từ GitHub, chạy dashboard trên máy cá nhân, sau đó dashboard backend kết nối SSH từ localhost tới các VPS của chính họ.
 
 Luồng tổng quan:
 
 ```text
-VPS 1 Agent \
-VPS 2 Agent  +--> Central API ---> React Dashboard
-VPS 3 Agent /
+React Dashboard ---> Local Express API ---> SSH ---> VPS 1
+                                     |----> SSH ---> VPS 2
+                                     |----> SSH ---> VPS 3
+
+Local Express API ---> WebSocket /ws ---> React Dashboard
 ```
 
-Đây là push-based monitoring architecture. Nghĩa là mỗi VPS chủ động gửi heartbeat về server trung tâm. Server trung tâm không cần SSH vào VPS và không cần lưu SSH key.
+Điểm quan trọng:
 
-Trong phiên bản hiện tại, agent vẫn gửi dữ liệu lên server bằng HTTP heartbeat:
+- Dashboard chỉ bind mặc định vào `127.0.0.1`, không public ra Internet.
+- API mặc định chặn `Host` và `Origin` không phải local để giảm rủi ro website lạ gọi vào API localhost.
+- Dữ liệu monitor được lưu ở máy local trong thư mục `data/`.
+- Danh sách VPS SSH được lưu local trong `data/ssh-targets.json`.
+- Ứng dụng không lưu password SSH.
+- Ứng dụng không lưu nội dung private key, chỉ lưu đường dẫn tới file key trên máy người dùng.
+- Backend local dùng SSH key để kết nối outbound tới VPS.
+
+Lý do chọn hướng này: nếu public tool cho người khác dùng, họ chỉ cần chạy localhost nên sẽ yên tâm hơn. Dữ liệu server, danh sách app và thông tin SSH không bị gửi về server của bên thứ ba.
+
+## 3. Cách Local SSH mode hoạt động
+
+Người dùng thêm một SSH target gồm:
+
+- Tên hiển thị.
+- IP hoặc hostname của VPS.
+- SSH port.
+- SSH username.
+- Đường dẫn private key trên máy local.
+
+Khi bấm `Scan` hoặc `Scan all`, local backend sẽ:
+
+1. Đọc private key từ đường dẫn local.
+2. Mở SSH connection tới VPS.
+3. Chạy các lệnh read-only để lấy thông tin host, Docker và PM2.
+4. Chuyển dữ liệu thu được thành `HeartbeatPayload`.
+5. Gọi lại `MonitorOverviewService.ingestHeartbeat()` giống như luồng agent cũ.
+6. Lưu trạng thái mới nhất vào `monitor-state.json`.
+7. Bắn overview mới xuống React dashboard qua WebSocket.
+
+Điểm hay là phần dashboard, offline detection, summary và WebSocket không cần viết lại. SSH scanner chỉ đóng vai trò một nguồn dữ liệu mới.
+
+## 4. Vì sao cách này bảo mật hơn cho người dùng GitHub
+
+Với một tool public trên GitHub, người dùng thường ngại nhập thông tin server vào một hệ thống hosted sẵn. Vì vậy hướng local-first hợp lý hơn:
+
+- Không cần tạo tài khoản.
+- Không cần cloud server trung gian.
+- Không cần Cloudflare Tunnel.
+- Không cần mở dashboard ra public Internet.
+- Không có dữ liệu monitor gửi về tác giả tool.
+- SSH key vẫn nằm trên máy người dùng.
+- Giảm rủi ro DNS rebinding hoặc cross-origin request nhờ kiểm tra `Host`/`Origin` ở backend.
+
+Thiết kế hiện tại cố tình không hỗ trợ lưu password SSH. Nếu cần đăng nhập bằng password lần đầu, người dùng nên tự tạo SSH key và copy public key lên VPS, sau đó dashboard chỉ dùng key.
+
+## 5. Các lệnh remote được scan
+
+Phần SSH scanner lấy host metrics từ Linux:
+
+- `hostname`
+- `uname`
+- `/proc/uptime`
+- `/proc/loadavg`
+- `/proc/meminfo`
+- `nproc`
+
+Phần Docker:
+
+- `docker ps -a --format '{{json .}}'`
+- `docker stats --no-stream --format '{{json .}}'`
+- `docker inspect --format '{{json .}}'`
+
+Phần PM2:
+
+- `pm2 jlist`
+
+Nếu VPS không cài Docker hoặc PM2 thì scanner không coi đó là lỗi. Runtime nào không tồn tại sẽ trả về danh sách app rỗng.
+
+## 6. Realtime update
+
+Sau mỗi lần scan thành công, server local không bắt client reload trang. Thay vào đó server broadcast overview mới xuống dashboard bằng WebSocket:
 
 ```text
-VPS Agent ---> HTTP POST /api/ingest/heartbeat ---> Central API
+SSH scan ---> MonitorOverviewService ---> WebSocket /ws ---> React Dashboard
 ```
 
-Sau khi nhận heartbeat, server bắn dữ liệu mới xuống dashboard bằng WebSocket:
+Dashboard cũng có fallback bằng HTTP polling nếu WebSocket bị mất kết nối.
 
-```text
-Central API ---> WebSocket /ws ---> React Dashboard
-```
+## 7. Kiến trúc backend MVC đơn giản
 
-Như vậy luồng realtime hiện tại là:
-
-```text
-VPS Agent ---> HTTP heartbeat ---> Central API ---> WebSocket event ---> React Dashboard
-```
-
-Dashboard vẫn có thể gọi `GET /api/overview` khi load lần đầu, khi bấm refresh thủ công hoặc khi WebSocket bị mất kết nối. Nhưng luồng cập nhật chính là server push qua WebSocket.
-
-## 3. Cách agent hoạt động
-
-Agent là một Node.js process chạy trên từng VPS.
-
-Mỗi chu kỳ, agent sẽ:
-
-1. Lấy thông tin host:
-   - hostname
-   - platform
-   - CPU cores
-   - memory total/free
-   - uptime
-   - load average
-
-2. Lấy thông tin Docker:
-   - container name
-   - image
-   - status
-   - health
-   - CPU usage
-   - memory usage
-   - ports
-
-3. Lấy thông tin PM2:
-   - process name
-   - status
-   - CPU usage
-   - memory usage
-   - restart count
-   - uptime
-
-4. Tạo heartbeat payload.
-
-5. Gửi heartbeat lên central server qua HTTP API:
-
-```text
-POST /api/ingest/heartbeat
-```
-
-Heartbeat được gửi kèm token:
-
-```text
-Authorization: Bearer <AGENT_TOKEN>
-```
-
-Điều này giúp server chỉ nhận dữ liệu từ agent hợp lệ.
-
-Lưu ý: WebSocket hiện được dùng ở chiều server xuống dashboard. Agent vẫn dùng HTTP POST theo chu kỳ để gửi heartbeat lên server. Cách này phù hợp vì agent chỉ cần gửi snapshot định kỳ, còn dashboard cần nhận update ngay khi server có dữ liệu mới.
-
-## 4. Cách central server hoạt động
-
-Central server là một Express.js API.
-
-Server có các nhiệm vụ:
-
-- Nhận heartbeat từ các VPS agent.
-- Validate payload bằng schema.
-- Kiểm tra token xác thực.
-- Lưu trạng thái mới nhất của từng VPS.
-- Tổng hợp overview cho dashboard.
-- Đánh dấu VPS offline nếu quá một khoảng thời gian không có heartbeat.
-
-API chính:
-
-```text
-POST /api/ingest/heartbeat
-GET /api/overview
-GET /api/health
-WS /ws
-```
-
-Trong MVP hiện tại, dữ liệu được lưu bằng JSON file. Cách này đơn giản, dễ deploy và đủ cho phiên bản demo/CV. Nếu cần production hơn, có thể nâng cấp sang SQLite, PostgreSQL hoặc time-series database.
-
-Server được tổ chức theo kiến trúc MVC-style đơn giản:
+Server dùng Express và được tách theo kiểu MVC-style:
 
 ```text
 src/server
-├── index.ts                 # bootstrap server
+├── index.ts                 # bootstrap HTTP server
 ├── app.ts                   # cấu hình Express app
 ├── config.ts                # cấu hình môi trường
-├── routes                   # khai báo HTTP routes
+├── routes                   # khai báo endpoint
 ├── controllers              # xử lý request/response
-├── services                 # logic nghiệp vụ/use case
-├── models                   # model lưu trữ trạng thái
-├── realtime                 # WebSocket gateway bắn update xuống dashboard
+├── services                 # use case, business logic
+├── models                   # đọc/ghi JSON state
+├── realtime                 # WebSocket gateway
 └── validators               # schema validate payload
 ```
-
-Với backend API, phần View không nằm trong Express server mà nằm ở React dashboard. Vì vậy server dùng cách tách MVC-style:
-
-- Routes định nghĩa endpoint.
-- Controllers nhận request, validate dữ liệu và trả response.
-- Services chứa use case của ứng dụng, ví dụ ingest heartbeat hoặc lấy overview.
-- Models/Store chịu trách nhiệm lưu và đọc trạng thái monitor.
-- Realtime gateway giữ WebSocket connection và broadcast overview mới cho dashboard.
-- Validators chứa schema kiểm tra payload.
 
 Lý do chọn MVC đơn giản:
 
 - Backend hiện tại ít endpoint và CRUD không nhiều.
 - Dễ đọc, dễ giải thích khi đưa vào CV.
-- Đủ tách trách nhiệm giữa route, controller, logic và storage.
-- Không bị over-engineering như Clean Architecture khi domain vẫn còn nhỏ.
+- Đủ tách trách nhiệm giữa route, controller, service và storage.
+- Không over-engineering khi domain vẫn còn nhỏ.
 
-## 5. Cách dashboard hoạt động
+Các service chính:
 
-Dashboard được viết bằng React + TypeScript.
+- `MonitorOverviewService`: ingest heartbeat, lấy overview, notify realtime listener.
+- `SshScanService`: quản lý luồng scan VPS qua SSH và chuyển kết quả thành heartbeat.
+- `HealthService`: trả thông tin health của local API.
 
-Client được tổ chức theo Feature-Sliced Design ở mức vừa đủ và dùng Tailwind CSS để style UI:
+Các model chính:
+
+- `MonitorStateStore`: lưu trạng thái server/app mới nhất.
+- `SshTargetConfigStore`: lưu danh sách SSH target local, không lưu password.
+
+## 8. Kiến trúc frontend FSD
+
+Client dùng React + TypeScript + Tailwind CSS và tổ chức theo Feature-Sliced Design ở mức vừa đủ:
 
 ```text
 src/client
 ├── app                      # bootstrap app và global styles
 ├── pages                    # màn hình cấp page
-├── widgets                  # các khu vực lớn của dashboard
+├── widgets                  # các khối UI lớn
 ├── entities                 # UI theo domain server/application
 └── shared                   # API client, helper format, UI dùng chung
 ```
 
-Lý do chọn FSD cho client:
+Ví dụ:
 
-- Tách rõ page state, UI widget, entity UI và helper dùng chung.
-- Dễ mở rộng khi dashboard có thêm trang như alerts, history hoặc settings.
-- Tránh để toàn bộ dashboard nằm trong một file `App.tsx` quá lớn.
-- Phù hợp để thể hiện cấu trúc frontend nghiêm túc hơn trong CV.
+- `pages/dashboard/model/useDashboardOverview.ts`: quản lý overview và WebSocket.
+- `pages/dashboard/model/useSshTargetManager.ts`: quản lý danh sách SSH target và thao tác scan.
+- `widgets/sshTargets/ui/SshTargetManagerPanel.tsx`: form thêm VPS và nút scan.
+- `entities/server/ui/ServerPanel.tsx`: hiển thị một VPS.
+- `entities/application/ui/ApplicationTable.tsx`: hiển thị Docker/PM2 apps.
 
-Lý do chuyển sang Tailwind:
+Lý do chọn FSD:
 
-- Không còn dồn toàn bộ CSS vào một file global lớn.
-- Style của component nằm gần component, dễ đọc hơn khi theo FSD.
-- Giảm việc đặt tên class thủ công như `server-panel`, `stats-grid`, `app-table`.
-- Dễ chỉnh responsive trực tiếp bằng utility classes như `max-md:grid-cols-1`.
+- Tách page state, widget, entity và shared utilities rõ ràng.
+- Dễ mở rộng thêm trang alerts, history hoặc settings.
+- Tránh dồn toàn bộ dashboard vào một file `App.tsx`.
+- Thể hiện được tư duy cấu trúc frontend khi đưa vào CV.
 
-Khi load lần đầu, dashboard gọi API:
+## 9. Agent mode vẫn còn nhưng là tuỳ chọn
 
-```text
-GET /api/overview
-```
-
-Sau đó dashboard mở WebSocket tới server:
+Trước đó project dùng push-based agent architecture:
 
 ```text
-ws://server-host/ws
+VPS Agent ---> HTTP heartbeat ---> Central API ---> WebSocket ---> Dashboard
 ```
 
-Khi server nhận heartbeat mới từ agent, server broadcast message `overview.updated` xuống tất cả dashboard đang kết nối. Client nhận message này và cập nhật UI ngay.
+Mô hình này vẫn hữu ích nếu muốn self-host dashboard ở một server riêng và cài agent trên từng VPS.
 
-Server cũng bắn overview định kỳ qua WebSocket để dashboard cập nhật trạng thái offline timeout, kể cả khi không có heartbeat mới.
+Tuy nhiên với mục tiêu public tool cho người dùng chạy local, Local SSH mode phù hợp hơn vì người dùng không cần deploy dashboard ra Internet và không cần cài agent trước.
 
-Phần WebSocket ở client được xử lý mượt hơn bằng các cơ chế:
+## 10. Cách xác định health status
 
-- Tự reconnect khi WebSocket bị đóng.
-- Exponential backoff để tránh reconnect quá dày khi server đang lỗi.
-- Stale socket detection: nếu socket vẫn mở nhưng quá lâu không nhận message thì chủ động reconnect.
-- HTTP polling fallback khi WebSocket chưa kết nối lại được.
-- Trạng thái kết nối rõ ràng trên UI: `Live`, `Connecting`, `Reconnecting`, `Polling fallback`.
-
-Dashboard hiển thị:
-
-- Tổng số VPS.
-- Số VPS đang online.
-- Tổng số app.
-- Số app healthy/warning/down.
-- Thông tin CPU, RAM, uptime của từng VPS.
-- Danh sách Docker containers và PM2 processes.
-- Runtime type của từng app.
-- Status và health của từng app.
-
-Nếu một VPS không gửi heartbeat trong thời gian cấu hình, dashboard sẽ coi VPS đó là offline.
-
-Nếu WebSocket bị mất kết nối, dashboard chuyển sang fallback bằng HTTP polling để vẫn có dữ liệu.
-
-## 6. Cách xác định health status
-
-Hệ thống gồm các status chính:
+Hệ thống có các status chính:
 
 - `healthy`: app đang chạy bình thường.
-- `warning`: app có dấu hiệu bất thường, ví dụ Docker unhealthy hoặc process đang launching/stopping.
+- `warning`: app có dấu hiệu bất thường, ví dụ Docker unhealthy hoặc PM2 đang launching/stopping.
 - `down`: app/server bị stop, exited, errored hoặc offline.
 - `unknown`: không đủ dữ liệu để kết luận.
 
-Docker health được suy ra từ `docker ps` và `docker stats`.
+Docker health được suy ra từ `docker ps`, `docker stats` và `docker inspect`.
 
-PM2 health được suy ra từ `pm2 jlist`.
+Docker restart count lấy từ `RestartCount` của `docker inspect`, đồng thời server còn so sánh `State.StartedAt` giữa các lần scan. Lý do là khi restart thủ công bằng `docker restart`, Docker có thể vẫn giữ `RestartCount = 0`, nhưng `StartedAt` sẽ đổi.
 
-## 7. Lý do chọn agent-based architecture
+PM2 health và restart count lấy từ `pm2 jlist`.
 
-Có hai cách phổ biến để monitor VPS:
+## 11. Điểm kỹ thuật nổi bật để đưa vào CV
 
-- Pull-based: server trung tâm SSH hoặc gọi API vào từng VPS.
-- Push-based: mỗi VPS chạy agent và tự gửi dữ liệu về server trung tâm.
+Có thể nhấn mạnh các ý sau:
 
-Project này chọn push-based vì:
+- Xây dựng local-first VPS monitoring dashboard bằng React, TypeScript, Node.js và Express.
+- Thiết kế backend MVC-style đơn giản, gồm controllers, services, models, validators và WebSocket gateway.
+- Tích hợp SSH scanner để collect host metrics, Docker containers và PM2 processes từ nhiều VPS.
+- Không lưu SSH password; chỉ lưu local private key path để giảm rủi ro lộ credential.
+- Chuyển kết quả SSH scan thành heartbeat payload để tái sử dụng monitor pipeline hiện có.
+- Broadcast realtime overview xuống dashboard bằng WebSocket sau mỗi lần scan.
+- Refactor frontend theo Feature-Sliced Design, tách pages, widgets, entities và shared layer.
+- Dùng Tailwind CSS để colocate styling theo component.
+- Hỗ trợ optional agent mode cho mô hình self-hosted push-based monitoring.
+- Phát hiện Docker manual restart bằng cách so sánh `State.StartedAt` giữa các lần scan/heartbeat.
 
-- Central server không cần lưu SSH key.
-- VPS có thể nằm sau firewall/NAT miễn là gọi được ra ngoài.
-- Dễ thêm server mới: chỉ cần cài agent và token.
-- Giảm rủi ro bảo mật so với việc server trung tâm có quyền SSH vào tất cả VPS.
-- Phù hợp với bài toán monitor nhiều server nhỏ của developer.
+## 12. Cách viết trong CV
 
-## 8. Tech stack
-
-Project sử dụng:
-
-- React
-- TypeScript
-- Tailwind CSS
-- Node.js
-- Express.js
-- Docker
-- PM2
-- systemd
-- Vite
-- WebSocket
-- Zod
-
-## 9. Điểm kỹ thuật nổi bật
-
-Những điểm có thể nói trong CV/phỏng vấn:
-
-- Thiết kế hệ thống monitor nhiều VPS bằng agent-based architecture.
-- Xây dựng agent để collect Docker, PM2 và host metrics.
-- Xây dựng API nhận heartbeat có xác thực bằng bearer token.
-- Tổng hợp health status của server và application runtime.
-- Phát hiện server offline dựa trên heartbeat timeout.
-- Tạo dashboard React để quan sát tình trạng nhiều app từ một nơi.
-- Refactor client theo Feature-Sliced Design để tách page, widgets, entities và shared utilities.
-- Thêm WebSocket để server push overview mới xuống dashboard theo thời gian thực.
-- Tối ưu WebSocket client với reconnect backoff, stale detection và polling fallback.
-- Hỗ trợ deploy central dashboard bằng Docker Compose.
-- Hỗ trợ chạy agent như background service bằng systemd.
-
-## 10. Cách viết trong CV
-
-Bản ngắn gọn:
+Bản ngắn:
 
 ```text
-Built a centralized VPS monitoring dashboard to track Docker containers and PM2 applications across multiple servers without manually SSH-ing into each machine.
+Built a local-first VPS monitoring dashboard to track Docker containers and PM2 applications across multiple servers through SSH, without exposing the dashboard publicly or storing SSH passwords.
 ```
 
 Bản chi tiết hơn:
 
 ```text
-Developed a centralized VPS monitoring system using React, TypeScript, Node.js, and Express.js. Built a lightweight agent installed on each VPS to collect host metrics, Docker container stats, and PM2 process status, then push authenticated heartbeat data to a central API. Added WebSocket broadcasting so the React dashboard receives real-time overview updates and offline detection changes.
+Developed a local-first VPS monitoring system using React, TypeScript, Node.js, and Express.js. Implemented an SSH-based scanner that connects from the user's localhost to remote VPS instances, collects host metrics, Docker container stats, and PM2 process status, then streams real-time overview updates to the dashboard through WebSocket.
 ```
 
 Dạng bullet points:
 
 ```text
-- Designed a push-based monitoring architecture with lightweight agents installed on each VPS.
-- Implemented a Node.js agent to collect host metrics, Docker container stats, and PM2 process status.
-- Built an Express.js API to receive authenticated heartbeat data and aggregate server/application health.
-- Developed a React dashboard to visualize server availability, app health, CPU/memory usage, uptime, and runtime status.
-- Refactored the frontend using a lightweight Feature-Sliced Design structure with pages, widgets, entities, and shared layers.
-- Added offline detection based on heartbeat timeout and health classification for Docker/PM2 workloads.
-- Containerized the central dashboard with Docker Compose and provided a systemd service setup for VPS agents.
-- Implemented WebSocket broadcasting to push live overview updates from the server to connected dashboard clients.
-- Improved WebSocket reliability with reconnect backoff, stale connection detection, and HTTP polling fallback.
+- Designed a local-first monitoring architecture where the dashboard runs on localhost and scans VPS instances through outbound SSH.
+- Implemented an Express.js MVC-style backend with controllers, services, models, validators, and WebSocket broadcasting.
+- Built an SSH scanner for collecting Linux host metrics, Docker container status, and PM2 process data.
+- Avoided storing SSH passwords; persisted only local private key paths and monitor state in local JSON files.
+- Reused a heartbeat ingestion pipeline so SSH scan results and optional agent heartbeats share the same dashboard flow.
+- Developed a React dashboard using Feature-Sliced Design and Tailwind CSS to visualize VPS health, runtime status, CPU, memory, uptime, and restart counts.
+- Added WebSocket updates with reconnect and HTTP polling fallback for smoother realtime monitoring.
 ```
 
-## 11. Giải thích ngắn khi phỏng vấn
+## 13. Hướng mở rộng
 
-Nếu được hỏi về project, có thể trả lời:
+Các hướng có thể phát triển tiếp:
 
-```text
-I built this project because I often deploy multiple applications across different VPS instances, some running in Docker and some managed by PM2. Instead of SSH-ing into each server manually, I created a lightweight agent that runs on every VPS, collects host, Docker, and PM2 metrics, and pushes heartbeat data to a central Express API. The server aggregates the latest state and broadcasts overview updates to the React dashboard through WebSocket, so connected clients can see health changes in real time.
-```
-
-Ý chính cần nhấn mạnh:
-
-- Đây là hệ thống monitor nhiều VPS từ một dashboard trung tâm.
-- Mỗi VPS chạy một agent nhỏ để gửi heartbeat.
-- Server trung tâm không cần SSH vào VPS.
-- Hệ thống theo dõi được cả Docker container và PM2 process.
-- Có cơ chế phát hiện VPS offline dựa trên timeout.
-- Agent gửi heartbeat bằng HTTP, còn server push update realtime xuống dashboard bằng WebSocket.
-
-## 12. Hướng mở rộng
-
-Nếu tiếp tục phát triển, project có thể thêm:
-
-- Alert qua Telegram/Discord/Slack khi app down.
+- Alert qua Telegram, Discord hoặc Slack khi app down.
 - Lưu lịch sử metrics theo thời gian.
-- Biểu đồ CPU/RAM.
-- Login cho dashboard.
-- Multi-user và role-based access control.
-- Auto-discovery Docker labels để group app theo project.
-- Deploy agent bằng install script một lệnh.
-- Lưu dữ liệu bằng PostgreSQL hoặc SQLite.
+- Biểu đồ CPU/RAM theo từng VPS.
+- Import/export danh sách SSH targets.
+- Mã hoá file cấu hình local bằng passphrase của người dùng.
+- Hỗ trợ ssh-agent thay vì đọc private key file trực tiếp.
+- Group app theo project bằng Docker labels.
+- Thêm command runner read-only có audit log.
+- Dùng SQLite thay cho JSON file khi dữ liệu lớn hơn.

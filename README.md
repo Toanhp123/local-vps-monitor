@@ -1,64 +1,64 @@
 # VPS Monitor
 
-VPS Monitor is an MVP dashboard for tracking applications deployed across multiple VPS instances. Each VPS runs a lightweight agent that collects host metrics, Docker container status, and PM2 process status, then pushes heartbeat data to a central dashboard.
+VPS Monitor is a local-first dashboard for checking applications across multiple VPS machines from one screen. It is designed for developers who run apps with Docker and PM2 and do not want to SSH into every server manually.
+
+The default mode is **Local SSH mode**:
+
+- The dashboard and API run on `127.0.0.1`.
+- The API rejects non-local `Host` and `Origin` headers by default.
+- The app opens outbound SSH connections from your own machine to your own VPS instances.
+- SSH passwords are not stored or requested by the dashboard.
+- SSH private key content is not persisted; only the local key file path is saved.
+- Metrics are stored in local JSON files under `data/`, which is ignored by Git.
+
+An optional agent mode is still available for users who want each VPS to push heartbeat data to a self-hosted dashboard.
 
 ## Architecture
 
-- `server`: Express API, WebSocket broadcaster, and production static dashboard server. It receives heartbeats at `POST /api/ingest/heartbeat` and streams overview updates at `/ws`.
-- `agent`: Node.js process installed on each VPS. It collects host, Docker, and PM2 metrics.
-- `client`: React dashboard that subscribes to `/ws` for live updates and uses `GET /api/overview` for initial loading, manual refresh, and fallback.
-- `storage`: JSON file storage configured by `DATA_FILE`, defaulting to `./data/monitor-state.json`.
+```text
+Browser dashboard ---> Local Express API ---> SSH ---> VPS 1
+                                      |-----> SSH ---> VPS 2
+                                      |-----> SSH ---> VPS 3
 
-The system uses a push-based agent model. The central server does not need to SSH into each VPS and does not need to store SSH keys.
+Local Express API ---> WebSocket /ws ---> Browser dashboard
+```
 
-For a detailed Vietnamese explanation of the idea, architecture, CV wording, and interview notes, see `docs/project-explanation.md`.
+Main parts:
+
+- `server`: Express API, MVC-style controllers/services/models, SSH scanner, JSON storage, and WebSocket broadcaster.
+- `client`: React dashboard using a lightweight Feature-Sliced Design structure and Tailwind CSS.
+- `agent`: optional Node.js process that can be installed on each VPS for push-based monitoring.
+- `storage`: local JSON files configured by `DATA_FILE` and `SSH_TARGETS_FILE`.
+
+For a detailed Vietnamese explanation for CV/interview use, see `docs/project-explanation.md`.
 
 ## Server Structure
 
-The API server uses a simple MVC-style structure because the current backend has a small number of endpoints and limited CRUD complexity.
+The API server uses a simple MVC-style structure because the backend has a small endpoint surface and limited CRUD complexity.
 
 ```text
 src/server
-├── index.ts                 # server bootstrap
-├── app.ts                   # Express app composition
-├── config.ts                # environment configuration
-├── routes                   # HTTP route definitions
-├── controllers              # request/response handlers
-├── services                 # application use cases
-├── models                   # persistence/state model
-├── realtime                 # WebSocket gateway
-└── validators               # request payload schemas
+|-- index.ts                 # server bootstrap
+|-- app.ts                   # Express app composition
+|-- config.ts                # environment configuration
+|-- routes                   # HTTP route definitions
+|-- controllers              # request/response handlers
+|-- services                 # application use cases
+|-- models                   # persistence/state model
+|-- realtime                 # WebSocket gateway
+`-- validators               # request payload schemas
 ```
-
-In this project, the React app acts as the View layer. The Express server follows the routing/controller/service/model split to keep request handling, business logic, and storage concerns separate.
 
 ## Client Structure
 
-The React client follows a lightweight Feature-Sliced Design structure and uses Tailwind CSS for styling:
-
 ```text
 src/client
-├── app                      # app bootstrap and global styles
-├── pages                    # route-level screens
-├── widgets                  # composed dashboard sections
-├── entities                 # domain UI for servers and applications
-└── shared                   # API clients, formatting helpers, reusable UI
+|-- app                      # app bootstrap and global styles
+|-- pages                    # route-level screens
+|-- widgets                  # composed dashboard sections
+|-- entities                 # domain UI for servers and applications
+`-- shared                   # API clients, formatting helpers, reusable UI
 ```
-
-The dashboard page owns data loading and realtime state. Widgets only compose UI sections, entities render domain-specific blocks, and shared code contains reusable API, formatting, and UI utilities. The global stylesheet only imports Tailwind; component-specific styling is expressed with utility classes colocated with each component.
-
-## Realtime Updates
-
-Agents still send metrics to the server with authenticated HTTP heartbeats. After each heartbeat, the server broadcasts the latest overview to connected dashboard clients over WebSocket.
-
-```text
-Agent ---> POST /api/ingest/heartbeat ---> Server
-Server ---> WebSocket /ws ---> React dashboard
-```
-
-The server also sends periodic WebSocket overview updates so the dashboard can reflect offline timeout changes even when no new heartbeat arrives.
-
-The client WebSocket connection includes automatic reconnect with exponential backoff, stale socket detection, and HTTP polling fallback when the realtime connection is unavailable.
 
 ## Local Development
 
@@ -68,42 +68,71 @@ copy .env.example .env
 npm run dev
 ```
 
-Development dashboard: `http://localhost:5173`
+Development dashboard:
 
-API server: `http://localhost:3001`
+```text
+http://127.0.0.1:5173
+```
 
-WebSocket endpoint: `ws://localhost:3001/ws`
+API server:
 
-## Run A Local Agent For Testing
+```text
+http://127.0.0.1:3001
+```
 
-Open another terminal:
+WebSocket endpoint:
+
+```text
+ws://127.0.0.1:3001/ws
+```
+
+## Local SSH Mode
+
+Create an SSH key for the monitor tool:
 
 ```bash
-$env:AGENT_SERVER_URL="http://localhost:3001"
+ssh-keygen -t ed25519 -f ~/.ssh/vps_monitor
+```
+
+Copy the public key to your VPS:
+
+```bash
+ssh-copy-id -i ~/.ssh/vps_monitor.pub root@your-vps-ip
+```
+
+Then open the dashboard and add a target:
+
+- Name: display name in the dashboard.
+- Host: VPS IP or hostname.
+- Port: usually `22`.
+- User: SSH username, for example `root`.
+- Private key path: local path, for example `~/.ssh/vps_monitor`.
+
+Click `Scan` or `Scan all`. The local API connects to the VPS through SSH, runs read-only monitor commands, converts the result into the existing heartbeat format, stores the latest state locally, and pushes the new overview to the browser via WebSocket.
+
+The scanner currently checks:
+
+- Host metrics from Linux system files and commands.
+- Docker containers from `docker ps`, `docker stats`, and `docker inspect`.
+- PM2 processes from `pm2 jlist`.
+
+If Docker or PM2 is not installed on a VPS, that runtime simply reports no apps.
+
+## Optional Agent Mode
+
+Agent mode is useful when you self-host the dashboard and want each VPS to push data to it.
+
+Local test:
+
+```bash
+$env:AGENT_SERVER_URL="http://127.0.0.1:3001"
 $env:AGENT_TOKEN="change-me"
 $env:AGENT_SERVER_ID="local-dev"
 $env:AGENT_SERVER_NAME="Local Dev"
 npm run dev:agent
 ```
 
-On a Linux VPS:
-
-```bash
-export AGENT_SERVER_URL="https://monitor.example.com"
-export AGENT_TOKEN="your-secret-token"
-export AGENT_SERVER_ID="vps-01"
-export AGENT_SERVER_NAME="VPS 01"
-npm run start:agent
-```
-
-## Production Build
-
-```bash
-npm run build
-INGEST_TOKEN=your-secret-token npm start
-```
-
-Production agent:
+Production-style agent:
 
 ```bash
 AGENT_SERVER_URL=https://monitor.example.com \
@@ -113,34 +142,40 @@ AGENT_SERVER_NAME="VPS 01" \
 npm run start:agent
 ```
 
-## Deploy The Central Dashboard With Docker
+## Runtime Metrics
+
+- Docker apps report CPU, memory, image, ports, status, health, and restart count.
+- PM2 apps report CPU, memory, process status, uptime, and restart count.
+- Docker manual restarts are detected by comparing the container `StartedAt` value between scans or heartbeats.
+
+## Reset Local Data
 
 ```bash
-INGEST_TOKEN=your-secret-token docker compose up -d --build
+npm run reset:data
 ```
 
-The production dashboard will be available at:
+This resets `DATA_FILE`, defaulting to `./data/monitor-state.json`. Restart the API process after resetting because the server keeps current state in memory.
 
-```text
-http://server-ip:3001
-```
+SSH targets are stored separately in `SSH_TARGETS_FILE`, defaulting to `./data/ssh-targets.json`.
 
-## Install The Agent With systemd
-
-Build the project once, copy the project directory to `/opt/vps-monitor` on the VPS, edit `deploy/vps-monitor-agent.service.example` with the correct URL, token, and server ID, then install it as a systemd service:
+## Build
 
 ```bash
-sudo cp deploy/vps-monitor-agent.service.example /etc/systemd/system/vps-monitor-agent.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now vps-monitor-agent
+npm run build
+npm start
 ```
 
 ## Environment Variables
 
-- `INGEST_TOKEN`: token used by the central server to authenticate heartbeat requests.
-- `AGENT_TOKEN`: token sent by the agent. It must match `INGEST_TOKEN`.
-- `OFFLINE_AFTER_MS`: heartbeat timeout before a VPS is marked offline.
+- `HOST`: API bind host. Defaults to `127.0.0.1`.
+- `ALLOW_REMOTE_ACCESS`: set to `true` only if you intentionally expose the API outside localhost.
+- `PORT`: API port. Defaults to `3001`.
+- `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
+- `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.
+- `SSH_COMMAND_TIMEOUT_MS`: SSH connect/command timeout. Defaults to `12000`.
+- `INGEST_TOKEN`: token used by optional agent mode.
+- `OFFLINE_AFTER_MS`: timeout before a VPS is marked offline.
 - `REALTIME_BROADCAST_MS`: interval for periodic WebSocket overview broadcasts.
-- `AGENT_INTERVAL_MS`: interval between agent heartbeat requests.
-- `DOCKER_BIN`: Docker command path if Docker is not available in `PATH`.
-- `PM2_BIN`: PM2 command path if PM2 is not available in `PATH`.
+- `AGENT_INTERVAL_MS`: optional agent heartbeat interval.
+- `DOCKER_BIN`: Docker command path for optional local agent mode.
+- `PM2_BIN`: PM2 command path for optional local agent mode.

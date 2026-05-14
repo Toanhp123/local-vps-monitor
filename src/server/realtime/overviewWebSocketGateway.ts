@@ -1,7 +1,7 @@
 import type { Server as HttpServer } from "node:http";
 import { WebSocket, WebSocketServer } from "ws";
 import type { RealtimeMessage } from "../../shared/types";
-import type { MonitorService } from "../services/monitorService";
+import type { MonitorOverviewService } from "../services/monitorOverviewService";
 
 export class OverviewWebSocketGateway {
   private readonly wss: WebSocketServer;
@@ -10,7 +10,7 @@ export class OverviewWebSocketGateway {
 
   constructor(
     httpServer: HttpServer,
-    private readonly monitorService: MonitorService,
+    private readonly monitorOverviewService: MonitorOverviewService,
     broadcastIntervalMs: number
   ) {
     this.wss = new WebSocketServer({ server: httpServer, path: "/ws" });
@@ -18,11 +18,11 @@ export class OverviewWebSocketGateway {
     this.wss.on("connection", (socket) => {
       this.send(socket, {
         type: "overview.snapshot",
-        payload: this.monitorService.getOverview()
+        payload: this.monitorOverviewService.getOverview()
       });
     });
 
-    this.unsubscribeOverview = this.monitorService.onOverviewUpdated((overview) => {
+    this.unsubscribeOverview = this.monitorOverviewService.onOverviewUpdated((overview) => {
       this.broadcast({
         type: "overview.updated",
         payload: overview
@@ -32,7 +32,7 @@ export class OverviewWebSocketGateway {
     this.broadcastTimer = setInterval(() => {
       this.broadcast({
         type: "overview.snapshot",
-        payload: this.monitorService.getOverview()
+        payload: this.monitorOverviewService.getOverview()
       });
     }, broadcastIntervalMs);
 

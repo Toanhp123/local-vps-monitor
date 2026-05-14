@@ -59,6 +59,47 @@ export interface OverviewResponse {
   servers: StoredServer[];
 }
 
+export interface SshTarget {
+  id: string;
+  name: string;
+  host: string;
+  port: number;
+  username: string;
+  privateKeyPath: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SshTargetCreateInput {
+  name: string;
+  host: string;
+  port: number;
+  username: string;
+  privateKeyPath: string;
+  enabled?: boolean;
+}
+
+export interface SshTargetListResponse {
+  targets: SshTarget[];
+}
+
+export interface SshScanResult {
+  targetId: string;
+  serverId: string;
+  serverName: string;
+  appCount: number;
+  scannedAt: string;
+}
+
+export interface SshScanAllResponse {
+  results: SshScanResult[];
+  errors: Array<{
+    targetId: string;
+    message: string;
+  }>;
+}
+
 export type RealtimeMessage =
   | {
       type: "overview.snapshot";

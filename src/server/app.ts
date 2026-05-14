@@ -2,10 +2,13 @@ import express, { type Express } from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { serverConfig } from "./config";
-import { MonitorStore } from "./models/monitorStore";
+import { localAccessGuard } from "./middleware/localAccessGuard";
+import { MonitorStateStore } from "./models/monitorStateStore";
+import { SshTargetConfigStore } from "./models/sshTargetConfigStore";
 import { createApiRouter } from "./routes/apiRoutes";
 import { HealthService } from "./services/healthService";
-import { MonitorService } from "./services/monitorService";
+import { MonitorOverviewService } from "./services/monitorOverviewService";
+import { SshScanService } from "./services/sshScanService";
 
 const mountClientApp = (app: Express) => {
   const clientDist = path.resolve(process.cwd(), "dist/client");
@@ -26,25 +29,34 @@ const mountClientApp = (app: Express) => {
 
 export interface ServerAppContext {
   app: Express;
-  monitorService: MonitorService;
+  monitorOverviewService: MonitorOverviewService;
 }
 
 export const createApp = () => {
   const app = express();
-  const store = new MonitorStore(serverConfig.dataFile, serverConfig.offlineAfterMs);
-  const monitorService = new MonitorService(store);
+  const monitorStateStore = new MonitorStateStore(serverConfig.dataFile, serverConfig.offlineAfterMs);
+  const sshTargetConfigStore = new SshTargetConfigStore(serverConfig.sshTargetsFile);
+  const monitorOverviewService = new MonitorOverviewService(monitorStateStore);
+  const sshScanService = new SshScanService(
+    sshTargetConfigStore,
+    monitorOverviewService,
+    serverConfig.sshCommandTimeoutMs,
+    serverConfig.version
+  );
   const healthService = new HealthService({
     dataFile: serverConfig.dataFile,
     version: serverConfig.version
   });
 
+  app.use(localAccessGuard(serverConfig.allowRemoteAccess));
   app.use(express.json({ limit: "1mb" }));
   app.use(
     "/api",
     createApiRouter({
       healthService,
       ingestToken: serverConfig.ingestToken,
-      monitorService
+      monitorOverviewService,
+      sshScanService
     })
   );
 
@@ -52,6 +64,6 @@ export const createApp = () => {
 
   return {
     app,
-    monitorService
+    monitorOverviewService
   } satisfies ServerAppContext;
 };

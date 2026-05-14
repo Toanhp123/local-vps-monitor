@@ -1,7 +1,9 @@
 import { AlertTriangle } from "lucide-react";
 import { useDashboardOverview } from "../model/useDashboardOverview";
+import { useSshTargetManager } from "../model/useSshTargetManager";
 import { DashboardHeader } from "../../../widgets/dashboardHeader/ui/DashboardHeader";
 import { ServerList } from "../../../widgets/serverList/ui/ServerList";
+import { SshTargetManagerPanel } from "../../../widgets/sshTargets/ui/SshTargetManagerPanel";
 import { SummaryStats } from "../../../widgets/summaryStats/ui/SummaryStats";
 import { useNow } from "../../../shared/lib/useNow";
 
@@ -17,6 +19,7 @@ export function DashboardPage() {
 		requestStatus,
 		setQuery,
 	} = useDashboardOverview();
+	const sshTargetManager = useSshTargetManager(loadOverview);
 
 	return (
 		<main className="min-h-screen bg-[#eef1f5] text-slate-900 antialiased">
@@ -39,6 +42,19 @@ export function DashboardPage() {
 					now={now}
 					overview={overview}
 					lastDataUpdate={lastDataUpdate}
+				/>
+				<SshTargetManagerPanel
+					activeScanId={sshTargetManager.activeScanId}
+					error={sshTargetManager.error}
+					isLoading={sshTargetManager.isLoading}
+					isSaving={sshTargetManager.isSaving}
+					lastScanMessage={sshTargetManager.lastScanMessage}
+					onAddTarget={sshTargetManager.addTarget}
+					onRemoveTarget={sshTargetManager.removeTarget}
+					onScanAllTargets={sshTargetManager.scanAllTargets}
+					onScanTarget={sshTargetManager.scanTarget}
+					scanAllId={sshTargetManager.scanAllId}
+					targets={sshTargetManager.targets}
 				/>
 				<ServerList now={now} servers={filteredServers} />
 			</div>

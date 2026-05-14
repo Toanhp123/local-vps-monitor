@@ -1,10 +1,10 @@
 import type { RequestHandler } from "express";
-import type { MonitorService } from "../services/monitorService";
+import type { MonitorOverviewService } from "../services/monitorOverviewService";
 
 export class OverviewController {
-  constructor(private readonly monitorService: MonitorService) {}
+  constructor(private readonly monitorOverviewService: MonitorOverviewService) {}
 
   getOverview: RequestHandler = (_request, response) => {
-    response.json(this.monitorService.getOverview());
+    response.json(this.monitorOverviewService.getOverview());
   };
 }

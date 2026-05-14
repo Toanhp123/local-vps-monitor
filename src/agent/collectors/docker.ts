@@ -18,6 +18,20 @@ interface DockerStatsRow {
   MemUsage?: string;
 }
 
+interface DockerInspectRow {
+  Id?: string;
+  Name?: string;
+  RestartCount?: number;
+  State?: {
+    StartedAt?: string;
+  };
+}
+
+interface DockerInspectMetadata {
+  restartCount?: number;
+  startedAt?: string;
+}
+
 const parseJsonLines = <T>(raw: string): T[] => {
   return raw
     .split(/\r?\n/)
@@ -78,11 +92,43 @@ const dockerHealth = (state?: string, status?: string): HealthStatus => {
   return "unknown";
 };
 
+const collectInspectMetadata = async (dockerBin: string, containers: DockerPsRow[]) => {
+  const containerRefs = containers
+    .map((container) => container.ID || container.Names)
+    .filter((value): value is string => Boolean(value));
+
+  const metadata = new Map<string, DockerInspectMetadata>();
+  if (containerRefs.length === 0) return metadata;
+
+  const inspectResult = await runCommand(dockerBin, ["inspect", "--format", "{{json .}}", ...containerRefs], 8_000);
+  if (!inspectResult.ok || !inspectResult.stdout.trim()) return metadata;
+
+  for (const row of parseJsonLines<DockerInspectRow>(inspectResult.stdout)) {
+    const entry: DockerInspectMetadata = {
+      restartCount: typeof row.RestartCount === "number" ? row.RestartCount : undefined,
+      startedAt: row.State?.StartedAt
+    };
+
+    if (row.Id) {
+      metadata.set(row.Id, entry);
+      metadata.set(row.Id.slice(0, 12), entry);
+    }
+
+    if (row.Name) {
+      metadata.set(row.Name.replace(/^\//, ""), entry);
+    }
+  }
+
+  return metadata;
+};
+
 export const collectDockerApps = async (dockerBin: string): Promise<AppSnapshot[]> => {
   const psResult = await runCommand(dockerBin, ["ps", "-a", "--format", "{{json .}}"]);
   if (!psResult.ok || !psResult.stdout.trim()) return [];
 
+  const containers = parseJsonLines<DockerPsRow>(psResult.stdout);
   const statsResult = await runCommand(dockerBin, ["stats", "--no-stream", "--format", "{{json .}}"], 8_000);
+  const inspectMetadata = await collectInspectMetadata(dockerBin, containers);
   const stats = new Map<string, DockerStatsRow>();
 
   if (statsResult.ok) {
@@ -93,8 +139,9 @@ export const collectDockerApps = async (dockerBin: string): Promise<AppSnapshot[
     }
   }
 
-  return parseJsonLines<DockerPsRow>(psResult.stdout).map((row) => {
+  return containers.map((row) => {
     const stat = stats.get(row.ID || "") || stats.get(row.Names || "");
+    const metadata = inspectMetadata.get(row.ID || "") || inspectMetadata.get(row.Names || "");
 
     return {
       id: `docker:${row.ID || row.Names}`,
@@ -106,9 +153,11 @@ export const collectDockerApps = async (dockerBin: string): Promise<AppSnapshot[
       memoryBytes: parseMemoryBytes(stat?.MemUsage),
       image: row.Image,
       ports: row.Ports,
+      restarts: metadata?.restartCount,
       raw: {
         dockerId: row.ID,
-        state: row.State
+        state: row.State,
+        startedAt: metadata?.startedAt
       }
     };
   });

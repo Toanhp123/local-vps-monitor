@@ -1,22 +1,22 @@
 import type { HeartbeatPayload, OverviewResponse } from "../../shared/types";
-import type { MonitorStore } from "../models/monitorStore";
+import type { MonitorStateStore } from "../models/monitorStateStore";
 
 type OverviewListener = (overview: OverviewResponse) => void;
 
-export class MonitorService {
+export class MonitorOverviewService {
   private readonly overviewListeners = new Set<OverviewListener>();
 
-  constructor(private readonly monitorStore: MonitorStore) {}
+  constructor(private readonly monitorStateStore: MonitorStateStore) {}
 
   ingestHeartbeat(payload: HeartbeatPayload) {
-    const server = this.monitorStore.ingest(payload);
+    const server = this.monitorStateStore.ingest(payload);
     this.notifyOverviewUpdated();
 
     return server;
   }
 
   getOverview() {
-    return this.monitorStore.overview();
+    return this.monitorStateStore.overview();
   }
 
   onOverviewUpdated(listener: OverviewListener) {

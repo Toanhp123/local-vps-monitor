@@ -39,7 +39,39 @@ const sortApps = (apps: AppSnapshot[]) => {
   });
 };
 
-export class MonitorStore {
+const rawString = (app: AppSnapshot | undefined, key: string) => {
+  const value = app?.raw?.[key];
+  return typeof value === "string" ? value : undefined;
+};
+
+const withObservedRestarts = (apps: AppSnapshot[], previousApps: AppSnapshot[] = []) => {
+  const previousById = new Map(previousApps.map((app) => [app.id, app]));
+
+  return apps.map((app) => {
+    if (app.kind !== "docker") return app;
+
+    const previous = previousById.get(app.id);
+    const previousRestarts = previous?.restarts;
+    const currentStartedAt = rawString(app, "startedAt");
+    const previousStartedAt = rawString(previous, "startedAt");
+    let restarts = app.restarts;
+
+    if (typeof previousRestarts === "number" && typeof restarts === "number") {
+      restarts = Math.max(restarts, previousRestarts);
+    }
+
+    if (currentStartedAt && previousStartedAt && currentStartedAt !== previousStartedAt) {
+      restarts = Math.max(restarts ?? 0, (previousRestarts ?? 0) + 1);
+    }
+
+    return {
+      ...app,
+      restarts
+    };
+  });
+};
+
+export class MonitorStateStore {
   private state: MonitorState;
 
   constructor(
@@ -50,12 +82,15 @@ export class MonitorStore {
   }
 
   ingest(payload: HeartbeatPayload): StoredServer {
+    const previousServer = this.state.servers[payload.serverId];
+    const apps = withObservedRestarts(payload.apps, previousServer?.apps);
+
     const server: StoredServer = {
       ...payload,
-      apps: sortApps(payload.apps),
+      apps: sortApps(apps),
       lastSeenAt: new Date().toISOString(),
       online: true,
-      status: worstStatus(payload.apps.map((app) => app.health))
+      status: worstStatus(apps.map((app) => app.health))
     };
 
     this.state.servers[payload.serverId] = server;
