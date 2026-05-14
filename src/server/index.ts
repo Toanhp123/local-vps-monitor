@@ -4,9 +4,13 @@ import { serverConfig } from "./config";
 import { OverviewWebSocketGateway } from "./realtime/overviewWebSocketGateway";
 import { AutoScanScheduler } from "./services/autoScanScheduler";
 
-const { app, monitorOverviewService, sshScanService } = createApp();
+const { app, localDockerScanService, monitorOverviewService, sshScanService } = createApp();
 const httpServer = createServer(app);
-const autoScanScheduler = new AutoScanScheduler(sshScanService, serverConfig.autoScanIntervalMs);
+const autoScanScheduler = new AutoScanScheduler(
+  sshScanService,
+  localDockerScanService,
+  serverConfig.autoScanIntervalMs
+);
 
 new OverviewWebSocketGateway(httpServer, monitorOverviewService, serverConfig.realtimeBroadcastMs);
 

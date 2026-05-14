@@ -18,5 +18,6 @@ export const serverConfig = {
   realtimeBroadcastMs: numberFromEnv("REALTIME_BROADCAST_MS", 5_000),
   autoScanIntervalMs: numberFromEnv("AUTO_SCAN_INTERVAL_MS", 60_000),
   sshScanConcurrency: numberFromEnv("SSH_SCAN_CONCURRENCY", 4),
-  sshCommandTimeoutMs: numberFromEnv("SSH_COMMAND_TIMEOUT_MS", 12_000)
+  sshCommandTimeoutMs: numberFromEnv("SSH_COMMAND_TIMEOUT_MS", 12_000),
+  localDockerCommandTimeoutMs: numberFromEnv("LOCAL_DOCKER_COMMAND_TIMEOUT_MS", 12_000)
 };

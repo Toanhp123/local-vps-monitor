@@ -7,6 +7,7 @@ import { MonitorStateStore } from "./models/monitorStateStore";
 import { SshTargetConfigStore } from "./models/sshTargetConfigStore";
 import { createApiRouter } from "./routes/apiRoutes";
 import { HealthService } from "./services/healthService";
+import { LocalDockerScanService } from "./services/localDockerScanService";
 import { MonitorOverviewService } from "./services/monitorOverviewService";
 import { SshScanService } from "./services/sshScanService";
 import { SshTargetConfigService } from "./services/sshTargetConfigService";
@@ -30,6 +31,7 @@ const mountClientApp = (app: Express) => {
 
 export interface ServerAppContext {
   app: Express;
+  localDockerScanService: LocalDockerScanService;
   monitorOverviewService: MonitorOverviewService;
   sshScanService: SshScanService;
 }
@@ -39,6 +41,11 @@ export const createApp = () => {
   const monitorStateStore = new MonitorStateStore(serverConfig.dataFile);
   const sshTargetConfigStore = new SshTargetConfigStore(serverConfig.sshTargetsFile);
   const monitorOverviewService = new MonitorOverviewService(monitorStateStore, serverConfig.offlineAfterMs);
+  const localDockerScanService = new LocalDockerScanService(
+    monitorOverviewService,
+    serverConfig.localDockerCommandTimeoutMs,
+    serverConfig.version
+  );
   const sshTargetConfigService = new SshTargetConfigService(sshTargetConfigStore);
   const sshScanService = new SshScanService(
     sshTargetConfigStore,
@@ -58,6 +65,7 @@ export const createApp = () => {
     "/api",
     createApiRouter({
       healthService,
+      localDockerScanService,
       monitorOverviewService,
       sshScanService,
       sshTargetConfigService
@@ -68,6 +76,7 @@ export const createApp = () => {
 
   return {
     app,
+    localDockerScanService,
     monitorOverviewService,
     sshScanService
   } satisfies ServerAppContext;

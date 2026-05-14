@@ -7,6 +7,7 @@ The default mode is **Local SSH mode**:
 - The dashboard and API run on `127.0.0.1`.
 - The API and WebSocket reject non-local `Host` and `Origin` headers.
 - The app opens outbound SSH connections from your own machine to your own VPS instances.
+- The app can also scan Docker containers on the same machine through the local Docker CLI.
 - SSH passwords are not stored or requested by the dashboard.
 - SSH private key content is not persisted; only the local key file path is saved.
 - SSH host keys are verified through your local `~/.ssh/known_hosts` file.
@@ -19,13 +20,14 @@ The default mode is **Local SSH mode**:
 Browser dashboard ---> Local Express API ---> SSH ---> VPS 1
                                       |-----> SSH ---> VPS 2
                                       |-----> SSH ---> VPS 3
+                                      |-----> Docker CLI ---> Local Docker
 
 Local Express API ---> WebSocket /ws ---> Browser dashboard
 ```
 
 Main parts:
 
-- `server`: Express API, MVC-style controllers/services/models, SSH scanner, JSON storage, and WebSocket broadcaster.
+- `server`: Express API, MVC-style controllers/services/models, SSH scanner, local Docker scanner, JSON storage, and WebSocket broadcaster.
 - `client`: React dashboard using a lightweight Feature-Sliced Design structure and Tailwind CSS.
 - `storage`: local JSON files configured by `DATA_FILE` and `SSH_TARGETS_FILE`.
 
@@ -118,7 +120,7 @@ Then open the dashboard and add a target:
 
 Click `Scan` or `Scan all`. The local API connects to the VPS through SSH, runs read-only monitor commands, converts the result into a server snapshot, stores the latest state locally, and pushes the new overview to the browser via WebSocket.
 
-The backend also runs an automatic scan loop using `AUTO_SCAN_INTERVAL_MS` so the dashboard can update without manual refresh. Set `AUTO_SCAN_INTERVAL_MS=0` to disable automatic scans.
+The backend also runs an automatic scan loop using `AUTO_SCAN_INTERVAL_MS` so the dashboard can update without manual refresh. The same loop scans SSH targets and Local Docker. Set `AUTO_SCAN_INTERVAL_MS=0` to disable automatic scans.
 
 If the host key is missing or changed, the scan is rejected. This is intentional: the dashboard follows the same trust boundary as SSH and does not silently accept unknown servers.
 
@@ -129,6 +131,25 @@ The scanner currently checks:
 - PM2 processes from `pm2 jlist`.
 
 If Docker or PM2 is not installed on a VPS, that runtime simply reports no apps.
+
+## Local Docker Mode
+
+The dashboard can scan Docker containers running on the same machine as the local API.
+
+Requirements:
+
+- Docker Desktop or Docker Engine is running.
+- The `docker` CLI is available in the terminal that starts the API.
+
+Open the dashboard and click `Scan Docker` in the `Local Docker` panel, or wait for the automatic scan loop. The API runs read-only local commands, converts the result into the same server snapshot format, stores it in local state, and updates the browser through WebSocket.
+
+Local Docker scan uses:
+
+- `docker ps -a --format '{{json .}}'`
+- `docker stats --no-stream --format '{{json .}}'`
+- `docker inspect --format '{{json .}}'`
+
+When the app itself runs inside Docker, host Docker access is not mounted by default. This is intentional because mounting the Docker socket gives the container broad control over the host Docker daemon. For local Docker scanning, prefer running the app directly on the host with `npm run dev` or `npm start`.
 
 ## Runtime Metrics
 
@@ -160,7 +181,8 @@ npm start
 - `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
 - `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.
 - `SSH_COMMAND_TIMEOUT_MS`: SSH connect/command timeout. Defaults to `12000`.
+- `LOCAL_DOCKER_COMMAND_TIMEOUT_MS`: local Docker command timeout. Defaults to `12000`.
 - `OFFLINE_AFTER_MS`: timeout before a VPS is marked offline.
 - `REALTIME_BROADCAST_MS`: interval for periodic WebSocket overview broadcasts.
-- `AUTO_SCAN_INTERVAL_MS`: interval for automatic SSH scans. Set to `0` to disable. Defaults to `60000`.
+- `AUTO_SCAN_INTERVAL_MS`: interval for automatic SSH and Local Docker scans. Set to `0` to disable. Defaults to `60000`.
 - `SSH_SCAN_CONCURRENCY`: maximum VPS SSH scans running at the same time. Defaults to `4`.

@@ -1,12 +1,15 @@
 import { errorMessage } from "../lib/errorMessage";
+import type { LocalDockerScanService } from "./localDockerScanService";
 import type { SshScanService } from "./sshScanService";
 
 export class AutoScanScheduler {
   private timer?: NodeJS.Timeout;
   private isRunning = false;
+  private lastLocalDockerError = "";
 
   constructor(
     private readonly sshScanService: SshScanService,
+    private readonly localDockerScanService: LocalDockerScanService,
     private readonly intervalMs: number
   ) {}
 
@@ -34,17 +37,39 @@ export class AutoScanScheduler {
     this.isRunning = true;
 
     try {
-      const result = await this.sshScanService.scanAllTargets();
-      if (result.results.length === 0 && result.errors.length === 0) return;
+      const [sshScan, localDockerScan] = await Promise.allSettled([
+        this.sshScanService.scanAllTargets(),
+        this.localDockerScanService.scanLocalDocker()
+      ]);
 
-      console.log(
-        `Auto scan finished: ${result.results.length} VPS scanned, ${result.errors.length} failed`
-      );
+      if (sshScan.status === "fulfilled") {
+        const result = sshScan.value;
 
-      if (result.errors.length > 0) {
-        console.warn(
-          `Auto scan errors: ${result.errors.map((entry) => `${entry.targetId}: ${entry.message}`).join("; ")}`
-        );
+        if (result.results.length > 0 || result.errors.length > 0) {
+          console.log(
+            `Auto SSH scan finished: ${result.results.length} VPS scanned, ${result.errors.length} failed`
+          );
+
+          if (result.errors.length > 0) {
+            console.warn(
+              `Auto SSH scan errors: ${result.errors.map((entry) => `${entry.targetId}: ${entry.message}`).join("; ")}`
+            );
+          }
+        }
+      } else {
+        console.warn(`Auto SSH scan failed: ${errorMessage(sshScan.reason)}`);
+      }
+
+      if (localDockerScan.status === "fulfilled") {
+        this.lastLocalDockerError = "";
+        console.log(`Auto Local Docker scan finished: ${localDockerScan.value.appCount} apps scanned`);
+      } else {
+        const message = errorMessage(localDockerScan.reason);
+
+        if (message !== this.lastLocalDockerError) {
+          this.lastLocalDockerError = message;
+          console.warn(`Auto Local Docker scan failed: ${message}`);
+        }
       }
     } catch (error) {
       console.warn(`Auto scan failed: ${errorMessage(error)}`);

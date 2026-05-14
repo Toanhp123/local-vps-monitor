@@ -68,7 +68,7 @@ export function DashboardSidebar({
 		label: string;
 		tone?: string;
 	}> = [
-		{ filter: "all", icon: Server, label: "All VPS", count: servers.length },
+		{ filter: "all", icon: Server, label: "All servers", count: servers.length },
 		{
 			filter: "needs-attention",
 			icon: AlertTriangle,
@@ -79,7 +79,7 @@ export function DashboardSidebar({
 		{
 			filter: "offline",
 			icon: WifiOff,
-			label: "Offline VPS",
+			label: "Offline servers",
 			count: offlineServers,
 			tone: "bad",
 		},
@@ -164,7 +164,7 @@ export function DashboardSidebar({
 				<div className="grid gap-2 border-t border-slate-200 pt-4 max-lg:grid-cols-3 max-sm:grid-cols-1">
 					<div className="rounded-lg bg-slate-50 px-3 py-2.5">
 						<span className="block text-xs font-bold text-slate-500">
-							Online VPS
+							Online servers
 						</span>
 						<strong className="mt-1 block text-lg font-extrabold text-slate-900">
 							{summary?.onlineServers ?? 0}/{summary?.totalServers ?? 0}

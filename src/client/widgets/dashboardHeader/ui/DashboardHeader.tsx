@@ -20,7 +20,7 @@ export function DashboardHeader({
 					Dashboard
 				</h1>
 				<p className="mt-1 text-sm font-semibold text-slate-500">
-					Monitor VPS and app health from one local screen
+					Monitor servers and app health from one local screen
 				</p>
 			</div>
 			<div className="flex flex-wrap items-center justify-end gap-2.5 max-md:w-full">
@@ -38,7 +38,7 @@ export function DashboardHeader({
 					className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
 					onClick={onScanAll}
 					disabled={isScanAllDisabled}
-					aria-label="Scan all VPS"
+					aria-label="Scan all servers"
 				>
 					{isScanningAll ? (
 						<LoaderCircle size={16} className="animate-spin" />

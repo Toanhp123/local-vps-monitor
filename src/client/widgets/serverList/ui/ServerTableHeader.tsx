@@ -5,7 +5,7 @@ export function ServerTableHeader() {
 	return (
 		<thead>
 			<tr>
-				<th className={headerCellClass}>VPS</th>
+				<th className={headerCellClass}>Server</th>
 				<th className={headerCellClass}>Status</th>
 				<th className={headerCellClass}>Apps</th>
 				<th className={headerCellClass}>System</th>

@@ -84,7 +84,7 @@ export interface SshTargetListResponse {
   targets: SshTarget[];
 }
 
-export interface SshScanResult {
+export interface ScanResult {
   targetId: string;
   serverId: string;
   serverName: string;
@@ -92,8 +92,10 @@ export interface SshScanResult {
   scannedAt: string;
 }
 
+export type SshScanResult = ScanResult;
+
 export interface SshScanAllResponse {
-  results: SshScanResult[];
+  results: ScanResult[];
   errors: Array<{
     targetId: string;
     message: string;

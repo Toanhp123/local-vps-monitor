@@ -1,8 +1,10 @@
 import { AlertTriangle } from "lucide-react";
 import { useDashboardOverview } from "../model/useDashboardOverview";
+import { useLocalDockerScanner } from "../model/useLocalDockerScanner";
 import { useSshTargetManager } from "../model/useSshTargetManager";
 import { DashboardHeader } from "../../../widgets/dashboardHeader/ui/DashboardHeader";
 import { DashboardSidebar } from "../../../widgets/dashboardSidebar/ui/DashboardSidebar";
+import { LocalDockerPanel } from "../../../widgets/localDocker/ui/LocalDockerPanel";
 import { ServerList } from "../../../widgets/serverList/ui/ServerList";
 import { SshTargetManagerPanel } from "../../../widgets/sshTargets/ui/SshTargetManagerPanel";
 import { SummaryStats } from "../../../widgets/summaryStats/ui/SummaryStats";
@@ -22,7 +24,30 @@ export function DashboardPage() {
 		setViewFilter,
 		viewFilter,
 	} = useDashboardOverview();
+	const localDockerScanner = useLocalDockerScanner(loadOverview);
 	const sshTargetManager = useSshTargetManager(loadOverview);
+	const activeScanId = localDockerScanner.isScanning
+		? localDockerScanner.serverId
+		: sshTargetManager.activeScanId;
+	const isScanningAll =
+		localDockerScanner.isScanning ||
+		sshTargetManager.activeScanId === sshTargetManager.scanAllId;
+	const handleScanServer = (serverId: string) => {
+		if (serverId === localDockerScanner.serverId) {
+			void localDockerScanner.scan();
+			return;
+		}
+
+		void sshTargetManager.scanTarget(serverId);
+	};
+	const handleScanAll = () => {
+		void Promise.allSettled([
+			localDockerScanner.scan(),
+			sshTargetManager.targets.length > 0
+				? sshTargetManager.scanAllTargets()
+				: Promise.resolve(),
+		]);
+	};
 
 	return (
 		<div className="flex min-h-screen bg-[#eef1f5] text-slate-900 antialiased max-lg:flex-col">
@@ -36,14 +61,9 @@ export function DashboardPage() {
 			<main className="min-w-0 flex-1">
 				<div className="mx-auto max-w-360 p-7 max-md:p-4.5">
 					<DashboardHeader
-						isScanAllDisabled={
-							sshTargetManager.targets.length === 0 ||
-							Boolean(sshTargetManager.activeScanId)
-						}
-						isScanningAll={
-							sshTargetManager.activeScanId === sshTargetManager.scanAllId
-						}
-						onScanAll={sshTargetManager.scanAllTargets}
+						isScanAllDisabled={Boolean(activeScanId)}
+						isScanningAll={isScanningAll}
+						onScanAll={handleScanAll}
 						query={query}
 						onQueryChange={setQuery}
 					/>
@@ -56,8 +76,13 @@ export function DashboardPage() {
 					)}
 
 					<SummaryStats overview={overview} />
+					<LocalDockerPanel
+						error={localDockerScanner.error}
+						isScanning={localDockerScanner.isScanning}
+						onScan={localDockerScanner.scan}
+					/>
 					<SshTargetManagerPanel
-						activeScanId={sshTargetManager.activeScanId}
+						activeScanId={activeScanId}
 						error={sshTargetManager.error}
 						isLoading={sshTargetManager.isLoading}
 						isSaving={sshTargetManager.isSaving}
@@ -67,16 +92,16 @@ export function DashboardPage() {
 						targets={sshTargetManager.targets}
 					/>
 					<ServerList
-						activeScanId={sshTargetManager.activeScanId}
+						activeScanId={activeScanId}
 						hasActiveFilter={viewFilter !== "all"}
 						now={now}
-						onScanServer={sshTargetManager.scanTarget}
+						onScanServer={handleScanServer}
 						query={query}
 						servers={filteredServers}
 					/>
 				</div>
 			</main>
-			<Toast toast={sshTargetManager.toast} />
+			<Toast toast={localDockerScanner.toast || sshTargetManager.toast} />
 		</div>
 	);
 }
