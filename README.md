@@ -5,10 +5,11 @@ VPS Monitor is a local-first dashboard for checking applications across multiple
 The default mode is **Local SSH mode**:
 
 - The dashboard and API run on `127.0.0.1`.
-- The API rejects non-local `Host` and `Origin` headers by default.
+- The API and WebSocket reject non-local `Host` and `Origin` headers.
 - The app opens outbound SSH connections from your own machine to your own VPS instances.
 - SSH passwords are not stored or requested by the dashboard.
 - SSH private key content is not persisted; only the local key file path is saved.
+- SSH host keys are verified through your local `~/.ssh/known_hosts` file.
 - Metrics are stored in local JSON files under `data/`, which is ignored by Git.
 - There is no remote agent mode and no public ingest endpoint.
 
@@ -101,6 +102,12 @@ Copy the public key to your VPS:
 ssh-copy-id -i ~/.ssh/vps_monitor.pub root@your-vps-ip
 ```
 
+Trust the VPS host key on your machine:
+
+```bash
+ssh-keyscan -p 22 your-vps-ip >> ~/.ssh/known_hosts
+```
+
 Then open the dashboard and add a target:
 
 - Name: display name in the dashboard.
@@ -110,6 +117,8 @@ Then open the dashboard and add a target:
 - Private key path: local path, for example `~/.ssh/vps_monitor`.
 
 Click `Scan` or `Scan all`. The local API connects to the VPS through SSH, runs read-only monitor commands, converts the result into a server snapshot, stores the latest state locally, and pushes the new overview to the browser via WebSocket.
+
+If the host key is missing or changed, the scan is rejected. This is intentional: the dashboard follows the same trust boundary as SSH and does not silently accept unknown servers.
 
 The scanner currently checks:
 
@@ -145,7 +154,6 @@ npm start
 ## Environment Variables
 
 - `HOST`: API bind host. Defaults to `127.0.0.1`.
-- `ALLOW_REMOTE_ACCESS`: set to `true` only if you intentionally expose the API outside localhost.
 - `PORT`: API port. Defaults to `3001`.
 - `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
 - `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.

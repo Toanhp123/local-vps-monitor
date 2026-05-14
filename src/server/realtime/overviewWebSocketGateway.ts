@@ -1,6 +1,7 @@
 import type { Server as HttpServer } from "node:http";
 import { WebSocket, WebSocketServer } from "ws";
 import type { RealtimeMessage } from "../../shared/types";
+import { validateLocalAccessHeaders } from "../lib/localAccess";
 import type { MonitorOverviewService } from "../services/monitorOverviewService";
 
 export class OverviewWebSocketGateway {
@@ -13,7 +14,23 @@ export class OverviewWebSocketGateway {
     private readonly monitorOverviewService: MonitorOverviewService,
     broadcastIntervalMs: number
   ) {
-    this.wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+    this.wss = new WebSocketServer({
+      server: httpServer,
+      path: "/ws",
+      verifyClient: ({ req }, done) => {
+        const rejection = validateLocalAccessHeaders({
+          host: req.headers.host,
+          origin: req.headers.origin
+        });
+
+        if (rejection) {
+          done(false, 403, rejection);
+          return;
+        }
+
+        done(true);
+      }
+    });
 
     this.wss.on("connection", (socket) => {
       this.send(socket, {

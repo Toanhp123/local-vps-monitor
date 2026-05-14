@@ -1,9 +1,13 @@
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
-import { Client } from "ssh2";
+import type { Client as SshClient } from "ssh2";
 import type { SshTarget } from "../../../shared/types";
 import { errorMessage } from "../../lib/errorMessage";
+import { verifyKnownHostKey } from "./sshKnownHosts";
+
+const { Client, utils } = createRequire(import.meta.url)("ssh2") as typeof import("ssh2");
 
 export interface SshCommandResult {
   ok: boolean;
@@ -27,18 +31,53 @@ const resolvePrivateKeyPath = (filePath: string) => {
   return path.isAbsolute(expanded) ? expanded : path.resolve(process.cwd(), expanded);
 };
 
+const validatePrivateKeyPathValue = (filePath: string) => {
+  const trimmed = filePath.trim();
+
+  if (trimmed.includes("\n") || trimmed.startsWith("-----BEGIN ") || trimmed.startsWith("ssh-")) {
+    throw new Error("Private key path must be a local file path, not pasted key content.");
+  }
+};
+
+const readPrivateKey = (filePath: string) => {
+  validatePrivateKeyPathValue(filePath);
+
+  const resolvedPath = resolvePrivateKeyPath(filePath);
+  let privateKey: Buffer;
+
+  try {
+    privateKey = fs.readFileSync(resolvedPath);
+  } catch (error) {
+    throw new Error(`Cannot read private key file: ${errorMessage(error)}`);
+  }
+
+  const parsedKey = utils.parseKey(privateKey);
+  if (parsedKey instanceof Error) {
+    throw new Error(
+      `Private key file is not a valid SSH private key. Use the private key file path, not the .pub file. ${parsedKey.message}`
+    );
+  }
+
+  if (!parsedKey.isPrivateKey()) {
+    throw new Error("Private key file points to a public key. Use the private key file path without the .pub suffix.");
+  }
+
+  return privateKey;
+};
+
 export const connectSshTarget = (target: SshTarget, timeoutMs: number) => {
-  return new Promise<Client>((resolve, reject) => {
+  return new Promise<SshClient>((resolve, reject) => {
     let privateKey: Buffer;
 
     try {
-      privateKey = fs.readFileSync(resolvePrivateKeyPath(target.privateKeyPath));
+      privateKey = readPrivateKey(target.privateKeyPath);
     } catch (error) {
-      reject(new Error(`Cannot read private key file: ${errorMessage(error)}`));
+      reject(error);
       return;
     }
 
     const client = new Client();
+    let hostKeyRejection = "";
     const timer = setTimeout(() => {
       cleanup();
       client.end();
@@ -59,7 +98,7 @@ export const connectSshTarget = (target: SshTarget, timeoutMs: number) => {
     const onError = (error: Error) => {
       cleanup();
       client.end();
-      reject(error);
+      reject(new Error(hostKeyRejection || error.message));
     };
 
     client.once("ready", onReady);
@@ -70,12 +109,18 @@ export const connectSshTarget = (target: SshTarget, timeoutMs: number) => {
       username: target.username,
       privateKey,
       readyTimeout: timeoutMs,
-      tryKeyboard: false
+      tryKeyboard: false,
+      hostVerifier: (key: Buffer) => {
+        const verification = verifyKnownHostKey(target, key);
+        hostKeyRejection = verification.message || "";
+
+        return verification.trusted;
+      }
     });
   });
 };
 
-export const runSshCommand = (client: Client, command: string, timeoutMs: number) => {
+export const runSshCommand = (client: SshClient, command: string, timeoutMs: number) => {
   return new Promise<SshCommandResult>((resolve, reject) => {
     let stdout = "";
     let stderr = "";
@@ -121,7 +166,7 @@ export const runSshCommand = (client: Client, command: string, timeoutMs: number
 };
 
 export const safeRunSshCommand = async (
-  client: Client,
+  client: SshClient,
   command: string,
   timeoutMs: number
 ): Promise<SshCommandResult> => {

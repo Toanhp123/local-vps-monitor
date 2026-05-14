@@ -50,7 +50,7 @@ export const createApp = () => {
     version: serverConfig.version
   });
 
-  app.use(localAccessGuard(serverConfig.allowRemoteAccess));
+  app.use(localAccessGuard());
   app.use(express.json({ limit: "1mb" }));
   app.use(
     "/api",

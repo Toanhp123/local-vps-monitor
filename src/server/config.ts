@@ -11,7 +11,6 @@ const numberFromEnv = (name: string, fallback: number) => {
 export const serverConfig = {
   port: numberFromEnv("PORT", 3001),
   host: process.env.HOST || "127.0.0.1",
-  allowRemoteAccess: process.env.ALLOW_REMOTE_ACCESS === "true",
   version: process.env.npm_package_version || "0.1.0",
   dataFile: path.resolve(process.cwd(), process.env.DATA_FILE || "./data/monitor-state.json"),
   sshTargetsFile: path.resolve(process.cwd(), process.env.SSH_TARGETS_FILE || "./data/ssh-targets.json"),

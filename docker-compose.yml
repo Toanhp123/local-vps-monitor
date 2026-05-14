@@ -7,7 +7,6 @@ services:
       - "127.0.0.1:3001:3001"
     environment:
       HOST: 0.0.0.0
-      ALLOW_REMOTE_ACCESS: "false"
       DATA_FILE: /data/monitor-state.json
       SSH_TARGETS_FILE: /data/ssh-targets.json
       OFFLINE_AFTER_MS: "${OFFLINE_AFTER_MS:-60000}"

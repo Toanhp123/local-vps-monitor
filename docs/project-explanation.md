@@ -34,11 +34,12 @@ Local Express API ---> WebSocket /ws ---> React Dashboard
 Điểm quan trọng:
 
 - Dashboard chỉ bind mặc định vào `127.0.0.1`, không public ra Internet.
-- API mặc định chặn `Host` và `Origin` không phải local để giảm rủi ro website lạ gọi vào API localhost.
+- API và WebSocket chặn `Host` và `Origin` không phải local để giảm rủi ro website lạ gọi vào dashboard localhost.
 - Dữ liệu monitor được lưu ở máy local trong thư mục `data/`.
 - Danh sách VPS SSH được lưu local trong `data/ssh-targets.json`.
 - Ứng dụng không lưu password SSH.
 - Ứng dụng không lưu nội dung private key, chỉ lưu đường dẫn tới file key trên máy người dùng.
+- SSH host key được kiểm tra qua `~/.ssh/known_hosts`, tránh việc app tự động tin một server SSH chưa xác thực.
 - Backend local dùng SSH key để kết nối outbound tới VPS.
 
 Lý do chọn hướng này: nếu public tool cho người khác dùng, họ chỉ cần chạy localhost nên sẽ yên tâm hơn. Dữ liệu server, danh sách app và thông tin SSH không bị gửi về server của bên thứ ba.
@@ -56,12 +57,13 @@ Người dùng thêm một SSH target gồm:
 Khi bấm `Scan` hoặc `Scan all`, local backend sẽ:
 
 1. Đọc private key từ đường dẫn local.
-2. Mở SSH connection tới VPS.
-3. Chạy các lệnh read-only để lấy thông tin host, Docker và PM2.
-4. Chuyển dữ liệu thu được thành `ServerSnapshotPayload`.
-5. Gọi lại `MonitorOverviewService.ingestSnapshot()` để cập nhật state nội bộ.
-6. Lưu trạng thái mới nhất vào `monitor-state.json`.
-7. Bắn overview mới xuống React dashboard qua WebSocket.
+2. Kiểm tra SSH host key với `~/.ssh/known_hosts`.
+3. Mở SSH connection tới VPS.
+4. Chạy các lệnh read-only để lấy thông tin host, Docker và PM2.
+5. Chuyển dữ liệu thu được thành `ServerSnapshotPayload`.
+6. Gọi lại `MonitorOverviewService.ingestSnapshot()` để cập nhật state nội bộ.
+7. Lưu trạng thái mới nhất vào `monitor-state.json`.
+8. Bắn overview mới xuống React dashboard qua WebSocket.
 
 Điểm hay là phần dashboard, offline detection, summary và WebSocket không cần viết lại. SSH scanner chỉ đóng vai trò một nguồn dữ liệu mới.
 
