@@ -163,3 +163,4 @@ npm start
 - `OFFLINE_AFTER_MS`: timeout before a VPS is marked offline.
 - `REALTIME_BROADCAST_MS`: interval for periodic WebSocket overview broadcasts.
 - `AUTO_SCAN_INTERVAL_MS`: interval for automatic SSH scans. Set to `0` to disable. Defaults to `60000`.
+- `SSH_SCAN_CONCURRENCY`: maximum VPS SSH scans running at the same time. Defaults to `4`.

@@ -67,7 +67,7 @@ Khi bấm `Scan` hoặc `Scan all`, local backend sẽ:
 
 Điểm hay là phần dashboard, offline detection, summary và WebSocket không cần viết lại. SSH scanner chỉ đóng vai trò một nguồn dữ liệu mới.
 
-Ngoài thao tác scan thủ công, backend còn có auto scan loop theo `AUTO_SCAN_INTERVAL_MS`. Nhờ vậy WebSocket không chỉ để trang trí: khi backend tự scan định kỳ và có snapshot mới, dashboard nhận update realtime mà người dùng không cần reload hoặc bấm refresh.
+Ngoài thao tác scan thủ công, backend còn có auto scan loop theo `AUTO_SCAN_INTERVAL_MS`. Nhờ vậy WebSocket không chỉ để trang trí: khi backend tự scan định kỳ và có snapshot mới, dashboard nhận update realtime mà người dùng không cần reload hoặc bấm refresh. Số SSH scan chạy song song được giới hạn bằng `SSH_SCAN_CONCURRENCY` để tránh mở quá nhiều connection cùng lúc.
 
 ## 4. Vì sao cách này bảo mật hơn cho người dùng GitHub
 

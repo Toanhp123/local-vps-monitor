@@ -14,5 +14,7 @@ ENV PORT=3001
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
+RUN mkdir -p /app/data /data && chown -R node:node /app/data /data
+USER node
 EXPOSE 3001
 CMD ["node", "dist/server/index.js"]

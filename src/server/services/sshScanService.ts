@@ -7,6 +7,41 @@ import { errorMessage } from "../lib/errorMessage";
 import type { SshTargetConfigStore } from "../models/sshTargetConfigStore";
 import type { MonitorOverviewService } from "./monitorOverviewService";
 
+const settleWithConcurrency = async <Input, Output>(
+  items: Input[],
+  concurrency: number,
+  task: (item: Input) => Promise<Output>
+) => {
+  const results = new Array<PromiseSettledResult<Output>>(items.length);
+  const workerCount = Math.min(Math.max(1, Math.floor(concurrency)), items.length);
+  let nextIndex = 0;
+
+  if (items.length === 0) return results;
+
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+
+        try {
+          results[index] = {
+            status: "fulfilled",
+            value: await task(items[index])
+          };
+        } catch (reason) {
+          results[index] = {
+            status: "rejected",
+            reason
+          };
+        }
+      }
+    })
+  );
+
+  return results;
+};
+
 export class SshTargetNotFoundError extends Error {
   constructor(targetId: string) {
     super(`SSH target not found: ${targetId}`);
@@ -19,6 +54,7 @@ export class SshScanService {
     private readonly targetConfigStore: SshTargetConfigStore,
     private readonly monitorOverviewService: MonitorOverviewService,
     private readonly commandTimeoutMs: number,
+    private readonly scanConcurrency: number,
     private readonly version: string
   ) {}
 
@@ -31,7 +67,9 @@ export class SshScanService {
 
   async scanAllTargets(): Promise<SshScanAllResponse> {
     const targets = this.targetConfigStore.list().filter((target) => target.enabled);
-    const settled = await Promise.allSettled(targets.map((target) => this.scanKnownTarget(target)));
+    const settled = await settleWithConcurrency(targets, this.scanConcurrency, (target) =>
+      this.scanKnownTarget(target)
+    );
 
     return settled.reduce<SshScanAllResponse>(
       (response, result, index) => {

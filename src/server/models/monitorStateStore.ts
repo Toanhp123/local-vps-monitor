@@ -72,7 +72,13 @@ export class MonitorStateStore {
     fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
 
     const tempPath = `${this.filePath}.tmp`;
-    fs.writeFileSync(tempPath, JSON.stringify(this.state, null, 2));
+    fs.writeFileSync(tempPath, JSON.stringify(this.state, null, 2), {
+      mode: 0o600
+    });
     fs.renameSync(tempPath, this.filePath);
+
+    if (process.platform !== "win32") {
+      fs.chmodSync(this.filePath, 0o600);
+    }
   }
 }

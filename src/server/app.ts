@@ -44,6 +44,7 @@ export const createApp = () => {
     sshTargetConfigStore,
     monitorOverviewService,
     serverConfig.sshCommandTimeoutMs,
+    serverConfig.sshScanConcurrency,
     serverConfig.version
   );
   const healthService = new HealthService({
