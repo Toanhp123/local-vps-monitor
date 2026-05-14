@@ -15,8 +15,8 @@ const defaultForm = {
 	name: "",
 	host: "",
 	port: "22",
-	username: "root",
-	privateKeyPath: "~/.ssh/vps_monitor",
+	username: "",
+	privateKeyPath: "",
 };
 
 const inputClass =
@@ -71,11 +71,7 @@ export function SshTargetManagerPanel({
 		});
 
 		if (added) {
-			setForm((current) => ({
-				...defaultForm,
-				username: current.username,
-				privateKeyPath: current.privateKeyPath,
-			}));
+			setForm(defaultForm);
 		}
 	};
 
@@ -128,7 +124,7 @@ export function SshTargetManagerPanel({
 						className={inputClass}
 						value={form.name}
 						onChange={(event) => updateField("name", event.target.value)}
-						placeholder="Production API"
+						placeholder="My VPS"
 						required
 					/>
 				</label>
@@ -138,7 +134,7 @@ export function SshTargetManagerPanel({
 						className={inputClass}
 						value={form.host}
 						onChange={(event) => updateField("host", event.target.value)}
-						placeholder="185.128.227.231"
+						placeholder="IP or hostname"
 						required
 					/>
 				</label>
@@ -161,7 +157,7 @@ export function SshTargetManagerPanel({
 						className={inputClass}
 						value={form.username}
 						onChange={(event) => updateField("username", event.target.value)}
-						placeholder="root"
+						placeholder="SSH user"
 						required
 					/>
 				</label>
@@ -173,7 +169,7 @@ export function SshTargetManagerPanel({
 						onChange={(event) =>
 							updateField("privateKeyPath", event.target.value)
 						}
-						placeholder="~/.ssh/vps_monitor"
+						placeholder="Local key file path"
 						required
 					/>
 				</label>
@@ -213,7 +209,7 @@ export function SshTargetManagerPanel({
 								SSH
 							</th>
 							<th className="border-b border-slate-200 bg-white px-3.5 py-3 text-left text-xs font-bold text-slate-500 uppercase">
-								Key
+								Key path
 							</th>
 							<th className="border-b border-slate-200 bg-white px-3.5 py-3 text-right text-xs font-bold text-slate-500 uppercase">
 								Actions

@@ -1,4 +1,4 @@
-import { Server, WifiOff } from "lucide-react";
+import { LoaderCircle, RefreshCw, Server, WifiOff } from "lucide-react";
 import type { StoredServer } from "../../../../shared/types";
 import { ApplicationTable } from "../../application/ui/ApplicationTable";
 import {
@@ -12,10 +12,16 @@ const metricLabelClass = "block text-[13px] font-bold text-slate-500";
 const metricValueClass = "mt-1.5 block font-bold text-slate-900";
 
 export function ServerPanel({
+	isScanDisabled,
+	isScanning,
 	now,
+	onScan,
 	server,
 }: {
+	isScanDisabled: boolean;
+	isScanning: boolean;
 	now: number;
+	onScan: () => void;
 	server: StoredServer;
 }) {
 	const memoryUsed =
@@ -45,7 +51,23 @@ export function ServerPanel({
 					</p>
 				</div>
 				<div className="flex flex-col items-end gap-2 text-right max-md:items-start max-md:text-left">
-					<StatusBadge status={server.status} />
+					<div className="flex flex-wrap items-center justify-end gap-2 max-md:justify-start">
+						<StatusBadge status={server.status} />
+						<button
+							type="button"
+							className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+							onClick={onScan}
+							disabled={isScanDisabled}
+							aria-label={`Scan ${server.serverName}`}
+						>
+							{isScanning ? (
+								<LoaderCircle size={15} className="animate-spin" />
+							) : (
+								<RefreshCw size={15} />
+							)}
+							Scan
+						</button>
+					</div>
 					<span className="block text-[13px] font-bold text-slate-500">
 						Last seen {relativeTime(server.lastSeenAt, now)}
 					</span>

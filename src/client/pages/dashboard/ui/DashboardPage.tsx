@@ -56,7 +56,12 @@ export function DashboardPage() {
 					scanAllId={sshTargetManager.scanAllId}
 					targets={sshTargetManager.targets}
 				/>
-				<ServerList now={now} servers={filteredServers} />
+				<ServerList
+					activeScanId={sshTargetManager.activeScanId}
+					now={now}
+					onScanServer={sshTargetManager.scanTarget}
+					servers={filteredServers}
+				/>
 			</div>
 		</main>
 	);
