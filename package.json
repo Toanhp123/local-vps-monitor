@@ -1,0 +1,42 @@
+{
+  "name": "vps-monitor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "tsx watch src/server/index.ts",
+    "dev:web": "vite --host 0.0.0.0",
+    "dev:agent": "tsx watch src/agent/index.ts",
+    "build": "npm run build:server && npm run build:agent && npm run build:web",
+    "build:server": "tsup src/server/index.ts --format esm --target node20 --out-dir dist/server --clean",
+    "build:agent": "tsup src/agent/index.ts --format esm --target node20 --out-dir dist/agent --clean",
+    "build:web": "vite build",
+    "check": "tsc --noEmit",
+    "start": "node dist/server/index.js",
+    "start:agent": "node dist/agent/index.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "lucide-react": "^0.561.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "ws": "^8.20.1",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.3",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@types/ws": "^8.18.1",
+    "@vitejs/plugin-react": "^5.1.1",
+    "concurrently": "^9.2.1",
+    "tailwindcss": "^4.3.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.7"
+  }
+}

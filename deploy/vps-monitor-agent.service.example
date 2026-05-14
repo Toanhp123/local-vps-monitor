@@ -1,0 +1,19 @@
+[Unit]
+Description=VPS Monitor Agent
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/vps-monitor
+Environment=AGENT_SERVER_URL=https://monitor.example.com
+Environment=AGENT_TOKEN=change-me
+Environment=AGENT_SERVER_ID=vps-01
+Environment=AGENT_SERVER_NAME=VPS 01
+Environment=AGENT_INTERVAL_MS=15000
+ExecStart=/usr/bin/node /opt/vps-monitor/dist/agent/index.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

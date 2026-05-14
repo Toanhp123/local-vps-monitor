@@ -1,0 +1,14 @@
+services:
+  vps-monitor:
+    build: .
+    container_name: vps-monitor
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      INGEST_TOKEN: "${INGEST_TOKEN:-change-me}"
+      DATA_FILE: /data/monitor-state.json
+      OFFLINE_AFTER_MS: "${OFFLINE_AFTER_MS:-60000}"
+      REALTIME_BROADCAST_MS: "${REALTIME_BROADCAST_MS:-5000}"
+    volumes:
+      - ./data:/data
