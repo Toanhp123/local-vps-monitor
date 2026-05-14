@@ -125,6 +125,9 @@ src/server
 ├── controllers              # xử lý request/response
 ├── services                 # use case, business logic
 ├── models                   # đọc/ghi JSON state
+├── domain                   # logic thuần để tính overview, health và restart
+├── integrations             # adapter bên ngoài như SSH command runner và collectors
+├── lib                      # helper nhỏ dùng trong backend
 ├── realtime                 # WebSocket gateway
 └── validators               # schema validate payload
 ```
@@ -139,6 +142,7 @@ Lý do chọn MVC đơn giản:
 Các service chính:
 
 - `MonitorOverviewService`: ingest heartbeat, lấy overview, notify realtime listener.
+- `SshTargetConfigService`: quản lý CRUD cấu hình SSH target.
 - `SshScanService`: quản lý luồng scan VPS qua SSH và chuyển kết quả thành heartbeat.
 - `HealthService`: trả thông tin health của local API.
 
@@ -146,6 +150,10 @@ Các model chính:
 
 - `MonitorStateStore`: lưu trạng thái server/app mới nhất.
 - `SshTargetConfigStore`: lưu danh sách SSH target local, không lưu password.
+
+Các file trong `domain` chứa logic thuần không phụ thuộc Express hoặc filesystem. Ví dụ `monitorOverviewProjector` chịu trách nhiệm tính offline status, summary và Docker observed restart count.
+
+Các file trong `integrations/ssh` không được coi là service nghiệp vụ. Chúng là adapter kỹ thuật để kết nối SSH, chạy command và parse output từ Docker/PM2/Linux. Cách tách này giúp service giữ vai trò điều phối use case, còn chi tiết hạ tầng nằm riêng.
 
 ## 8. Kiến trúc frontend FSD
 

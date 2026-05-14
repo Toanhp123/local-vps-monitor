@@ -1,20 +1,21 @@
 import type { RequestHandler } from "express";
+import { errorMessage } from "../lib/errorMessage";
 import { SshScanService, SshTargetNotFoundError } from "../services/sshScanService";
+import type { SshTargetConfigService } from "../services/sshTargetConfigService";
 import { sshTargetConfigCreateSchema } from "../validators/sshTargetConfigSchema";
-
-const errorMessage = (error: unknown) => {
-  return error instanceof Error ? error.message : String(error);
-};
 
 const paramString = (value: string | string[] | undefined) => {
   return Array.isArray(value) ? value[0] : value;
 };
 
 export class SshTargetsController {
-  constructor(private readonly sshScanService: SshScanService) {}
+  constructor(
+    private readonly sshTargetConfigService: SshTargetConfigService,
+    private readonly sshScanService: SshScanService
+  ) {}
 
   listTargets: RequestHandler = (_request, response) => {
-    response.json({ targets: this.sshScanService.listTargets() });
+    response.json({ targets: this.sshTargetConfigService.listTargets() });
   };
 
   createTarget: RequestHandler = (request, response) => {
@@ -24,7 +25,7 @@ export class SshTargetsController {
       return;
     }
 
-    const target = this.sshScanService.createTarget(parsed.data);
+    const target = this.sshTargetConfigService.createTarget(parsed.data);
     response.status(201).json({ target });
   };
 
@@ -35,7 +36,7 @@ export class SshTargetsController {
       return;
     }
 
-    const deleted = this.sshScanService.deleteTarget(targetId);
+    const deleted = this.sshTargetConfigService.deleteTarget(targetId);
 
     if (!deleted) {
       response.status(404).json({ error: "SSH target not found" });

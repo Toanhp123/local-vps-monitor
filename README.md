@@ -45,6 +45,9 @@ src/server
 |-- controllers              # request/response handlers
 |-- services                 # application use cases
 |-- models                   # persistence/state model
+|-- domain                   # pure monitor projection and status logic
+|-- integrations             # external adapters such as SSH command runners and collectors
+|-- lib                      # small backend utilities
 |-- realtime                 # WebSocket gateway
 `-- validators               # request payload schemas
 ```

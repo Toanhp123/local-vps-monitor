@@ -1,4 +1,5 @@
 import type { HeartbeatPayload, OverviewResponse } from "../../shared/types";
+import { buildOverview, createStoredServerFromHeartbeat } from "../domain/monitorOverviewProjector";
 import type { MonitorStateStore } from "../models/monitorStateStore";
 
 type OverviewListener = (overview: OverviewResponse) => void;
@@ -6,17 +7,23 @@ type OverviewListener = (overview: OverviewResponse) => void;
 export class MonitorOverviewService {
   private readonly overviewListeners = new Set<OverviewListener>();
 
-  constructor(private readonly monitorStateStore: MonitorStateStore) {}
+  constructor(
+    private readonly monitorStateStore: MonitorStateStore,
+    private readonly offlineAfterMs: number
+  ) {}
 
   ingestHeartbeat(payload: HeartbeatPayload) {
-    const server = this.monitorStateStore.ingest(payload);
+    const previousServer = this.monitorStateStore.getServer(payload.serverId);
+    const server = createStoredServerFromHeartbeat(payload, previousServer, new Date());
+
+    this.monitorStateStore.upsertServer(server);
     this.notifyOverviewUpdated();
 
     return server;
   }
 
   getOverview() {
-    return this.monitorStateStore.overview();
+    return buildOverview(this.monitorStateStore.listServers(), this.offlineAfterMs);
   }
 
   onOverviewUpdated(listener: OverviewListener) {

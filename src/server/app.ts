@@ -9,6 +9,7 @@ import { createApiRouter } from "./routes/apiRoutes";
 import { HealthService } from "./services/healthService";
 import { MonitorOverviewService } from "./services/monitorOverviewService";
 import { SshScanService } from "./services/sshScanService";
+import { SshTargetConfigService } from "./services/sshTargetConfigService";
 
 const mountClientApp = (app: Express) => {
   const clientDist = path.resolve(process.cwd(), "dist/client");
@@ -34,9 +35,10 @@ export interface ServerAppContext {
 
 export const createApp = () => {
   const app = express();
-  const monitorStateStore = new MonitorStateStore(serverConfig.dataFile, serverConfig.offlineAfterMs);
+  const monitorStateStore = new MonitorStateStore(serverConfig.dataFile);
   const sshTargetConfigStore = new SshTargetConfigStore(serverConfig.sshTargetsFile);
-  const monitorOverviewService = new MonitorOverviewService(monitorStateStore);
+  const monitorOverviewService = new MonitorOverviewService(monitorStateStore, serverConfig.offlineAfterMs);
+  const sshTargetConfigService = new SshTargetConfigService(sshTargetConfigStore);
   const sshScanService = new SshScanService(
     sshTargetConfigStore,
     monitorOverviewService,
@@ -56,7 +58,8 @@ export const createApp = () => {
       healthService,
       ingestToken: serverConfig.ingestToken,
       monitorOverviewService,
-      sshScanService
+      sshScanService,
+      sshTargetConfigService
     })
   );
 
