@@ -10,8 +10,7 @@ The default mode is **Local SSH mode**:
 - SSH passwords are not stored or requested by the dashboard.
 - SSH private key content is not persisted; only the local key file path is saved.
 - Metrics are stored in local JSON files under `data/`, which is ignored by Git.
-
-An optional agent mode is still available for users who want each VPS to push heartbeat data to a self-hosted dashboard.
+- There is no remote agent mode and no public ingest endpoint.
 
 ## Architecture
 
@@ -27,7 +26,6 @@ Main parts:
 
 - `server`: Express API, MVC-style controllers/services/models, SSH scanner, JSON storage, and WebSocket broadcaster.
 - `client`: React dashboard using a lightweight Feature-Sliced Design structure and Tailwind CSS.
-- `agent`: optional Node.js process that can be installed on each VPS for push-based monitoring.
 - `storage`: local JSON files configured by `DATA_FILE` and `SSH_TARGETS_FILE`.
 
 For a detailed Vietnamese explanation for CV/interview use, see `docs/project-explanation.md`.
@@ -111,7 +109,7 @@ Then open the dashboard and add a target:
 - User: SSH username, for example `root`.
 - Private key path: local path, for example `~/.ssh/vps_monitor`.
 
-Click `Scan` or `Scan all`. The local API connects to the VPS through SSH, runs read-only monitor commands, converts the result into the existing heartbeat format, stores the latest state locally, and pushes the new overview to the browser via WebSocket.
+Click `Scan` or `Scan all`. The local API connects to the VPS through SSH, runs read-only monitor commands, converts the result into a server snapshot, stores the latest state locally, and pushes the new overview to the browser via WebSocket.
 
 The scanner currently checks:
 
@@ -121,35 +119,11 @@ The scanner currently checks:
 
 If Docker or PM2 is not installed on a VPS, that runtime simply reports no apps.
 
-## Optional Agent Mode
-
-Agent mode is useful when you self-host the dashboard and want each VPS to push data to it.
-
-Local test:
-
-```bash
-$env:AGENT_SERVER_URL="http://127.0.0.1:3001"
-$env:AGENT_TOKEN="change-me"
-$env:AGENT_SERVER_ID="local-dev"
-$env:AGENT_SERVER_NAME="Local Dev"
-npm run dev:agent
-```
-
-Production-style agent:
-
-```bash
-AGENT_SERVER_URL=https://monitor.example.com \
-AGENT_TOKEN=your-secret-token \
-AGENT_SERVER_ID=vps-01 \
-AGENT_SERVER_NAME="VPS 01" \
-npm run start:agent
-```
-
 ## Runtime Metrics
 
 - Docker apps report CPU, memory, image, ports, status, health, and restart count.
 - PM2 apps report CPU, memory, process status, uptime, and restart count.
-- Docker manual restarts are detected by comparing the container `StartedAt` value between scans or heartbeats.
+- Docker manual restarts are detected by comparing the container `StartedAt` value between scans.
 
 ## Reset Local Data
 
@@ -176,9 +150,5 @@ npm start
 - `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
 - `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.
 - `SSH_COMMAND_TIMEOUT_MS`: SSH connect/command timeout. Defaults to `12000`.
-- `INGEST_TOKEN`: token used by optional agent mode.
 - `OFFLINE_AFTER_MS`: timeout before a VPS is marked offline.
 - `REALTIME_BROADCAST_MS`: interval for periodic WebSocket overview broadcasts.
-- `AGENT_INTERVAL_MS`: optional agent heartbeat interval.
-- `DOCKER_BIN`: Docker command path for optional local agent mode.
-- `PM2_BIN`: PM2 command path for optional local agent mode.

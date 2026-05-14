@@ -1,4 +1,4 @@
-import type { HeartbeatPayload, SshScanAllResponse, SshScanResult, SshTarget } from "../../shared/types";
+import type { ServerSnapshotPayload, SshScanAllResponse, SshScanResult, SshTarget } from "../../shared/types";
 import { connectSshTarget } from "../integrations/ssh/sshCommandRunner";
 import { collectSshDockerApps } from "../integrations/ssh/sshDockerAppsCollector";
 import { collectSshHostMetrics } from "../integrations/ssh/sshHostMetricsCollector";
@@ -59,15 +59,15 @@ export class SshScanService {
         collectSshDockerApps(client, this.commandTimeoutMs),
         collectSshPm2Apps(client, this.commandTimeoutMs)
       ]);
-      const payload: HeartbeatPayload = {
+      const payload: ServerSnapshotPayload = {
         serverId: target.id,
         serverName: target.name,
-        agentVersion: `local-ssh/${this.version}`,
+        collectorVersion: `local-ssh/${this.version}`,
         observedAt: new Date().toISOString(),
         host,
         apps: [...dockerApps, ...pm2Apps]
       };
-      const server = this.monitorOverviewService.ingestHeartbeat(payload);
+      const server = this.monitorOverviewService.ingestSnapshot(payload);
 
       return {
         targetId: target.id,

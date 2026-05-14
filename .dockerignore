@@ -2,4 +2,8 @@ node_modules
 dist
 data
 .env
+.git
+.DS_Store
+dev-server*.log
+*.log
 npm-debug.log*

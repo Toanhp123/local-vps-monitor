@@ -13,7 +13,6 @@ export const serverConfig = {
   host: process.env.HOST || "127.0.0.1",
   allowRemoteAccess: process.env.ALLOW_REMOTE_ACCESS === "true",
   version: process.env.npm_package_version || "0.1.0",
-  ingestToken: process.env.INGEST_TOKEN || "change-me",
   dataFile: path.resolve(process.cwd(), process.env.DATA_FILE || "./data/monitor-state.json"),
   sshTargetsFile: path.resolve(process.cwd(), process.env.SSH_TARGETS_FILE || "./data/ssh-targets.json"),
   offlineAfterMs: numberFromEnv("OFFLINE_AFTER_MS", 60_000),

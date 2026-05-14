@@ -56,7 +56,6 @@ export const createApp = () => {
     "/api",
     createApiRouter({
       healthService,
-      ingestToken: serverConfig.ingestToken,
       monitorOverviewService,
       sshScanService,
       sshTargetConfigService

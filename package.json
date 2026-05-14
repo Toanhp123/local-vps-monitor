@@ -7,15 +7,12 @@
     "dev": "concurrently -n api,web -c blue,green \"npm:dev:server\" \"npm:dev:web\"",
     "dev:server": "tsx watch src/server/index.ts",
     "dev:web": "vite --host 127.0.0.1",
-    "dev:agent": "tsx watch src/agent/index.ts",
-    "build": "npm run build:server && npm run build:agent && npm run build:web",
+    "build": "npm run build:server && npm run build:web",
     "build:server": "tsup src/server/index.ts --format esm --target node20 --out-dir dist/server --clean",
-    "build:agent": "tsup src/agent/index.ts --format esm --target node20 --out-dir dist/agent --clean",
     "build:web": "vite build",
     "check": "tsc --noEmit",
     "reset:data": "node scripts/reset-data.mjs",
-    "start": "node dist/server/index.js",
-    "start:agent": "node dist/agent/index.js"
+    "start": "node dist/server/index.js"
   },
   "dependencies": {
     "express": "^5.2.1",

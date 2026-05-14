@@ -1,9 +1,9 @@
 import type {
   AppSnapshot,
   HealthStatus,
-  HeartbeatPayload,
   OverviewResponse,
   OverviewSummary,
+  ServerSnapshotPayload,
   StoredServer
 } from "../../shared/types";
 
@@ -88,8 +88,8 @@ const summary = (servers: StoredServer[]): OverviewSummary => {
   };
 };
 
-export const createStoredServerFromHeartbeat = (
-  payload: HeartbeatPayload,
+export const createStoredServerFromSnapshot = (
+  payload: ServerSnapshotPayload,
   previousServer: StoredServer | undefined,
   receivedAt: Date
 ): StoredServer => {

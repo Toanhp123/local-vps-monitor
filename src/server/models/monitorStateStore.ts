@@ -6,7 +6,32 @@ interface MonitorState {
   servers: Record<string, StoredServer>;
 }
 
+type LegacyStoredServer = Omit<StoredServer, "collectorVersion"> & {
+  agentVersion?: string;
+  collectorVersion?: string;
+};
+
 const emptyState = (): MonitorState => ({ servers: {} });
+
+const normalizeStoredServer = (server: LegacyStoredServer): StoredServer => {
+  const { agentVersion, collectorVersion, ...serverWithoutLegacyVersion } = server;
+
+  return {
+    ...serverWithoutLegacyVersion,
+    collectorVersion: collectorVersion || agentVersion || "unknown"
+  };
+};
+
+const normalizeState = (state: MonitorState): MonitorState => {
+  return {
+    servers: Object.fromEntries(
+      Object.entries(state.servers).map(([serverId, server]) => [
+        serverId,
+        normalizeStoredServer(server as LegacyStoredServer)
+      ])
+    )
+  };
+};
 
 export class MonitorStateStore {
   private state: MonitorState;
@@ -36,7 +61,7 @@ export class MonitorStateStore {
     try {
       const raw = fs.readFileSync(this.filePath, "utf8");
       const parsed = JSON.parse(raw) as MonitorState;
-      return parsed && parsed.servers ? parsed : emptyState();
+      return parsed && parsed.servers ? normalizeState(parsed) : emptyState();
     } catch (error) {
       console.warn(`Cannot read monitor state at ${this.filePath}:`, error);
       return emptyState();

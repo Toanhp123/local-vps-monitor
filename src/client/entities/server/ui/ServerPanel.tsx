@@ -40,7 +40,8 @@ export function ServerPanel({
 					</div>
 					<p className="text-sm text-slate-500">
 						{server.host.hostname} - {server.host.platform}/
-						{server.host.arch} - agent {server.agentVersion}
+						{server.host.arch} - collector{" "}
+						{server.collectorVersion || "unknown"}
 					</p>
 				</div>
 				<div className="flex flex-col items-end gap-2 text-right max-md:items-start max-md:text-left">

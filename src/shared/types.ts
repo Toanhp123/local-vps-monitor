@@ -28,16 +28,16 @@ export interface AppSnapshot {
   raw?: Record<string, unknown>;
 }
 
-export interface HeartbeatPayload {
+export interface ServerSnapshotPayload {
   serverId: string;
   serverName: string;
-  agentVersion: string;
+  collectorVersion: string;
   observedAt: string;
   host: HostMetrics;
   apps: AppSnapshot[];
 }
 
-export interface StoredServer extends HeartbeatPayload {
+export interface StoredServer extends ServerSnapshotPayload {
   lastSeenAt: string;
   online: boolean;
   status: HealthStatus;
