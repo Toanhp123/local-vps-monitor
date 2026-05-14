@@ -20,7 +20,10 @@ export function SummaryStats({
 	const offlineServers = Math.max(0, totalServers - onlineServers);
 
 	return (
-		<section className="mb-4.5 grid grid-cols-6 gap-3 max-xl:grid-cols-3 max-md:grid-cols-1">
+		<section
+			id="overview"
+			className="mb-4.5 scroll-mt-6 grid grid-cols-6 gap-3 max-xl:grid-cols-3 max-md:grid-cols-1"
+		>
 			<StatCard
 				icon={Server}
 				label="Online VPS"

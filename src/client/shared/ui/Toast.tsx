@@ -21,7 +21,7 @@ export function Toast({ toast }: { toast: ToastState | null }) {
 				role="status"
 			>
 				<Icon size={18} className="mt-0.5 shrink-0" />
-				<span className="min-w-0 wrap-break-word">{toast.message}</span>
+				<span className="min-w-0 break-words">{toast.message}</span>
 			</div>
 		</div>
 	);

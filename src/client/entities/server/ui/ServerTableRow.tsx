@@ -1,0 +1,108 @@
+import {
+	ChevronDown,
+	ChevronRight,
+	LoaderCircle,
+	RefreshCw,
+	Server,
+	WifiOff,
+} from "lucide-react";
+import type { StoredServer } from "../../../../shared/types";
+import { formatBytes, relativeTime } from "../../../shared/lib/format";
+import { StatusBadge } from "../../../shared/ui/StatusBadge";
+import { serverMemory } from "../model/serverMetrics";
+
+const bodyCellClass =
+	"border-b border-slate-200 px-3.5 py-3 text-left align-middle whitespace-nowrap";
+
+export function ServerTableRow({
+	isExpanded,
+	isScanDisabled,
+	isScanning,
+	now,
+	onScan,
+	onToggle,
+	server,
+}: {
+	isExpanded: boolean;
+	isScanDisabled: boolean;
+	isScanning: boolean;
+	now: number;
+	onScan: () => void;
+	onToggle: () => void;
+	server: StoredServer;
+}) {
+	const memory = serverMemory(server);
+
+	return (
+		<tr className="cursor-pointer hover:bg-blue-50/50" onClick={onToggle}>
+			<td className={`${bodyCellClass} min-w-68`}>
+				<div className="flex items-center gap-2.5">
+					<span className="text-slate-400">
+						{isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+					</span>
+					<span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+						{server.online ? <Server size={17} /> : <WifiOff size={17} />}
+					</span>
+					<span className="min-w-0">
+						<strong className="block max-w-52 overflow-hidden text-ellipsis text-slate-900">
+							{server.serverName}
+						</strong>
+						<span className="block max-w-52 overflow-hidden text-ellipsis text-xs font-semibold text-slate-500">
+							{server.host.hostname}
+						</span>
+					</span>
+				</div>
+			</td>
+			<td className={bodyCellClass}>
+				<StatusBadge status={server.status} />
+			</td>
+			<td className={bodyCellClass}>
+				<strong className="text-slate-900">{server.apps.length}</strong>
+				<span className="ml-1 text-slate-500">apps</span>
+			</td>
+			<td className={bodyCellClass}>
+				<span className="font-semibold text-slate-700">
+					{server.host.platform}/{server.host.arch}
+				</span>
+			</td>
+			<td className={bodyCellClass}>
+				<span className="font-semibold text-slate-700">
+					{server.host.cpuCount}
+				</span>
+				<span className="ml-1 text-slate-500">cores</span>
+			</td>
+			<td className={bodyCellClass}>
+				<span className="font-semibold text-slate-700">
+					{formatBytes(memory.used)}
+				</span>
+				<span className="ml-1 text-slate-500">
+					/ {formatBytes(server.host.memoryTotalBytes)} ({memory.percent}%)
+				</span>
+			</td>
+			<td className={bodyCellClass}>
+				<span className="font-semibold text-slate-600">
+					{relativeTime(server.lastSeenAt, now)}
+				</span>
+			</td>
+			<td className={`${bodyCellClass} text-right`}>
+				<button
+					type="button"
+					className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+					onClick={(event) => {
+						event.stopPropagation();
+						onScan();
+					}}
+					disabled={isScanDisabled}
+					aria-label={`Scan ${server.serverName}`}
+				>
+					{isScanning ? (
+						<LoaderCircle size={15} className="animate-spin" />
+					) : (
+						<RefreshCw size={15} />
+					)}
+					{isScanning ? "Scanning" : "Scan"}
+				</button>
+			</td>
+		</tr>
+	);
+}

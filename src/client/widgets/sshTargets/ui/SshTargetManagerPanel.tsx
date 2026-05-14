@@ -32,9 +32,7 @@ export function SshTargetManagerPanel({
 	isSaving,
 	onAddTarget,
 	onRemoveTarget,
-	onScanAllTargets,
 	onScanTarget,
-	scanAllId,
 	targets,
 }: {
 	activeScanId: string | null;
@@ -43,16 +41,14 @@ export function SshTargetManagerPanel({
 	isSaving: boolean;
 	onAddTarget: (input: SshTargetCreateInput) => Promise<boolean>;
 	onRemoveTarget: (targetId: string) => void;
-	onScanAllTargets: () => void;
 	onScanTarget: (targetId: string) => void;
-	scanAllId: string;
 	targets: SshTarget[];
 }) {
 	const [form, setForm] = useState(defaultForm);
 	const [isManagingTargets, setIsManagingTargets] = useState(false);
 	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-	const isScanningAll = activeScanId === scanAllId;
-	const showManagement = (!isLoading && targets.length === 0) || isManagingTargets;
+	const showManagement =
+		(!isLoading && targets.length === 0) || isManagingTargets;
 
 	const updateField = (field: keyof typeof defaultForm, value: string) => {
 		setForm((current) => ({
@@ -89,7 +85,10 @@ export function SshTargetManagerPanel({
 	};
 
 	return (
-		<section className="mb-4.5 overflow-hidden rounded-lg border border-slate-200 bg-white">
+		<section
+			id="ssh-targets"
+			className="mb-4.5 scroll-mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white"
+		>
 			<div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4.5 py-3.5 max-lg:flex-col max-lg:items-stretch">
 				<div className="flex min-w-0 items-center gap-2.5">
 					<div className="flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -119,7 +118,9 @@ export function SshTargetManagerPanel({
 						<button
 							type="button"
 							className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-							onClick={() => setIsManagingTargets((current) => !current)}
+							onClick={() =>
+								setIsManagingTargets((current) => !current)
+							}
 							aria-expanded={showManagement}
 						>
 							{showManagement ? (
@@ -130,20 +131,6 @@ export function SshTargetManagerPanel({
 							Manage
 						</button>
 					)}
-					<button
-						type="button"
-						className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-						onClick={onScanAllTargets}
-						disabled={targets.length === 0 || Boolean(activeScanId)}
-						aria-label="Scan all SSH targets"
-					>
-						{isScanningAll ? (
-							<LoaderCircle size={16} className="animate-spin" />
-						) : (
-							<RefreshCw size={16} />
-						)}
-						{isScanningAll ? "Scanning" : "Scan all"}
-					</button>
 				</div>
 			</div>
 
@@ -166,7 +153,9 @@ export function SshTargetManagerPanel({
 							<input
 								className={inputClass}
 								value={form.name}
-								onChange={(event) => updateField("name", event.target.value)}
+								onChange={(event) =>
+									updateField("name", event.target.value)
+								}
 								placeholder="My VPS"
 								required
 							/>
@@ -176,7 +165,9 @@ export function SshTargetManagerPanel({
 							<input
 								className={inputClass}
 								value={form.host}
-								onChange={(event) => updateField("host", event.target.value)}
+								onChange={(event) =>
+									updateField("host", event.target.value)
+								}
 								placeholder="IP or hostname"
 								required
 							/>
@@ -186,7 +177,9 @@ export function SshTargetManagerPanel({
 							<input
 								className={inputClass}
 								value={form.port}
-								onChange={(event) => updateField("port", event.target.value)}
+								onChange={(event) =>
+									updateField("port", event.target.value)
+								}
 								inputMode="numeric"
 								min={1}
 								max={65535}
@@ -212,7 +205,10 @@ export function SshTargetManagerPanel({
 								className={inputClass}
 								value={form.privateKeyPath}
 								onChange={(event) =>
-									updateField("privateKeyPath", event.target.value)
+									updateField(
+										"privateKeyPath",
+										event.target.value,
+									)
 								}
 								placeholder="Local key file path"
 								required
@@ -225,7 +221,10 @@ export function SshTargetManagerPanel({
 								disabled={isSaving}
 							>
 								{isSaving ? (
-									<LoaderCircle size={16} className="animate-spin" />
+									<LoaderCircle
+										size={16}
+										className="animate-spin"
+									/>
 								) : (
 									<Plus size={16} />
 								)}
@@ -254,21 +253,27 @@ export function SshTargetManagerPanel({
 							</thead>
 							<tbody>
 								{targets.map((target) => {
-									const isScanning = activeScanId === target.id;
-									const isConfirmingDelete = pendingDeleteId === target.id;
+									const isScanning =
+										activeScanId === target.id;
+									const isConfirmingDelete =
+										pendingDeleteId === target.id;
 
 									return (
 										<tr key={target.id}>
 											<td className="border-b border-slate-200 px-3.5 py-3">
 												<div className="flex items-center gap-2.5">
-													<Server size={16} className="text-blue-600" />
+													<Server
+														size={16}
+														className="text-blue-600"
+													/>
 													<strong className="text-slate-900">
 														{target.name}
 													</strong>
 												</div>
 											</td>
 											<td className="border-b border-slate-200 px-3.5 py-3 font-semibold text-slate-600">
-												{target.username}@{target.host}:{target.port}
+												{target.username}@{target.host}:
+												{target.port}
 											</td>
 											<td className="max-w-95 overflow-hidden border-b border-slate-200 px-3.5 py-3 text-ellipsis font-semibold whitespace-nowrap text-slate-500">
 												{target.privateKeyPath}
@@ -278,8 +283,14 @@ export function SshTargetManagerPanel({
 													<button
 														type="button"
 														className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-														onClick={() => onScanTarget(target.id)}
-														disabled={Boolean(activeScanId)}
+														onClick={() =>
+															onScanTarget(
+																target.id,
+															)
+														}
+														disabled={Boolean(
+															activeScanId,
+														)}
 														aria-label={`Scan ${target.name}`}
 													>
 														{isScanning ? (
@@ -288,9 +299,13 @@ export function SshTargetManagerPanel({
 																className="animate-spin"
 															/>
 														) : (
-															<RefreshCw size={15} />
+															<RefreshCw
+																size={15}
+															/>
 														)}
-														{isScanning ? "Scanning" : "Scan"}
+														{isScanning
+															? "Scanning"
+															: "Scan"}
 													</button>
 													<button
 														type="button"
@@ -299,11 +314,17 @@ export function SshTargetManagerPanel({
 																? "border-rose-200 bg-rose-50 text-rose-700"
 																: "border-slate-200 bg-white text-slate-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
 														}`}
-														onClick={() => handleRemoveTarget(target.id)}
+														onClick={() =>
+															handleRemoveTarget(
+																target.id,
+															)
+														}
 														aria-label={`Delete ${target.name}`}
 													>
 														<Trash2 size={15} />
-														{isConfirmingDelete ? "Confirm" : ""}
+														{isConfirmingDelete
+															? "Confirm"
+															: ""}
 													</button>
 												</div>
 											</td>
@@ -316,7 +337,9 @@ export function SshTargetManagerPanel({
 											colSpan={4}
 											className="h-18 border-b border-slate-200 text-center font-semibold text-slate-500"
 										>
-											{isLoading ? "Loading SSH targets" : "No SSH targets"}
+											{isLoading
+												? "Loading SSH targets"
+												: "No SSH targets"}
 										</td>
 									</tr>
 								)}
