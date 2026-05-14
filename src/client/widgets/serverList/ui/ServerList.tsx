@@ -1,8 +1,7 @@
 import { Fragment, useState } from "react";
 import type { StoredServer } from "../../../../shared/types";
-import { ApplicationTable } from "../../../entities/application/ui/ApplicationTable";
-import { ServerMetricsGrid } from "../../../entities/server/ui/ServerMetricsGrid";
 import { ServerTableRow } from "../../../entities/server/ui/ServerTableRow";
+import { ServerExpandedDetails } from "./ServerExpandedDetails";
 import { ServerListEmptyState } from "./ServerListEmptyState";
 import { ServerTableHeader } from "./ServerTableHeader";
 
@@ -86,9 +85,8 @@ export function ServerList({
 
 										{isExpanded && (
 											<tr>
-												<td colSpan={8} className="bg-slate-50 p-0">
-													<ServerMetricsGrid server={server} />
-													<ApplicationTable apps={server.apps} />
+												<td colSpan={8} className="border-b border-slate-200 p-0">
+													<ServerExpandedDetails server={server} />
 												</td>
 											</tr>
 										)}
