@@ -51,7 +51,7 @@ export function SummaryStats({
 			/>
 			<StatCard
 				icon={Cpu}
-				label="Updated"
+				label="Data updated"
 				value={lastDataUpdate ? relativeTime(lastDataUpdate, now) : "-"}
 			/>
 		</section>
