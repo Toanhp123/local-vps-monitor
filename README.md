@@ -118,6 +118,8 @@ Then open the dashboard and add a target:
 
 Click `Scan` or `Scan all`. The local API connects to the VPS through SSH, runs read-only monitor commands, converts the result into a server snapshot, stores the latest state locally, and pushes the new overview to the browser via WebSocket.
 
+The backend also runs an automatic scan loop using `AUTO_SCAN_INTERVAL_MS` so the dashboard can update without manual refresh. Set `AUTO_SCAN_INTERVAL_MS=0` to disable automatic scans.
+
 If the host key is missing or changed, the scan is rejected. This is intentional: the dashboard follows the same trust boundary as SSH and does not silently accept unknown servers.
 
 The scanner currently checks:
@@ -160,3 +162,4 @@ npm start
 - `SSH_COMMAND_TIMEOUT_MS`: SSH connect/command timeout. Defaults to `12000`.
 - `OFFLINE_AFTER_MS`: timeout before a VPS is marked offline.
 - `REALTIME_BROADCAST_MS`: interval for periodic WebSocket overview broadcasts.
+- `AUTO_SCAN_INTERVAL_MS`: interval for automatic SSH scans. Set to `0` to disable. Defaults to `60000`.

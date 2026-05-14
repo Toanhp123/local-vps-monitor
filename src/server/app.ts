@@ -31,6 +31,7 @@ const mountClientApp = (app: Express) => {
 export interface ServerAppContext {
   app: Express;
   monitorOverviewService: MonitorOverviewService;
+  sshScanService: SshScanService;
 }
 
 export const createApp = () => {
@@ -66,6 +67,7 @@ export const createApp = () => {
 
   return {
     app,
-    monitorOverviewService
+    monitorOverviewService,
+    sshScanService
   } satisfies ServerAppContext;
 };
