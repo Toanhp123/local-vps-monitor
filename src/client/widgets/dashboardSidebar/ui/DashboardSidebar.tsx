@@ -4,8 +4,6 @@ import {
 	Box,
 	CircleX,
 	DatabaseZap,
-	LoaderCircle,
-	RefreshCw,
 	Server,
 	SquareTerminal,
 	WifiOff,
@@ -30,16 +28,12 @@ const realtimeClasses: Record<RealtimeStatus, string> = {
 
 export function DashboardSidebar({
 	activeFilter,
-	isScanningAll,
 	onFilterChange,
-	onScanAll,
 	overview,
 	realtimeStatus,
 }: {
 	activeFilter: ServerViewFilter;
-	isScanningAll: boolean;
 	onFilterChange: (filter: ServerViewFilter) => void;
-	onScanAll: () => void;
 	overview: OverviewResponse | null;
 	realtimeStatus: RealtimeStatus;
 }) {
@@ -165,22 +159,6 @@ export function DashboardSidebar({
 							</button>
 						);
 					})}
-				</div>
-
-				<div className="grid gap-2 border-t border-slate-200 pt-4">
-					<button
-						type="button"
-						className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-						onClick={onScanAll}
-						disabled={isScanningAll || servers.length === 0}
-					>
-						{isScanningAll ? (
-							<LoaderCircle size={16} className="animate-spin" />
-						) : (
-							<RefreshCw size={16} />
-						)}
-						{isScanningAll ? "Scanning" : "Scan all"}
-					</button>
 				</div>
 
 				<div className="grid gap-2 border-t border-slate-200 pt-4 max-lg:grid-cols-3 max-sm:grid-cols-1">

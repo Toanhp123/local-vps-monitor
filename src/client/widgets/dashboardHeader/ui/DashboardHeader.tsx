@@ -1,13 +1,17 @@
-import { RefreshCw, Search } from "lucide-react";
+import { LoaderCircle, RefreshCw, Search } from "lucide-react";
 
 export function DashboardHeader({
+	isScanAllDisabled,
+	isScanningAll,
+	onScanAll,
 	query,
 	onQueryChange,
-	onRefresh,
 }: {
+	isScanAllDisabled: boolean;
+	isScanningAll: boolean;
+	onScanAll: () => void;
 	query: string;
 	onQueryChange: (query: string) => void;
-	onRefresh: () => void;
 }) {
 	return (
 		<header className="mb-5.5 flex items-end justify-between gap-5 max-md:flex-col max-md:items-stretch">
@@ -31,12 +35,17 @@ export function DashboardHeader({
 				</label>
 				<button
 					type="button"
-					className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700"
-					onClick={onRefresh}
-					aria-label="Refresh dashboard"
+					className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+					onClick={onScanAll}
+					disabled={isScanAllDisabled}
+					aria-label="Scan all VPS"
 				>
-					<RefreshCw size={16} />
-					Refresh
+					{isScanningAll ? (
+						<LoaderCircle size={16} className="animate-spin" />
+					) : (
+						<RefreshCw size={16} />
+					)}
+					{isScanningAll ? "Scanning" : "Scan All"}
 				</button>
 			</div>
 		</header>

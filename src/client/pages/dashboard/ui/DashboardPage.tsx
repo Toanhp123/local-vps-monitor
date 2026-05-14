@@ -28,9 +28,7 @@ export function DashboardPage() {
 		<div className="flex min-h-screen bg-[#eef1f5] text-slate-900 antialiased max-lg:flex-col">
 			<DashboardSidebar
 				activeFilter={viewFilter}
-				isScanningAll={sshTargetManager.activeScanId === sshTargetManager.scanAllId}
 				onFilterChange={setViewFilter}
-				onScanAll={sshTargetManager.scanAllTargets}
 				overview={overview}
 				realtimeStatus={realtimeStatus}
 			/>
@@ -38,9 +36,16 @@ export function DashboardPage() {
 			<main className="min-w-0 flex-1">
 				<div className="mx-auto max-w-360 p-7 max-md:p-4.5">
 					<DashboardHeader
+						isScanAllDisabled={
+							sshTargetManager.targets.length === 0 ||
+							Boolean(sshTargetManager.activeScanId)
+						}
+						isScanningAll={
+							sshTargetManager.activeScanId === sshTargetManager.scanAllId
+						}
+						onScanAll={sshTargetManager.scanAllTargets}
 						query={query}
 						onQueryChange={setQuery}
-						onRefresh={loadOverview}
 					/>
 
 					{requestStatus === "error" && (
