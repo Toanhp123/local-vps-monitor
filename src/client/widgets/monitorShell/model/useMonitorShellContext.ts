@@ -4,7 +4,7 @@ import type { ServerViewFilter } from "../../../entities/server/model/serverView
 import type { useLocalDockerScanner } from "../../../features/localDockerScan/model/useLocalDockerScanner";
 import type { useSshTargetManager } from "../../../features/sshTargetManagement/model/useSshTargetManager";
 
-export interface MonitorPageContext {
+export interface MonitorShellContext {
 	activeScanId: string | null;
 	filteredServers: StoredServer[];
 	handleScanAll: () => void;
@@ -20,6 +20,6 @@ export interface MonitorPageContext {
 	viewFilter: ServerViewFilter;
 }
 
-export function useMonitorPageContext() {
-	return useOutletContext<MonitorPageContext>();
+export function useMonitorShellContext() {
+	return useOutletContext<MonitorShellContext>();
 }

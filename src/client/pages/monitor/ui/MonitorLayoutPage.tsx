@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 import { useLocalDockerScanner } from "../../../features/localDockerScan/model/useLocalDockerScanner";
+import { useMonitorOverview } from "../../../features/monitorOverview/model/useMonitorOverview";
 import { useSshTargetManager } from "../../../features/sshTargetManagement/model/useSshTargetManager";
 import { routes } from "../../../shared/config/routes";
 import { useNow } from "../../../shared/lib/useNow";
 import { Toast } from "../../../shared/ui/Toast";
 import { DashboardSidebar } from "../../../widgets/dashboardSidebar/ui/DashboardSidebar";
-import { useMonitorOverview } from "../model/useMonitorOverview";
-import type { MonitorPageContext } from "../model/useMonitorPageContext";
+import type { MonitorShellContext } from "../../../widgets/monitorShell/model/useMonitorShellContext";
 
 export function MonitorLayoutPage() {
 	const now = useNow();
@@ -78,7 +78,7 @@ export function MonitorLayoutPage() {
 		});
 	};
 
-	const context: MonitorPageContext = {
+	const context: MonitorShellContext = {
 		activeScanId,
 		filteredServers,
 		handleScanAll,

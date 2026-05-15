@@ -5,7 +5,7 @@ import { ServerList } from "../../../widgets/serverList/ui/ServerList";
 import { SshTargetManagerPanel } from "../../../widgets/sshTargets/ui/SshTargetManagerPanel";
 import { SummaryStats } from "../../../widgets/summaryStats/ui/SummaryStats";
 import { DashboardHeader } from "../../../widgets/dashboardHeader/ui/DashboardHeader";
-import { useMonitorPageContext } from "../../monitor/model/useMonitorPageContext";
+import { useMonitorShellContext } from "../../../widgets/monitorShell/model/useMonitorShellContext";
 
 export function DashboardPage() {
 	const navigate = useNavigate();
@@ -23,7 +23,7 @@ export function DashboardPage() {
 		setQuery,
 		sshTargetManager,
 		viewFilter,
-	} = useMonitorPageContext();
+	} = useMonitorShellContext();
 
 	const openServerDetail = (serverId: string) => {
 		navigate(routes.serverDetail(serverId));

@@ -6,13 +6,13 @@ import { useQuickActionRunner } from "../../../features/quickActions/model/useQu
 import { QuickActionPanel } from "../../../features/quickActions/ui/QuickActionPanel";
 import { routes } from "../../../shared/config/routes";
 import { ServerDetailsView } from "../../../widgets/serverDetails/ui/ServerDetailsView";
-import { useMonitorPageContext } from "../../monitor/model/useMonitorPageContext";
+import { useMonitorShellContext } from "../../../widgets/monitorShell/model/useMonitorShellContext";
 
 export function ServerDetailsPage() {
 	const navigate = useNavigate();
 	const { serverId } = useParams<{ serverId: string }>();
 	const { activeScanId, handleScanServer, isAnyScanActive, now, overview } =
-		useMonitorPageContext();
+		useMonitorShellContext();
 	const selectedServer = serverId
 		? overview?.servers.find((server) => server.serverId === serverId) ||
 			null
