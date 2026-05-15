@@ -12,6 +12,7 @@ It is built for developers who run apps with Docker or PM2 and want a quick way 
 - Shows server health, app status, CPU, memory, ports, image names, and restart information.
 - Shows lightweight CPU and RAM charts from local scan history.
 - Shows an incident notification drawer for app status changes and restarts.
+- Runs allowlisted quick actions such as app restarts and basic VPS checks.
 - Updates the dashboard through WebSocket after scans.
 - Runs automatic scans through `AUTO_SCAN_INTERVAL_MS`.
 - Stores monitor data locally under `data/`.
@@ -23,6 +24,7 @@ It is built for developers who run apps with Docker or PM2 and want a quick way 
 - No SSH password is requested or stored.
 - SSH private key content is not persisted; only the local key file path is stored.
 - SSH host keys are verified through your local `~/.ssh/known_hosts`.
+- Quick actions use predefined commands only; there is no free-form remote shell.
 - There is no remote agent mode and no public ingest endpoint.
 
 ## Requirements

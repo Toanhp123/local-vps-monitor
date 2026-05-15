@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAppLogs } from "../../../features/appLogs/model/useAppLogs";
 import { AppLogsPanel } from "../../../features/appLogs/ui/AppLogsPanel";
+import { useQuickActionRunner } from "../../../features/quickActions/model/useQuickActionRunner";
+import { QuickActionPanel } from "../../../features/quickActions/ui/QuickActionPanel";
 import { routes } from "../../../shared/config/routes";
 import { ServerDetailsView } from "../../../widgets/serverDetails/ui/ServerDetailsView";
 import { useMonitorPageContext } from "../../monitor/model/useMonitorPageContext";
@@ -20,6 +22,7 @@ export function ServerDetailsPage() {
 		? overview?.servers.find((server) => server.serverId === serverId) || null
 		: null;
 	const appLogs = useAppLogs(serverId || "");
+	const quickActions = useQuickActionRunner();
 
 	useEffect(() => {
 		if (!serverId || !overview) return;
@@ -54,6 +57,7 @@ export function ServerDetailsPage() {
 					window.scrollTo({ top: 0 });
 				}}
 				onOpenAppLogs={appLogs.loadLogs}
+				onRunQuickAction={quickActions.requestAction}
 				onScan={() => handleScanServer(selectedServer.serverId)}
 				server={selectedServer}
 			/>
@@ -67,6 +71,15 @@ export function ServerDetailsPage() {
 				onClose={appLogs.closeLogs}
 				onLineCountChange={appLogs.changeLineCount}
 				onRefresh={appLogs.refreshLogs}
+			/>
+			<QuickActionPanel
+				action={quickActions.pendingAction}
+				error={quickActions.error}
+				isOpen={quickActions.isOpen}
+				isRunning={quickActions.isRunning}
+				onClose={quickActions.close}
+				onConfirm={quickActions.confirmAction}
+				result={quickActions.result}
 			/>
 		</>
 	);

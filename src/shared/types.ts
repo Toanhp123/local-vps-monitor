@@ -156,6 +156,33 @@ export interface AppLogsResponse {
   serverId: string;
 }
 
+export type QuickActionId =
+  | "docker.restart"
+  | "pm2.restart"
+  | "server.disk"
+  | "server.memory"
+  | "server.ports"
+  | "server.uptime";
+
+export interface QuickActionRunInput {
+  actionId: QuickActionId;
+  appId?: string;
+  serverId: string;
+}
+
+export interface QuickActionRunResponse {
+  actionId: QuickActionId;
+  appId?: string;
+  commandLabel: string;
+  commandPreview: string;
+  exitCode?: number;
+  ok: boolean;
+  ranAt: string;
+  serverId: string;
+  stderr: string;
+  stdout: string;
+}
+
 export type RealtimeMessage =
   | {
       type: "overview.snapshot";

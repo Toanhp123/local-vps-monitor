@@ -14,6 +14,12 @@ import { ApplicationTable } from "../../../entities/application/ui/ApplicationTa
 import { ServerMetricCharts } from "../../../entities/server/ui/ServerMetricCharts";
 import { ServerMetricsGrid } from "../../../entities/server/ui/ServerMetricsGrid";
 import { OpenAppLogsButton } from "../../../features/appLogs/ui/OpenAppLogsButton";
+import {
+	buildAppQuickActions,
+	buildServerQuickActions,
+	type QuickActionDefinition,
+} from "../../../features/quickActions/model/quickActions";
+import { QuickActionButton } from "../../../features/quickActions/ui/QuickActionButton";
 import { ScanServerButton } from "../../../features/serverScan/ui/ScanServerButton";
 import { relativeTime } from "../../../shared/lib/format";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
@@ -24,6 +30,7 @@ export function ServerDetailsView({
 	now,
 	onBack,
 	onOpenAppLogs,
+	onRunQuickAction,
 	onScan,
 	server,
 }: {
@@ -32,6 +39,7 @@ export function ServerDetailsView({
 	now: number;
 	onBack: () => void;
 	onOpenAppLogs: (app: AppSnapshot) => void;
+	onRunQuickAction: (action: QuickActionDefinition) => void;
 	onScan: () => void;
 	server: StoredServer;
 }) {
@@ -40,6 +48,7 @@ export function ServerDetailsView({
 	).length;
 	const pm2Apps = server.apps.filter((app) => app.kind === "pm2").length;
 	const appGroups = groupApplications(server.apps);
+	const serverQuickActions = buildServerQuickActions(server);
 
 	return (
 		<section className="grid gap-4">
@@ -102,6 +111,23 @@ export function ServerDetailsView({
 						/>
 					</div>
 				</div>
+
+				{serverQuickActions.length > 0 && (
+					<div className="mt-4 border-t border-slate-200 pt-4">
+						<div className="mb-2 text-xs font-bold text-slate-500 uppercase">
+							Quick actions
+						</div>
+						<div className="flex flex-wrap gap-2">
+							{serverQuickActions.map((action) => (
+								<QuickActionButton
+									key={action.actionId}
+									action={action}
+									onRun={onRunQuickAction}
+								/>
+							))}
+						</div>
+					</div>
+				)}
 			</div>
 
 			<div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -171,13 +197,33 @@ export function ServerDetailsView({
 										</div>
 
 										<ApplicationTable
-											actions={(app) => (
-												<OpenAppLogsButton
-													onOpen={() =>
-														onOpenAppLogs(app)
-													}
-												/>
-											)}
+											actions={(app) => {
+												const appQuickActions =
+													buildAppQuickActions(server, app);
+
+												return (
+													<div className="flex flex-wrap justify-end gap-1.5">
+														<OpenAppLogsButton
+															onOpen={() =>
+																onOpenAppLogs(app)
+															}
+														/>
+														{appQuickActions.map(
+															(action) => (
+																<QuickActionButton
+																	key={
+																		action.actionId
+																	}
+																	action={action}
+																	onRun={
+																		onRunQuickAction
+																	}
+																/>
+															),
+														)}
+													</div>
+												);
+											}}
 											apps={group.apps}
 										/>
 									</div>

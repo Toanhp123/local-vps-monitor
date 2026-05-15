@@ -10,6 +10,7 @@ import { AppLogsService } from "./services/appLogsService";
 import { HealthService } from "./services/healthService";
 import { LocalDockerScanService } from "./services/localDockerScanService";
 import { MonitorOverviewService } from "./services/monitorOverviewService";
+import { QuickActionService } from "./services/quickActionService";
 import { SshScanService } from "./services/sshScanService";
 import { SshTargetConfigService } from "./services/sshTargetConfigService";
 
@@ -65,6 +66,12 @@ export const createApp = () => {
     serverConfig.localDockerCommandTimeoutMs,
     serverConfig.sshCommandTimeoutMs
   );
+  const quickActionService = new QuickActionService(
+    monitorOverviewService,
+    sshTargetConfigStore,
+    serverConfig.localDockerCommandTimeoutMs,
+    serverConfig.sshCommandTimeoutMs
+  );
 
   app.use(localAccessGuard());
   app.use(express.json({ limit: "1mb" }));
@@ -75,6 +82,7 @@ export const createApp = () => {
       healthService,
       localDockerScanService,
       monitorOverviewService,
+      quickActionService,
       sshScanService,
       sshTargetConfigService
     })
