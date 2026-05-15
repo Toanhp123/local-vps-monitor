@@ -1,2 +1,2 @@
-export { dockerContainerRef, pm2ProcessRef } from "../appRuntimeRefs";
-export { isLocalDockerServer } from "../serverIds";
+export { dockerContainerRef, pm2ProcessRef } from "../applications/appRuntimeRefs";
+export { isLocalDockerServer } from "../servers/serverIds";

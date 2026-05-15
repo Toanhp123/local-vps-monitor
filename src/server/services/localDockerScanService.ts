@@ -1,5 +1,5 @@
 import type { ScanResult, ServerSnapshotPayload } from "../../shared/types";
-import { localDockerServerId } from "../domain/serverIds";
+import { localDockerServerId } from "../domain/servers/serverIds";
 import { collectLocalDockerApps } from "../integrations/local/localDockerAppsCollector";
 import { collectLocalHostMetrics } from "../integrations/local/localHostMetricsCollector";
 import type { MonitorOverviewService } from "./monitorOverviewService";

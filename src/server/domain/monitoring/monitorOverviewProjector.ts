@@ -8,7 +8,7 @@ import type {
 	ServerMetricPoint,
 	ServerSnapshotPayload,
 	StoredServer,
-} from "../../shared/types";
+} from "../../../shared/types";
 
 const maxMetricHistoryPoints = 60;
 const maxIncidentEvents = 100;

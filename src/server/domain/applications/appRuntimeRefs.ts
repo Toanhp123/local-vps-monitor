@@ -1,4 +1,4 @@
-import type { AppSnapshot } from "../../shared/types";
+import type { AppSnapshot } from "../../../shared/types";
 
 export const dockerContainerRef = (app: AppSnapshot) => {
 	const rawDockerId = app.raw?.dockerId;

@@ -1,6 +1,6 @@
 import type { Client } from "ssh2";
 import type { AppSnapshot } from "../../../shared/types";
-import { dockerContainerRef, pm2ProcessRef } from "../../domain/appRuntimeRefs";
+import { dockerContainerRef, pm2ProcessRef } from "../../domain/applications/appRuntimeRefs";
 import { shellQuote } from "../../lib/shellQuote";
 import { stripAnsi } from "../../lib/stripAnsi";
 import { runSshCommand } from "./sshCommandRunner";

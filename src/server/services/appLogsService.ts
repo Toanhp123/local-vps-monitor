@@ -1,6 +1,6 @@
 import type { AppKind, AppLogsResponse, AppSnapshot } from "../../shared/types";
-import { dockerContainerRef } from "../domain/appRuntimeRefs";
-import { localDockerServerId } from "../domain/serverIds";
+import { dockerContainerRef } from "../domain/applications/appRuntimeRefs";
+import { localDockerServerId } from "../domain/servers/serverIds";
 import { readLocalDockerLogs } from "../integrations/local/localDockerLogsReader";
 import { connectSshTarget } from "../integrations/ssh/sshCommandRunner";
 import { readSshAppLogs } from "../integrations/ssh/sshAppLogsReader";
