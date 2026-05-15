@@ -7,7 +7,7 @@ import { localDockerServerId } from "./localDockerScanService";
 import type { MonitorOverviewService } from "./monitorOverviewService";
 
 const minLines = 10;
-const maxLines = 500;
+const maxLines = 1000;
 const defaultLines = 200;
 
 const clampLines = (value: number) => {
