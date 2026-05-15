@@ -35,7 +35,9 @@ export function MonitorLayoutPage() {
 		: null;
 	const activeScanId = localDockerScanner.activeScanSource === "server-list"
 		? localDockerScanner.serverId
-		: sshTargetManager.activeScanId;
+		: sshTargetManager.activeScanSource === "server-list"
+			? sshTargetManager.activeScanId
+			: null;
 	const isAnyScanActive =
 		isScanAllActive ||
 		localDockerScanner.isScanning ||
@@ -59,7 +61,7 @@ export function MonitorLayoutPage() {
 			return;
 		}
 
-		void sshTargetManager.scanTarget(serverId);
+		void sshTargetManager.scanTarget(serverId, "server-list");
 	};
 
 	const handleScanAll = () => {

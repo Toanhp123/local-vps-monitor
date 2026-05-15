@@ -11,6 +11,8 @@ import {
 
 const scanAllId = "__all__";
 
+export type SshTargetScanSource = "targets-panel" | "server-list";
+
 const errorMessage = (error: unknown) => {
 	return error instanceof Error ? error.message : String(error);
 };
@@ -20,6 +22,8 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [activeScanId, setActiveScanId] = useState<string | null>(null);
+	const [activeScanSource, setActiveScanSource] =
+		useState<SshTargetScanSource | null>(null);
 	const [error, setError] = useState("");
 	const [toast, setToast] = useState<ToastState | null>(null);
 
@@ -111,8 +115,12 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 	}, []);
 
 	const scanTarget = useCallback(
-		async (targetId: string) => {
+		async (
+			targetId: string,
+			source: SshTargetScanSource = "targets-panel",
+		) => {
 			setActiveScanId(targetId);
+			setActiveScanSource(source);
 			setError("");
 
 			try {
@@ -131,6 +139,7 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 				});
 			} finally {
 				setActiveScanId(null);
+				setActiveScanSource(null);
 			}
 		},
 		[refreshOverview],
@@ -138,6 +147,7 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 
 	const scanAllTargets = useCallback(async () => {
 		setActiveScanId(scanAllId);
+		setActiveScanSource(null);
 		setError("");
 
 		try {
@@ -169,6 +179,7 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 
 	return {
 		activeScanId,
+		activeScanSource,
 		addTarget,
 		error,
 		isLoading,

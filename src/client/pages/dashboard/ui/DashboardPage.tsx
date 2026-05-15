@@ -29,6 +29,10 @@ export function DashboardPage() {
 		navigate(routes.serverDetail(serverId));
 		window.scrollTo({ top: 0 });
 	};
+	const activeSshTargetScanId =
+		sshTargetManager.activeScanSource === "targets-panel"
+			? sshTargetManager.activeScanId
+			: null;
 
 	return (
 		<>
@@ -50,7 +54,7 @@ export function DashboardPage() {
 				}}
 			/>
 			<SshTargetManagerPanel
-				activeScanId={activeScanId}
+				activeScanId={activeSshTargetScanId}
 				error={sshTargetManager.error}
 				isScanDisabled={isAnyScanActive}
 				isLoading={sshTargetManager.isLoading}
