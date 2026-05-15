@@ -12,7 +12,7 @@
     "build:web": "vite build",
     "check": "tsc --noEmit",
     "reset:data": "node scripts/reset-data.mjs",
-    "start": "node dist/server/index.js"
+    "start": "node scripts/start.mjs"
   },
   "dependencies": {
     "express": "^5.2.1",
