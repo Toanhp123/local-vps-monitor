@@ -1,10 +1,9 @@
 import type { RequestHandler } from "express";
-import { errorMessage } from "../lib/errorMessage";
+import { apiError } from "../errors/apiError";
+import { withApiErrorFallback } from "../errors/apiErrorMapping";
 import {
 	isQuickActionId,
-	QuickActionNotFoundError,
 	type QuickActionService,
-	QuickActionUnsupportedError,
 } from "../services/quickActionService";
 
 export class QuickActionsController {
@@ -17,9 +16,11 @@ export class QuickActionsController {
 			serverId?: unknown;
 		};
 
-		if (!isQuickActionId(body.actionId) || typeof body.serverId !== "string") {
-			response.status(400).json({ error: "Invalid quick action request" });
-			return;
+		if (
+			!isQuickActionId(body.actionId) ||
+			typeof body.serverId !== "string"
+		) {
+			throw apiError(400, "Invalid quick action request");
 		}
 
 		if (
@@ -27,8 +28,7 @@ export class QuickActionsController {
 			body.appId !== null &&
 			typeof body.appId !== "string"
 		) {
-			response.status(400).json({ error: "Invalid app id" });
-			return;
+			throw apiError(400, "Invalid app id");
 		}
 
 		try {
@@ -40,19 +40,9 @@ export class QuickActionsController {
 
 			response.json({ result });
 		} catch (error) {
-			if (error instanceof QuickActionNotFoundError) {
-				response.status(404).json({ error: error.message });
-				return;
-			}
-
-			if (error instanceof QuickActionUnsupportedError) {
-				response.status(400).json({ error: error.message });
-				return;
-			}
-
-			response.status(502).json({
+			throw withApiErrorFallback(error, {
 				error: "Cannot run quick action",
-				message: errorMessage(error),
+				statusCode: 502,
 			});
 		}
 	};

@@ -1,42 +1,15 @@
 import type { Client } from "ssh2";
 import type { AppSnapshot } from "../../../shared/types";
+import { dockerContainerRef, pm2ProcessRef } from "../../domain/appRuntimeRefs";
+import { shellQuote } from "../../lib/shellQuote";
+import { stripAnsi } from "../../lib/stripAnsi";
 import { runSshCommand } from "./sshCommandRunner";
-
-const shellQuote = (value: string) => {
-	return `'${value.replace(/'/g, "'\\''")}'`;
-};
-
-const stripAnsi = (value: string) => {
-	return value.replace(/\u001b\[[0-9;]*m/g, "");
-};
 
 const combineLogStreams = (stdout: string, stderr: string) => {
 	return [stdout, stderr]
 		.map((value) => value.trimEnd())
 		.filter(Boolean)
 		.join("\n");
-};
-
-const dockerContainerRef = (app: AppSnapshot) => {
-	const rawDockerId = app.raw?.dockerId;
-	if (typeof rawDockerId === "string" && rawDockerId.trim()) {
-		return rawDockerId.trim();
-	}
-
-	return app.id.replace(/^docker:/, "");
-};
-
-const pm2ProcessRef = (app: AppSnapshot) => {
-	const rawPmId = app.raw?.pmId;
-	if (typeof rawPmId === "number" && Number.isInteger(rawPmId)) {
-		return String(rawPmId);
-	}
-
-	if (typeof rawPmId === "string" && rawPmId.trim()) {
-		return rawPmId.trim();
-	}
-
-	return app.id.replace(/^pm2:/, "");
 };
 
 export const readSshAppLogs = async (

@@ -1,4 +1,5 @@
 import type { AppSnapshot, QuickActionId } from "../../../shared/types";
+import { shellQuote } from "../../lib/shellQuote";
 import { QuickActionUnsupportedError } from "./quickActionErrors";
 import {
 	dockerContainerRef,
@@ -28,10 +29,6 @@ export interface BuiltQuickAction {
 	commandPreview: string;
 	execution: QuickActionExecution;
 }
-
-const shellQuote = (value: string) => {
-	return `'${value.replace(/'/g, "'\\''")}'`;
-};
 
 export const quickActionIds = [
 	"docker.restart",

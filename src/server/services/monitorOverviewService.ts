@@ -6,7 +6,7 @@ import {
 	buildOverview,
 	createStoredServerFromSnapshot,
 } from "../domain/monitorOverviewProjector";
-import type { MonitorStateStore } from "../models/monitorStateStore";
+import type { MonitorStateStore } from "../stores/monitorStateStore";
 
 type OverviewListener = (overview: OverviewResponse) => void;
 

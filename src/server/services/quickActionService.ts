@@ -13,7 +13,7 @@ import {
 } from "../domain/quickActions/quickActionErrors";
 import { quickActionResponse } from "../domain/quickActions/quickActionResponse";
 import { QuickActionRunner } from "../integrations/quickActions/quickActionRunner";
-import type { SshTargetConfigStore } from "../models/sshTargetConfigStore";
+import type { SshTargetConfigStore } from "../stores/sshTargetConfigStore";
 import type { MonitorOverviewService } from "./monitorOverviewService";
 
 export {
@@ -27,12 +27,11 @@ export class QuickActionService {
 
 	constructor(
 		private readonly monitorOverviewService: MonitorOverviewService,
-		targetConfigStore: SshTargetConfigStore,
+		private readonly targetConfigStore: SshTargetConfigStore,
 		localDockerCommandTimeoutMs: number,
 		sshCommandTimeoutMs: number,
 	) {
 		this.runner = new QuickActionRunner(
-			targetConfigStore,
 			localDockerCommandTimeoutMs,
 			sshCommandTimeoutMs,
 		);
@@ -64,7 +63,18 @@ export class QuickActionService {
 			app,
 			serverId: input.serverId,
 		});
-		const result = await this.runner.run(input.serverId, action.execution);
+		const target =
+			action.execution.kind === "remote"
+				? this.targetConfigStore.get(input.serverId)
+				: undefined;
+
+		if (action.execution.kind === "remote" && !target) {
+			throw new QuickActionNotFoundError(
+				`SSH target not found: ${input.serverId}`,
+			);
+		}
+
+		const result = await this.runner.run(action.execution, target);
 
 		return quickActionResponse({
 			action,

@@ -1,9 +1,10 @@
 import type { AppKind, AppLogsResponse, AppSnapshot } from "../../shared/types";
+import { dockerContainerRef } from "../domain/appRuntimeRefs";
+import { localDockerServerId } from "../domain/serverIds";
 import { readLocalDockerLogs } from "../integrations/local/localDockerLogsReader";
 import { connectSshTarget } from "../integrations/ssh/sshCommandRunner";
 import { readSshAppLogs } from "../integrations/ssh/sshAppLogsReader";
-import type { SshTargetConfigStore } from "../models/sshTargetConfigStore";
-import { localDockerServerId } from "./localDockerScanService";
+import type { SshTargetConfigStore } from "../stores/sshTargetConfigStore";
 import type { MonitorOverviewService } from "./monitorOverviewService";
 
 const minLines = 10;
@@ -13,15 +14,6 @@ const defaultLines = 200;
 const clampLines = (value: number) => {
 	if (!Number.isFinite(value)) return defaultLines;
 	return Math.min(maxLines, Math.max(minLines, Math.round(value)));
-};
-
-const dockerContainerRef = (app: AppSnapshot) => {
-	const rawDockerId = app.raw?.dockerId;
-	if (typeof rawDockerId === "string" && rawDockerId.trim()) {
-		return rawDockerId.trim();
-	}
-
-	return app.id.replace(/^docker:/, "");
 };
 
 export class AppLogsNotFoundError extends Error {
@@ -79,11 +71,7 @@ export class AppLogsService {
 		};
 	}
 
-	private async readLogs(
-		serverId: string,
-		app: AppSnapshot,
-		lines: number,
-	) {
+	private async readLogs(serverId: string, app: AppSnapshot, lines: number) {
 		if (serverId === localDockerServerId) {
 			return this.readLocalLogs(app, lines);
 		}
@@ -105,14 +93,20 @@ export class AppLogsService {
 		);
 	}
 
-	private async readSshLogs(serverId: string, app: AppSnapshot, lines: number) {
+	private async readSshLogs(
+		serverId: string,
+		app: AppSnapshot,
+		lines: number,
+	) {
 		const target = this.targetConfigStore.get(serverId);
 		if (!target) {
 			throw new AppLogsNotFoundError(`SSH target not found: ${serverId}`);
 		}
 
 		if (!this.isSupportedRemoteKind(app.kind)) {
-			throw new AppLogsUnsupportedError(`Unsupported app runtime: ${app.kind}`);
+			throw new AppLogsUnsupportedError(
+				`Unsupported app runtime: ${app.kind}`,
+			);
 		}
 
 		const client = await connectSshTarget(target, this.sshCommandTimeoutMs);

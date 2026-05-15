@@ -3,28 +3,31 @@ import { SshTargetsController } from "../controllers/sshTargetsController";
 import type { SshScanService } from "../services/sshScanService";
 import type { SshTargetBootstrapService } from "../services/sshTargetBootstrapService";
 import type { SshTargetConfigService } from "../services/sshTargetConfigService";
+import type { SshTargetImportService } from "../services/sshTargetImportService";
 
 export const createSshTargetRouter = (
-  sshTargetConfigService: SshTargetConfigService,
-  sshScanService: SshScanService,
-  sshTargetBootstrapService: SshTargetBootstrapService
+	sshTargetConfigService: SshTargetConfigService,
+	sshScanService: SshScanService,
+	sshTargetBootstrapService: SshTargetBootstrapService,
+	sshTargetImportService: SshTargetImportService,
 ) => {
-  const router = Router();
-  const sshTargetsController = new SshTargetsController(
-    sshTargetConfigService,
-    sshScanService,
-    sshTargetBootstrapService
-  );
+	const router = Router();
+	const sshTargetsController = new SshTargetsController(
+		sshTargetConfigService,
+		sshScanService,
+		sshTargetBootstrapService,
+		sshTargetImportService,
+	);
 
-  router.get("/ssh-targets", sshTargetsController.listTargets);
-  router.post("/ssh-targets", sshTargetsController.createTarget);
-  router.post("/ssh-targets/bootstrap", sshTargetsController.bootstrapTarget);
-  router.post("/ssh-targets/import", sshTargetsController.bulkImportTargets);
-  router.post("/ssh-targets/scan-all", sshTargetsController.scanAllTargets);
-  router.post("/ssh-targets/:targetId/test", sshTargetsController.testTarget);
-  router.post("/ssh-targets/:targetId/scan", sshTargetsController.scanTarget);
-  router.patch("/ssh-targets/:targetId", sshTargetsController.updateTarget);
-  router.delete("/ssh-targets/:targetId", sshTargetsController.deleteTarget);
+	router.get("/ssh-targets", sshTargetsController.listTargets);
+	router.post("/ssh-targets", sshTargetsController.createTarget);
+	router.post("/ssh-targets/bootstrap", sshTargetsController.bootstrapTarget);
+	router.post("/ssh-targets/import", sshTargetsController.bulkImportTargets);
+	router.post("/ssh-targets/scan-all", sshTargetsController.scanAllTargets);
+	router.post("/ssh-targets/:targetId/test", sshTargetsController.testTarget);
+	router.post("/ssh-targets/:targetId/scan", sshTargetsController.scanTarget);
+	router.patch("/ssh-targets/:targetId", sshTargetsController.updateTarget);
+	router.delete("/ssh-targets/:targetId", sshTargetsController.deleteTarget);
 
-  return router;
+	return router;
 };

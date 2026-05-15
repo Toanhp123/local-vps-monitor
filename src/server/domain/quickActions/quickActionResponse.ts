@@ -1,4 +1,5 @@
 import type { QuickActionRunResponse } from "../../../shared/types";
+import { stripAnsi } from "../../lib/stripAnsi";
 import type { BuiltQuickAction } from "./quickActionCatalog";
 
 const outputLimit = 24_000;
@@ -9,10 +10,6 @@ interface QuickActionCommandResult {
 	stderr: string;
 	stdout: string;
 }
-
-const stripAnsi = (value: string) => {
-	return value.replace(/\u001b\[[0-9;]*m/g, "");
-};
 
 const limitOutput = (value: string) => {
 	if (value.length <= outputLimit) return value;

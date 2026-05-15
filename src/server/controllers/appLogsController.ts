@@ -1,14 +1,8 @@
 import type { RequestHandler } from "express";
-import { errorMessage } from "../lib/errorMessage";
-import {
-	AppLogsNotFoundError,
-	type AppLogsService,
-	AppLogsUnsupportedError,
-} from "../services/appLogsService";
-
-const paramString = (value: string | string[] | undefined) => {
-	return Array.isArray(value) ? value[0] : value;
-};
+import { apiError } from "../errors/apiError";
+import { withApiErrorFallback } from "../errors/apiErrorMapping";
+import { paramString } from "../lib/httpParams";
+import type { AppLogsService } from "../services/appLogsService";
 
 const parseLines = (value: unknown) => {
 	if (typeof value !== "string") return 200;
@@ -25,8 +19,7 @@ export class AppLogsController {
 		const appId = paramString(request.params.appId);
 
 		if (!serverId || !appId) {
-			response.status(400).json({ error: "Missing server or app id" });
-			return;
+			throw apiError(400, "Missing server or app id");
 		}
 
 		try {
@@ -38,22 +31,9 @@ export class AppLogsController {
 
 			response.json({ logs });
 		} catch (error) {
-			if (error instanceof AppLogsNotFoundError) {
-				response.status(404).json({ error: "Logs target not found" });
-				return;
-			}
-
-			if (error instanceof AppLogsUnsupportedError) {
-				response.status(400).json({
-					error: "Logs are not supported for this app",
-					message: error.message,
-				});
-				return;
-			}
-
-			response.status(502).json({
+			throw withApiErrorFallback(error, {
 				error: "Cannot read app logs",
-				message: errorMessage(error),
+				statusCode: 502,
 			});
 		}
 	};

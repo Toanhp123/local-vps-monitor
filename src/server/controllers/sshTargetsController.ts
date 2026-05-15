@@ -1,212 +1,169 @@
 import type { RequestHandler } from "express";
-import { errorMessage } from "../lib/errorMessage";
-import { SshScanService, SshTargetNotFoundError } from "../services/sshScanService";
+import { apiError } from "../errors/apiError";
+import { withApiErrorFallback } from "../errors/apiErrorMapping";
+import { paramString } from "../lib/httpParams";
+import type { SshScanService } from "../services/sshScanService";
 import type { SshTargetBootstrapService } from "../services/sshTargetBootstrapService";
 import type { SshTargetConfigService } from "../services/sshTargetConfigService";
+import type { SshTargetImportService } from "../services/sshTargetImportService";
 import {
-  sshTargetBootstrapSchema,
-  sshTargetBulkImportSchema,
-  sshTargetConfigCreateSchema,
-  sshTargetConfigUpdateSchema
+	sshTargetBootstrapSchema,
+	sshTargetBulkImportSchema,
+	sshTargetConfigCreateSchema,
+	sshTargetConfigUpdateSchema,
 } from "../validators/sshTargetConfigSchema";
 
-const paramString = (value: string | string[] | undefined) => {
-  return Array.isArray(value) ? value[0] : value;
-};
-
-const importConcurrency = 4;
-
-const settleWithConcurrency = async <Input, Output>(
-  items: Input[],
-  task: (item: Input, index: number) => Promise<Output>
-) => {
-  const results = new Array<PromiseSettledResult<Output>>(items.length);
-  let nextIndex = 0;
-
-  await Promise.all(
-    Array.from({ length: Math.min(importConcurrency, items.length) }, async () => {
-      while (nextIndex < items.length) {
-        const index = nextIndex;
-        nextIndex += 1;
-
-        try {
-          results[index] = {
-            status: "fulfilled",
-            value: await task(items[index], index)
-          };
-        } catch (reason) {
-          results[index] = {
-            status: "rejected",
-            reason
-          };
-        }
-      }
-    })
-  );
-
-  return results;
-};
-
 export class SshTargetsController {
-  constructor(
-    private readonly sshTargetConfigService: SshTargetConfigService,
-    private readonly sshScanService: SshScanService,
-    private readonly sshTargetBootstrapService: SshTargetBootstrapService
-  ) {}
+	constructor(
+		private readonly sshTargetConfigService: SshTargetConfigService,
+		private readonly sshScanService: SshScanService,
+		private readonly sshTargetBootstrapService: SshTargetBootstrapService,
+		private readonly sshTargetImportService: SshTargetImportService,
+	) {}
 
-  listTargets: RequestHandler = (_request, response) => {
-    response.json({ targets: this.sshTargetConfigService.listTargets() });
-  };
+	listTargets: RequestHandler = (_request, response) => {
+		response.json({ targets: this.sshTargetConfigService.listTargets() });
+	};
 
-  createTarget: RequestHandler = (request, response) => {
-    const parsed = sshTargetConfigCreateSchema.safeParse(request.body);
-    if (!parsed.success) {
-      response.status(400).json({ error: "Invalid SSH target", details: parsed.error.flatten() });
-      return;
-    }
+	createTarget: RequestHandler = (request, response) => {
+		const parsed = sshTargetConfigCreateSchema.safeParse(request.body);
+		if (!parsed.success) {
+			throw apiError(400, "Invalid SSH target", {
+				details: parsed.error.flatten(),
+			});
+		}
 
-    const target = this.sshTargetConfigService.createTarget(parsed.data);
-    response.status(201).json({ target });
-  };
+		const target = this.sshTargetConfigService.createTarget(parsed.data);
+		response.status(201).json({ target });
+	};
 
-  updateTarget: RequestHandler = (request, response) => {
-    const targetId = paramString(request.params.targetId);
-    if (!targetId) {
-      response.status(400).json({ error: "Missing SSH target id" });
-      return;
-    }
+	updateTarget: RequestHandler = (request, response) => {
+		const targetId = paramString(request.params.targetId);
+		if (!targetId) {
+			throw apiError(400, "Missing SSH target id");
+		}
 
-    const parsed = sshTargetConfigUpdateSchema.safeParse(request.body);
-    if (!parsed.success) {
-      response.status(400).json({ error: "Invalid SSH target update", details: parsed.error.flatten() });
-      return;
-    }
+		const parsed = sshTargetConfigUpdateSchema.safeParse(request.body);
+		if (!parsed.success) {
+			throw apiError(400, "Invalid SSH target update", {
+				details: parsed.error.flatten(),
+			});
+		}
 
-    const target = this.sshTargetConfigService.updateTarget(targetId, parsed.data);
-    if (!target) {
-      response.status(404).json({ error: "SSH target not found" });
-      return;
-    }
+		const target = this.sshTargetConfigService.updateTarget(
+			targetId,
+			parsed.data,
+		);
+		if (!target) {
+			throw apiError(404, "SSH target not found");
+		}
 
-    response.json({ target });
-  };
+		response.json({ target });
+	};
 
-  bootstrapTarget: RequestHandler = async (request, response) => {
-    const parsed = sshTargetBootstrapSchema.safeParse(request.body);
-    if (!parsed.success) {
-      response.status(400).json({ error: "Invalid SSH target bootstrap input", details: parsed.error.flatten() });
-      return;
-    }
+	bootstrapTarget: RequestHandler = async (request, response) => {
+		const parsed = sshTargetBootstrapSchema.safeParse(request.body);
+		if (!parsed.success) {
+			throw apiError(400, "Invalid SSH target bootstrap input", {
+				details: parsed.error.flatten(),
+			});
+		}
 
-    try {
-      const target = await this.sshTargetBootstrapService.bootstrapTarget(parsed.data);
-      response.status(201).json({ target });
-    } catch (error) {
-      response.status(502).json({ error: "SSH target setup failed", message: errorMessage(error) });
-    }
-  };
+		try {
+			const target = await this.sshTargetBootstrapService.bootstrapTarget(
+				parsed.data,
+			);
+			response.status(201).json({ target });
+		} catch (error) {
+			throw withApiErrorFallback(error, {
+				error: "SSH target setup failed",
+				statusCode: 502,
+			});
+		}
+	};
 
-  bulkImportTargets: RequestHandler = async (request, response) => {
-    const parsed = sshTargetBulkImportSchema.safeParse(request.body);
-    if (!parsed.success) {
-      response.status(400).json({ error: "Invalid SSH target bulk import", details: parsed.error.flatten() });
-      return;
-    }
+	bulkImportTargets: RequestHandler = async (request, response) => {
+		const parsed = sshTargetBulkImportSchema.safeParse(request.body);
+		if (!parsed.success) {
+			throw apiError(400, "Invalid SSH target bulk import", {
+				details: parsed.error.flatten(),
+			});
+		}
 
-    if (parsed.data.authMode === "key") {
-      const targets = this.sshTargetConfigService.createTargets(parsed.data.targets);
-      response.status(201).json({ targets, errors: [] });
-      return;
-    }
+		try {
+			const result = await this.sshTargetImportService.importTargets(
+				parsed.data,
+			);
+			response.status(result.hasErrors ? 207 : 201).json({
+				targets: result.targets,
+				errors: result.errors,
+			});
+		} catch (error) {
+			throw withApiErrorFallback(error, {
+				error: "SSH target import failed",
+				statusCode: 502,
+			});
+		}
+	};
 
-    const settled = await settleWithConcurrency(parsed.data.targets, (target) =>
-      this.sshTargetBootstrapService.bootstrapTarget(target)
-    );
-    const body = settled.reduce<{
-      targets: ReturnType<SshTargetConfigService["listTargets"]>;
-      errors: Array<{ host?: string; index: number; message: string; name?: string }>;
-    }>(
-      (result, entry, index) => {
-        const input = parsed.data.targets[index];
+	deleteTarget: RequestHandler = (request, response) => {
+		const targetId = paramString(request.params.targetId);
+		if (!targetId) {
+			throw apiError(400, "Missing SSH target id");
+		}
 
-        if (entry.status === "fulfilled") {
-          result.targets.push(entry.value);
-        } else {
-          result.errors.push({
-            host: input?.host,
-            index,
-            message: errorMessage(entry.reason),
-            name: input?.name
-          });
-        }
+		const deleted = this.sshTargetConfigService.deleteTarget(targetId);
 
-        return result;
-      },
-      { targets: [], errors: [] }
-    );
+		if (!deleted) {
+			throw apiError(404, "SSH target not found");
+		}
 
-    response.status(body.errors.length > 0 ? 207 : 201).json(body);
-  };
+		response.status(204).send();
+	};
 
-  deleteTarget: RequestHandler = (request, response) => {
-    const targetId = paramString(request.params.targetId);
-    if (!targetId) {
-      response.status(400).json({ error: "Missing SSH target id" });
-      return;
-    }
+	scanTarget: RequestHandler = async (request, response) => {
+		const targetId = paramString(request.params.targetId);
+		if (!targetId) {
+			throw apiError(400, "Missing SSH target id");
+		}
 
-    const deleted = this.sshTargetConfigService.deleteTarget(targetId);
+		try {
+			const result = await this.sshScanService.scanTarget(targetId);
+			response.json({ result });
+		} catch (error) {
+			throw withApiErrorFallback(error, {
+				error: "SSH scan failed",
+				statusCode: 502,
+			});
+		}
+	};
 
-    if (!deleted) {
-      response.status(404).json({ error: "SSH target not found" });
-      return;
-    }
+	testTarget: RequestHandler = async (request, response) => {
+		const targetId = paramString(request.params.targetId);
+		if (!targetId) {
+			throw apiError(400, "Missing SSH target id");
+		}
 
-    response.status(204).send();
-  };
+		try {
+			const result = await this.sshScanService.testTarget(targetId);
+			response.json({ result });
+		} catch (error) {
+			throw withApiErrorFallback(error, {
+				error: "SSH test failed",
+				statusCode: 502,
+			});
+		}
+	};
 
-  scanTarget: RequestHandler = async (request, response) => {
-    const targetId = paramString(request.params.targetId);
-    if (!targetId) {
-      response.status(400).json({ error: "Missing SSH target id" });
-      return;
-    }
-
-    try {
-      const result = await this.sshScanService.scanTarget(targetId);
-      response.json({ result });
-    } catch (error) {
-      if (error instanceof SshTargetNotFoundError) {
-        response.status(404).json({ error: "SSH target not found" });
-        return;
-      }
-
-      response.status(502).json({ error: "SSH scan failed", message: errorMessage(error) });
-    }
-  };
-
-  testTarget: RequestHandler = async (request, response) => {
-    const targetId = paramString(request.params.targetId);
-    if (!targetId) {
-      response.status(400).json({ error: "Missing SSH target id" });
-      return;
-    }
-
-    try {
-      const result = await this.sshScanService.testTarget(targetId);
-      response.json({ result });
-    } catch (error) {
-      if (error instanceof SshTargetNotFoundError) {
-        response.status(404).json({ error: "SSH target not found" });
-        return;
-      }
-
-      response.status(502).json({ error: "SSH test failed", message: errorMessage(error) });
-    }
-  };
-
-  scanAllTargets: RequestHandler = async (_request, response) => {
-    const result = await this.sshScanService.scanAllTargets();
-    response.json(result);
-  };
+	scanAllTargets: RequestHandler = async (_request, response) => {
+		try {
+			const result = await this.sshScanService.scanAllTargets();
+			response.json(result);
+		} catch (error) {
+			throw withApiErrorFallback(error, {
+				error: "SSH scan failed",
+				statusCode: 502,
+			});
+		}
+	};
 }

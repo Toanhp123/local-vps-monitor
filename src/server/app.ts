@@ -1,105 +1,67 @@
 import express, { type Express } from "express";
 import fs from "node:fs";
 import path from "node:path";
-import { serverConfig } from "./config";
+import { createServerServices, type ServerServices } from "./container";
+import { apiErrorHandler } from "./middleware/apiErrorHandler";
 import { localAccessGuard } from "./middleware/localAccessGuard";
-import { MonitorStateStore } from "./models/monitorStateStore";
-import { SshTargetConfigStore } from "./models/sshTargetConfigStore";
 import { createApiRouter } from "./routes/apiRoutes";
-import { AppLogsService } from "./services/appLogsService";
-import { HealthService } from "./services/healthService";
-import { LocalDockerScanService } from "./services/localDockerScanService";
-import { MonitorOverviewService } from "./services/monitorOverviewService";
-import { QuickActionService } from "./services/quickActionService";
-import { SshScanService } from "./services/sshScanService";
-import { SshTargetBootstrapService } from "./services/sshTargetBootstrapService";
-import { SshTargetConfigService } from "./services/sshTargetConfigService";
+import type { LocalDockerScanService } from "./services/localDockerScanService";
+import type { MonitorOverviewService } from "./services/monitorOverviewService";
+import type { SshScanService } from "./services/sshScanService";
 
 const mountClientApp = (app: Express) => {
-  const clientDist = path.resolve(process.cwd(), "dist/client");
-  const indexHtml = path.join(clientDist, "index.html");
+	const clientDist = path.resolve(process.cwd(), "dist/client");
+	const indexHtml = path.join(clientDist, "index.html");
 
-  if (!fs.existsSync(indexHtml)) return;
+	if (!fs.existsSync(indexHtml)) return;
 
-  app.use(express.static(clientDist));
-  app.use((request, response, next) => {
-    if (request.path.startsWith("/api")) {
-      next();
-      return;
-    }
+	app.use(express.static(clientDist));
+	app.use((request, response, next) => {
+		if (request.path.startsWith("/api")) {
+			next();
+			return;
+		}
 
-    response.sendFile(indexHtml);
-  });
+		response.sendFile(indexHtml);
+	});
 };
 
 export interface ServerAppContext {
-  app: Express;
-  localDockerScanService: LocalDockerScanService;
-  monitorOverviewService: MonitorOverviewService;
-  sshScanService: SshScanService;
+	app: Express;
+	localDockerScanService: LocalDockerScanService;
+	monitorOverviewService: MonitorOverviewService;
+	services: ServerServices;
+	sshScanService: SshScanService;
 }
 
-export const createApp = () => {
-  const app = express();
-  const monitorStateStore = new MonitorStateStore(serverConfig.dataFile);
-  const sshTargetConfigStore = new SshTargetConfigStore(serverConfig.sshTargetsFile);
-  const monitorOverviewService = new MonitorOverviewService(monitorStateStore, serverConfig.offlineAfterMs);
-  const localDockerScanService = new LocalDockerScanService(
-    monitorOverviewService,
-    serverConfig.localDockerCommandTimeoutMs,
-    serverConfig.version
-  );
-  const sshTargetConfigService = new SshTargetConfigService(sshTargetConfigStore);
-  const sshTargetBootstrapService = new SshTargetBootstrapService(
-    sshTargetConfigService,
-    serverConfig.sshCommandTimeoutMs
-  );
-  const sshScanService = new SshScanService(
-    sshTargetConfigStore,
-    monitorOverviewService,
-    serverConfig.sshCommandTimeoutMs,
-    serverConfig.sshScanConcurrency,
-    serverConfig.version
-  );
-  const healthService = new HealthService({
-    dataFile: serverConfig.dataFile,
-    version: serverConfig.version
-  });
-  const appLogsService = new AppLogsService(
-    monitorOverviewService,
-    sshTargetConfigStore,
-    serverConfig.localDockerCommandTimeoutMs,
-    serverConfig.sshCommandTimeoutMs
-  );
-  const quickActionService = new QuickActionService(
-    monitorOverviewService,
-    sshTargetConfigStore,
-    serverConfig.localDockerCommandTimeoutMs,
-    serverConfig.sshCommandTimeoutMs
-  );
+export const createApp = (services = createServerServices()) => {
+	const app = express();
 
-  app.use(localAccessGuard());
-  app.use(express.json({ limit: "1mb" }));
-  app.use(
-    "/api",
-    createApiRouter({
-      appLogsService,
-      healthService,
-      localDockerScanService,
-      monitorOverviewService,
-      quickActionService,
-      sshScanService,
-      sshTargetBootstrapService,
-      sshTargetConfigService
-    })
-  );
+	app.use(localAccessGuard());
+	app.use(express.json({ limit: "1mb" }));
+	app.use(
+		"/api",
+		createApiRouter({
+			appLogsService: services.appLogsService,
+			healthService: services.healthService,
+			localDockerScanService: services.localDockerScanService,
+			monitorOverviewService: services.monitorOverviewService,
+			quickActionService: services.quickActionService,
+			sshScanService: services.sshScanService,
+			sshTargetBootstrapService: services.sshTargetBootstrapService,
+			sshTargetConfigService: services.sshTargetConfigService,
+			sshTargetImportService: services.sshTargetImportService,
+		}),
+	);
+	app.use("/api", apiErrorHandler());
 
-  mountClientApp(app);
+	mountClientApp(app);
 
-  return {
-    app,
-    localDockerScanService,
-    monitorOverviewService,
-    sshScanService
-  } satisfies ServerAppContext;
+	return {
+		app,
+		localDockerScanService: services.localDockerScanService,
+		monitorOverviewService: services.monitorOverviewService,
+		services,
+		sshScanService: services.sshScanService,
+	} satisfies ServerAppContext;
 };
