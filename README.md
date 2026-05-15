@@ -69,20 +69,27 @@ http://127.0.0.1:3101
 
 ## SSH Target Setup
 
-The dashboard connects to each VPS through a local SSH private key. Do not paste key content into the dashboard; paste the private key file path.
+The dashboard connects to each VPS through a local SSH private key. Create the monitor key once on your computer, then copy the same public key to every VPS you want to monitor.
+
+Do not paste key content into the dashboard; paste the private key file path.
 
 ### Windows PowerShell
 
-Create a monitor SSH key:
+Create the monitor SSH key once:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.ssh" | Out-Null
-ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\vps_monitor"
+
+if (Test-Path "$env:USERPROFILE\.ssh\vps_monitor") {
+  Write-Host "Using existing monitor key: $env:USERPROFILE\.ssh\vps_monitor"
+} else {
+  ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\vps_monitor"
+}
 ```
 
-When `ssh-keygen` asks for a passphrase, press Enter twice to leave it empty.
+If `ssh-keygen` asks for a passphrase, press Enter twice to leave it empty.
 
-Before running the next commands, replace:
+Repeat the next commands for each VPS. Before running them, replace:
 
 - `root`: your VPS SSH user, for example `root`, `ubuntu`, or `debian`
 - `your-vps-ip`: your VPS IP address or domain, for example `203.0.113.10`
@@ -90,7 +97,7 @@ Before running the next commands, replace:
 
 For example, `root@your-vps-ip` becomes `root@203.0.113.10`.
 
-Copy the public key to your VPS:
+Copy the public key to one VPS:
 
 ```powershell
 Get-Content "$env:USERPROFILE\.ssh\vps_monitor.pub" | ssh root@your-vps-ip "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
@@ -108,7 +115,7 @@ Test the SSH key:
 ssh -i "$env:USERPROFILE\.ssh\vps_monitor" root@your-vps-ip "echo ok"
 ```
 
-Then open the dashboard and add a target with:
+Then open the dashboard and add one target for that VPS with:
 
 - Name: any label, for example `Production VPS`
 - Host: your VPS IP or domain
@@ -118,16 +125,21 @@ Then open the dashboard and add a target with:
 
 ### macOS or Linux
 
-Create a monitor SSH key:
+Create the monitor SSH key once:
 
 ```bash
 mkdir -p ~/.ssh
-ssh-keygen -t ed25519 -f ~/.ssh/vps_monitor
+
+if [ -f ~/.ssh/vps_monitor ]; then
+  echo "Using existing monitor key: ~/.ssh/vps_monitor"
+else
+  ssh-keygen -t ed25519 -f ~/.ssh/vps_monitor
+fi
 ```
 
-When `ssh-keygen` asks for a passphrase, press Enter twice to leave it empty.
+If `ssh-keygen` asks for a passphrase, press Enter twice to leave it empty.
 
-Before running the next commands, replace:
+Repeat the next commands for each VPS. Before running them, replace:
 
 - `root`: your VPS SSH user, for example `root`, `ubuntu`, or `debian`
 - `your-vps-ip`: your VPS IP address or domain, for example `203.0.113.10`
@@ -135,7 +147,7 @@ Before running the next commands, replace:
 
 For example, `root@your-vps-ip` becomes `root@203.0.113.10`.
 
-Copy the public key to your VPS:
+Copy the public key to one VPS:
 
 ```bash
 ssh-copy-id -i ~/.ssh/vps_monitor.pub root@your-vps-ip
@@ -153,13 +165,15 @@ Test the SSH key:
 ssh -i ~/.ssh/vps_monitor root@your-vps-ip "echo ok"
 ```
 
-Then open the dashboard and add a target with:
+Then open the dashboard and add one target for that VPS with:
 
 - Name: any label, for example `Production VPS`
 - Host: your VPS IP or domain
 - Port: usually `22`
 - SSH user: for example `root`
 - Private key path: `~/.ssh/vps_monitor`
+
+To add more VPS machines, repeat the copy, trust, test, and dashboard target steps for each VPS. Keep the same private key path for all targets unless you intentionally created separate keys.
 
 Click `Scan`, `Scan All`, or wait for automatic scans.
 
