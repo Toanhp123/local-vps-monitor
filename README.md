@@ -21,7 +21,7 @@ It is built for developers who run apps with Docker or PM2 and want a quick way 
 
 - The API binds to `127.0.0.1` by default.
 - The API and WebSocket reject non-local `Host` and `Origin` headers.
-- No SSH password is requested or stored.
+- SSH passwords can be used once to install the monitor key, but they are not stored.
 - SSH private key content is not persisted; only the local key file path is stored.
 - SSH host keys are verified through your local `known_hosts` file.
 - Quick actions use predefined commands only; there is no free-form remote shell.
@@ -39,45 +39,69 @@ It is built for developers who run apps with Docker or PM2 and want a quick way 
 
 Run it directly on your machine with Node.js. No app container or Docker deployment is required.
 
-### Windows PowerShell
-
-```powershell
-npm install
-Copy-Item .env.example .env
-npm run dev
-```
-
-### macOS or Linux
-
 ```bash
 npm install
-cp .env.example .env
-npm run dev
+npm start
 ```
 
-To use a different dashboard port, edit `DASHBOARD_PORT` in `.env` before running `npm run dev`.
+On first start, the app creates `.env` from `.env.example` if it does not exist, builds the dashboard if needed, then starts the local server.
 
 Dashboard:
-
-```text
-http://127.0.0.1:5173
-```
-
-If you changed `DASHBOARD_PORT`, use that port in the dashboard URL.
-
-API:
 
 ```text
 http://127.0.0.1:3101
 ```
 
+API:
+
+```text
+http://127.0.0.1:3101/api
+```
+
+For development with live reload:
+
+```bash
+npm run dev
+```
+
+When using `npm run dev`, the dashboard defaults to `http://127.0.0.1:5173`. To use a different dev dashboard port, edit `DASHBOARD_PORT` in `.env`.
+
 ## SSH Target Setup
 
-The dashboard connects to each VPS through a local SSH private key. Create the monitor key once on your computer, then copy the same public key to every VPS you want to monitor.
+The dashboard connects to each VPS through SSH key auth. You can let the app set up the key for you, or create and copy the key yourself.
 
-Do not paste key content into the dashboard; paste the private key file path.
+### Option 1: Setup with Password
 
-### Windows PowerShell
+Use this if the VPS still allows SSH password login. Open the dashboard, go to `Local SSH Targets`, and add one target with:
+
+- Name: any label, for example `Production VPS`
+- Host: your VPS IP or domain, for example `203.0.113.10`
+- Port: usually `22`
+- User: your VPS SSH user, for example `root`, `ubuntu`, or `debian`
+- Auth: `Password`
+- Setup password: the SSH password for that VPS
+
+The password is only used for this setup request. After the monitor key is installed, the app discards the password and does not write it to `data/ssh-targets.json`.
+
+During setup, the app will:
+
+- Create a local monitor key at `~/.ssh/vps_monitor` if it does not exist.
+- Copy the monitor public key to the VPS `~/.ssh/authorized_keys`.
+- Trust the VPS host key in your local `known_hosts` file.
+- Test key-based login.
+- Save the target with the local private key path.
+
+### Option 2: Manual Key Setup
+
+Use this if password login is disabled, or if you prefer to manage SSH keys yourself. Create the monitor key once on your computer, then copy the same public key to every VPS you want to monitor.
+
+Before running the commands, replace:
+
+- `root`: your VPS SSH user, for example `root`, `ubuntu`, or `debian`
+- `your-vps-ip`: your VPS IP address or domain, for example `203.0.113.10`
+- `22`: your VPS SSH port, if it is not the default port
+
+#### Windows PowerShell
 
 Create the monitor SSH key once:
 
@@ -92,14 +116,6 @@ if (Test-Path "$env:USERPROFILE\.ssh\vps_monitor") {
 ```
 
 If `ssh-keygen` asks for a passphrase, press Enter twice to leave it empty.
-
-Repeat the next commands for each VPS. Before running them, replace:
-
-- `root`: your VPS SSH user, for example `root`, `ubuntu`, or `debian`
-- `your-vps-ip`: your VPS IP address or domain, for example `203.0.113.10`
-- `22`: your VPS SSH port, if it is not the default port
-
-For example, `root@your-vps-ip` becomes `root@203.0.113.10`.
 
 Copy the public key to one VPS:
 
@@ -119,15 +135,15 @@ Test the SSH key:
 ssh -i "$env:USERPROFILE\.ssh\vps_monitor" root@your-vps-ip "echo ok"
 ```
 
-Then open the dashboard and add one target for that VPS with:
+In the dashboard, add the target with `Auth` set to `Key path` and use:
 
-- Name: any label, for example `Production VPS`
-- Host: your VPS IP or domain
-- Port: usually `22`
-- SSH user: for example `root`
-- Private key path: `C:\Users\your-name\.ssh\vps_monitor`, replace `your-name` with your Windows username
+```text
+C:\Users\your-name\.ssh\vps_monitor
+```
 
-### macOS or Linux
+Replace `your-name` with your Windows username.
+
+#### macOS or Linux
 
 Create the monitor SSH key once:
 
@@ -142,14 +158,6 @@ fi
 ```
 
 If `ssh-keygen` asks for a passphrase, press Enter twice to leave it empty.
-
-Repeat the next commands for each VPS. Before running them, replace:
-
-- `root`: your VPS SSH user, for example `root`, `ubuntu`, or `debian`
-- `your-vps-ip`: your VPS IP address or domain, for example `203.0.113.10`
-- `22`: your VPS SSH port, if it is not the default port
-
-For example, `root@your-vps-ip` becomes `root@203.0.113.10`.
 
 Copy the public key to one VPS:
 
@@ -169,15 +177,13 @@ Test the SSH key:
 ssh -i ~/.ssh/vps_monitor root@your-vps-ip "echo ok"
 ```
 
-Then open the dashboard and add one target for that VPS with:
+In the dashboard, add the target with `Auth` set to `Key path` and use:
 
-- Name: any label, for example `Production VPS`
-- Host: your VPS IP or domain
-- Port: usually `22`
-- SSH user: for example `root`
-- Private key path: `~/.ssh/vps_monitor`
+```text
+~/.ssh/vps_monitor
+```
 
-To add more VPS machines, repeat the copy, trust, test, and dashboard target steps for each VPS. Keep the same private key path for all targets unless you intentionally created separate keys.
+To add more VPS machines, repeat the password setup or manual copy/trust/test steps for each VPS. You can reuse the same private key path for all targets.
 
 Click `Scan`, `Scan All`, or wait for automatic scans.
 
@@ -199,7 +205,7 @@ npm run reset:data
 
 This resets the monitor state file. SSH targets are stored separately in `SSH_TARGETS_FILE`.
 
-## Build
+## Manual Build
 
 ```bash
 npm run build
@@ -209,8 +215,8 @@ npm start
 ## Environment Variables
 
 - `HOST`: API bind host. Defaults to `127.0.0.1`.
-- `PORT`: API port. Defaults to `3101`.
-- `DASHBOARD_PORT`: dashboard dev server port. Defaults to `5173`.
+- `PORT`: API port, and dashboard port when using `npm start`. Defaults to `3101`.
+- `DASHBOARD_PORT`: dashboard dev server port for `npm run dev`. Defaults to `5173`.
 - `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
 - `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.
 - `SSH_COMMAND_TIMEOUT_MS`: SSH connect and command timeout. Defaults to `12000`.
