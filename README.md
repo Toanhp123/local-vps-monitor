@@ -185,6 +185,30 @@ In the dashboard, add the target with `Auth` set to `Key path` and use:
 
 To add more VPS machines, repeat the password setup or manual copy/trust/test steps for each VPS. You can reuse the same private key path for all targets.
 
+### Manage SSH Targets
+
+In `Local SSH Targets`, use:
+
+- `Test`: check SSH key login without scanning apps.
+- `Edit`: update name, host, port, user, or private key path.
+- `Bulk import`: add many VPS targets from pasted CSV rows.
+
+Bulk import format:
+
+```text
+name,host,port,user,privateKeyPath
+Production VPS,203.0.113.10,22,root,~/.ssh/vps_monitor
+```
+
+For password setup bulk import, switch bulk import Auth to `Password` and use:
+
+```text
+name,host,port,user,password
+Production VPS,203.0.113.10,22,root,my-temporary-password
+```
+
+Passwords in bulk import are only used for the setup requests and are not stored.
+
 Click `Scan`, `Scan All`, or wait for automatic scans.
 
 ## Local Docker Setup
