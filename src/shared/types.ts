@@ -46,8 +46,17 @@ export interface ServerSnapshotPayload {
   apps: AppSnapshot[];
 }
 
+export interface ServerMetricPoint {
+  observedAt: string;
+  appCpuPercent: number;
+  memoryUsedBytes: number;
+  memoryTotalBytes: number;
+  restartCount: number;
+}
+
 export interface StoredServer extends ServerSnapshotPayload {
   lastSeenAt: string;
+  metricsHistory: ServerMetricPoint[];
   online: boolean;
   status: HealthStatus;
 }

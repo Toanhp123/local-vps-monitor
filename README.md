@@ -10,6 +10,7 @@ It is built for developers who deploy apps with Docker or PM2 and want a quick w
 - Scans Docker containers and PM2 processes on remote VPS targets.
 - Scans Docker containers running on your local machine.
 - Shows server health, app status, CPU, memory, ports, image names, and restart information.
+- Shows lightweight CPU and RAM charts from local scan history.
 - Updates the dashboard through WebSocket after scans.
 - Runs automatic scans through `AUTO_SCAN_INTERVAL_MS`.
 - Stores monitor data locally under `data/`.

@@ -3,9 +3,12 @@ import type {
   HealthStatus,
   OverviewResponse,
   OverviewSummary,
+  ServerMetricPoint,
   ServerSnapshotPayload,
   StoredServer
 } from "../../shared/types";
+
+const maxMetricHistoryPoints = 60;
 
 const statusRank: Record<HealthStatus, number> = {
   down: 4,
@@ -29,6 +32,38 @@ const sortApps = (apps: AppSnapshot[]) => {
 
     return left.name.localeCompare(right.name);
   });
+};
+
+const numberOrZero = (value: number | undefined) => {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+};
+
+const createMetricPoint = (
+  apps: AppSnapshot[],
+  payload: ServerSnapshotPayload,
+  observedAt: Date
+): ServerMetricPoint => {
+  const appCpuPercent = apps.reduce((total, app) => total + numberOrZero(app.cpuPercent), 0);
+  const memoryUsedBytes = Math.max(
+    0,
+    payload.host.memoryTotalBytes - payload.host.memoryFreeBytes
+  );
+  const restartCount = apps.reduce((total, app) => total + numberOrZero(app.restarts), 0);
+
+  return {
+    observedAt: observedAt.toISOString(),
+    appCpuPercent: Math.round(appCpuPercent * 10) / 10,
+    memoryUsedBytes,
+    memoryTotalBytes: payload.host.memoryTotalBytes,
+    restartCount
+  };
+};
+
+const withMetricHistory = (
+  previousHistory: ServerMetricPoint[] | undefined,
+  point: ServerMetricPoint
+) => {
+  return [...(previousHistory ?? []), point].slice(-maxMetricHistoryPoints);
 };
 
 const rawString = (app: AppSnapshot | undefined, key: string) => {
@@ -94,11 +129,13 @@ export const createStoredServerFromSnapshot = (
   receivedAt: Date
 ): StoredServer => {
   const apps = sortApps(withObservedRestarts(payload.apps, previousServer?.apps));
+  const metricPoint = createMetricPoint(apps, payload, receivedAt);
 
   return {
     ...payload,
     apps,
     lastSeenAt: receivedAt.toISOString(),
+    metricsHistory: withMetricHistory(previousServer?.metricsHistory, metricPoint),
     online: true,
     status: worstStatus(apps.map((app) => app.health))
   };

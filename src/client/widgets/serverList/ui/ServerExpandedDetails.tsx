@@ -5,6 +5,7 @@ import {
 	groupApplications,
 } from "../../../entities/application/model/groupApplications";
 import { ApplicationTable } from "../../../entities/application/ui/ApplicationTable";
+import { ServerMetricCharts } from "../../../entities/server/ui/ServerMetricCharts";
 import { ServerMetricsGrid } from "../../../entities/server/ui/ServerMetricsGrid";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 
@@ -56,6 +57,7 @@ export function ServerExpandedDetails({ server }: { server: StoredServer }) {
 				</div>
 
 				<ServerMetricsGrid server={server} />
+				<ServerMetricCharts server={server} />
 
 				<div className="border-t border-slate-200">
 					<div className="flex items-center justify-between gap-3 bg-slate-50 px-4 py-2.5">
