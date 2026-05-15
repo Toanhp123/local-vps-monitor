@@ -55,11 +55,15 @@ cp .env.example .env
 npm run dev
 ```
 
+To use a different dashboard port, edit `DASHBOARD_PORT` in `.env` before running `npm run dev`.
+
 Dashboard:
 
 ```text
 http://127.0.0.1:5173
 ```
+
+If you changed `DASHBOARD_PORT`, use that port in the dashboard URL.
 
 API:
 
@@ -206,6 +210,7 @@ npm start
 
 - `HOST`: API bind host. Defaults to `127.0.0.1`.
 - `PORT`: API port. Defaults to `3101`.
+- `DASHBOARD_PORT`: dashboard dev server port. Defaults to `5173`.
 - `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
 - `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.
 - `SSH_COMMAND_TIMEOUT_MS`: SSH connect and command timeout. Defaults to `12000`.
