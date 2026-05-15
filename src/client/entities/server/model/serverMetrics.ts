@@ -11,3 +11,15 @@ export const serverMemory = (server: StoredServer) => {
 
 	return { used, percent };
 };
+
+export const serverDisk = (server: StoredServer) => {
+	const disk = server.host.disk;
+	if (!disk) return undefined;
+
+	return {
+		available: disk.availableBytes,
+		percent: Math.round(disk.usedPercent),
+		total: disk.totalBytes,
+		used: disk.usedBytes,
+	};
+};

@@ -2,6 +2,15 @@ export type AppKind = "docker" | "pm2";
 
 export type HealthStatus = "healthy" | "warning" | "down" | "unknown";
 
+export interface DiskMetrics {
+  availableBytes: number;
+  filesystem: string;
+  mount: string;
+  totalBytes: number;
+  usedBytes: number;
+  usedPercent: number;
+}
+
 export interface HostMetrics {
   hostname: string;
   platform: string;
@@ -11,6 +20,7 @@ export interface HostMetrics {
   cpuCount: number;
   memoryTotalBytes: number;
   memoryFreeBytes: number;
+  disk?: DiskMetrics;
 }
 
 export type AppGroupSource = "docker-compose" | "docker" | "pm2";
@@ -49,6 +59,9 @@ export interface ServerSnapshotPayload {
 export interface ServerMetricPoint {
   observedAt: string;
   appCpuPercent: number;
+  diskTotalBytes?: number;
+  diskUsedBytes?: number;
+  diskUsedPercent?: number;
   memoryUsedBytes: number;
   memoryTotalBytes: number;
   restartCount: number;
@@ -60,7 +73,8 @@ export type IncidentKind =
   | "app-added"
   | "app-health"
   | "app-removed"
-  | "app-restart";
+  | "app-restart"
+  | "disk-usage";
 
 export interface IncidentEvent {
   id: string;

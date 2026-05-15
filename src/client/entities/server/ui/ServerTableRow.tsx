@@ -3,7 +3,7 @@ import { Server, WifiOff } from "lucide-react";
 import type { StoredServer } from "../../../../shared/types";
 import { formatBytes, relativeTime } from "../../../shared/lib/format";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
-import { serverMemory } from "../model/serverMetrics";
+import { serverDisk, serverMemory } from "../model/serverMetrics";
 
 const bodyCellClass =
 	"border-b border-slate-200 px-3.5 py-3 text-left align-middle whitespace-nowrap";
@@ -20,6 +20,7 @@ export function ServerTableRow({
 	server: StoredServer;
 }) {
 	const memory = serverMemory(server);
+	const disk = serverDisk(server);
 
 	return (
 		<tr className="cursor-pointer hover:bg-blue-50/50" onClick={onOpen}>
@@ -63,6 +64,20 @@ export function ServerTableRow({
 				<span className="ml-1 text-slate-500">
 					/ {formatBytes(server.host.memoryTotalBytes)} ({memory.percent}%)
 				</span>
+			</td>
+			<td className={bodyCellClass}>
+				{disk ? (
+					<>
+						<span className="font-semibold text-slate-700">
+							{formatBytes(disk.used)}
+						</span>
+						<span className="ml-1 text-slate-500">
+							/ {formatBytes(disk.total)} ({disk.percent}%)
+						</span>
+					</>
+				) : (
+					<span className="font-semibold text-slate-400">-</span>
+				)}
 			</td>
 			<td className={bodyCellClass}>
 				<span className="font-semibold text-slate-600">

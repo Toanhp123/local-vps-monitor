@@ -1,5 +1,6 @@
 import type { Client } from "ssh2";
 import type { HostMetrics } from "../../../shared/types";
+import { parseDfRootDisk } from "../system/diskMetricsParser";
 import { safeRunSshCommand } from "./sshCommandRunner";
 import { firstLine, parseNumber } from "./sshOutputParsers";
 
@@ -33,8 +34,16 @@ export const collectSshHostMetrics = async (
 	client: Client,
 	timeoutMs: number,
 ): Promise<HostMetrics> => {
-	const [hostname, platform, arch, uptime, cpuCount, loadAverage, memInfo] =
-		await Promise.all([
+	const [
+		hostname,
+		platform,
+		arch,
+		uptime,
+		cpuCount,
+		loadAverage,
+		memInfo,
+		rootDisk,
+	] = await Promise.all([
 			safeRunSshCommand(
 				client,
 				"hostname 2>/dev/null || uname -n 2>/dev/null || echo unknown",
@@ -70,6 +79,7 @@ export const collectSshHostMetrics = async (
 				"cat /proc/meminfo 2>/dev/null || true",
 				timeoutMs,
 			),
+			safeRunSshCommand(client, "df -Pk / 2>/dev/null || true", timeoutMs),
 		]);
 	const memory = parseMemInfo(memInfo.stdout);
 
@@ -85,5 +95,6 @@ export const collectSshHostMetrics = async (
 		),
 		memoryTotalBytes: memory.total,
 		memoryFreeBytes: memory.free,
+		disk: parseDfRootDisk(rootDisk.stdout),
 	};
 };

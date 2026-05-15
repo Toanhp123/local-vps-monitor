@@ -13,7 +13,7 @@ export class LocalDockerScanService {
 
 	async scanLocalDocker(): Promise<ScanResult> {
 		const [host, apps] = await Promise.all([
-			Promise.resolve(collectLocalHostMetrics()),
+			collectLocalHostMetrics(this.commandTimeoutMs),
 			collectLocalDockerApps(this.commandTimeoutMs),
 		]);
 		const payload: ServerSnapshotPayload = {

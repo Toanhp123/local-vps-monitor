@@ -2,6 +2,7 @@ import {
 	AlertTriangle,
 	BellOff,
 	CheckCircle2,
+	HardDrive,
 	PlusCircle,
 	RotateCcw,
 	Trash2,
@@ -46,10 +47,12 @@ const kindIcons: Record<IncidentKind, LucideIcon> = {
 	"app-health": AlertTriangle,
 	"app-removed": Trash2,
 	"app-restart": RotateCcw,
+	"disk-usage": HardDrive,
 };
 
 const resolvedIcons: Partial<Record<IncidentKind, LucideIcon>> = {
 	"app-health": CheckCircle2,
+	"disk-usage": CheckCircle2,
 };
 
 const formatSnoozedUntil = (snoozedUntil: number) => {

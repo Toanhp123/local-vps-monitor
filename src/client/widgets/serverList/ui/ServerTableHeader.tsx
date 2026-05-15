@@ -11,6 +11,7 @@ export function ServerTableHeader() {
 				<th className={headerCellClass}>System</th>
 				<th className={headerCellClass}>CPU</th>
 				<th className={headerCellClass}>Memory</th>
+				<th className={headerCellClass}>Disk</th>
 				<th className={headerCellClass}>Last scan</th>
 				<th className={`${headerCellClass} text-right`}>Actions</th>
 			</tr>

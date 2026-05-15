@@ -34,6 +34,14 @@ const memoryPercent = (point: ServerMetricPoint) => {
 	return Math.round((point.memoryUsedBytes / point.memoryTotalBytes) * 100);
 };
 
+const hasDiskPercent = (
+	point: ServerMetricPoint,
+): point is ServerMetricPoint & {
+	diskUsedPercent: number;
+} => {
+	return typeof point.diskUsedPercent === "number";
+};
+
 const chartPoints = (values: number[]) => {
 	const width = 240;
 	const height = 72;
@@ -282,7 +290,9 @@ function MetricChartCard({ series }: { series: ChartSeries }) {
 export function ServerMetricCharts({ server }: { server: StoredServer }) {
 	const history = server.metricsHistory.slice(-chartWindow);
 	const latest = history.at(-1);
+	const diskHistory = history.filter(hasDiskPercent);
 	const latestMemory = latest ? memoryPercent(latest) : 0;
+	const latestDisk = diskHistory.at(-1);
 	const subtitle =
 		history.length > 0 ? `Last ${history.length} scans` : "No history";
 	const series: ChartSeries[] = [
@@ -314,8 +324,34 @@ export function ServerMetricCharts({ server }: { server: StoredServer }) {
 		},
 	];
 
+	if (latestDisk) {
+		series.push({
+			color: "#dc2626",
+			fill: "rgba(220, 38, 38, 0.12)",
+			formatSummaryValue: (value) => `${Math.round(value)}%`,
+			formatValue: (value, index) => {
+				const point =
+					index === undefined ? latestDisk : diskHistory[index];
+				const disk =
+					point?.diskUsedBytes !== undefined
+						? ` (${formatBytes(point.diskUsedBytes)})`
+						: "";
+
+				return `${Math.round(value)}%${disk}`;
+			},
+			labels: diskHistory.map((point) => scanLabel(point.observedAt)),
+			points: diskHistory.map((point) => point.diskUsedPercent),
+			subtitle:
+				diskHistory.length > 0
+					? `Last ${diskHistory.length} scans`
+					: "No disk history",
+			title: "Disk Used",
+			value: latestDisk.diskUsedPercent,
+		});
+	}
+
 	return (
-		<div className="grid grid-cols-2 gap-3 border-t border-slate-200 bg-slate-50 p-3 max-lg:grid-cols-1">
+		<div className="grid grid-cols-3 gap-3 border-t border-slate-200 bg-slate-50 p-3 max-xl:grid-cols-2 max-lg:grid-cols-1">
 			{series.map((item) => (
 				<MetricChartCard key={item.title} series={item} />
 			))}
