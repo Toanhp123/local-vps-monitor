@@ -4,9 +4,10 @@ services:
     container_name: vps-monitor
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3001:3001"
+      - "127.0.0.1:${PORT:-3101}:${PORT:-3101}"
     environment:
       HOST: 0.0.0.0
+      PORT: "${PORT:-3101}"
       DATA_FILE: /data/monitor-state.json
       SSH_TARGETS_FILE: /data/ssh-targets.json
       LOCAL_DOCKER_COMMAND_TIMEOUT_MS: "${LOCAL_DOCKER_COMMAND_TIMEOUT_MS:-12000}"

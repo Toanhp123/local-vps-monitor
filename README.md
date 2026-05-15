@@ -48,7 +48,7 @@ http://127.0.0.1:5173
 API:
 
 ```text
-http://127.0.0.1:3001
+http://127.0.0.1:3101
 ```
 
 ## SSH Target Setup
@@ -109,7 +109,7 @@ npm start
 ## Environment Variables
 
 - `HOST`: API bind host. Defaults to `127.0.0.1`.
-- `PORT`: API port. Defaults to `3001`.
+- `PORT`: API port. Defaults to `3101`.
 - `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
 - `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.
 - `SSH_COMMAND_TIMEOUT_MS`: SSH connect and command timeout. Defaults to `12000`.
