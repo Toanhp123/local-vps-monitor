@@ -33,12 +33,16 @@ export function DashboardPage() {
 		sshTargetManager.activeScanSource === "targets-panel"
 			? sshTargetManager.activeScanId
 			: null;
+	const incidents =
+		overview?.servers.flatMap((server) => server.incidents ?? []) ?? [];
 
 	return (
 		<>
 			<DashboardHeader
+				incidents={incidents}
 				isScanAllDisabled={isAnyScanActive}
 				isScanningAll={isScanAllActive}
+				now={now}
 				onScanAll={handleScanAll}
 				query={query}
 				onQueryChange={setQuery}

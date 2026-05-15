@@ -54,9 +54,35 @@ export interface ServerMetricPoint {
   restartCount: number;
 }
 
+export type IncidentSeverity = "info" | "warning" | "critical" | "resolved";
+
+export type IncidentKind =
+  | "app-added"
+  | "app-health"
+  | "app-removed"
+  | "app-restart";
+
+export interface IncidentEvent {
+  id: string;
+  appId?: string;
+  appName?: string;
+  currentHealth?: HealthStatus;
+  currentValue?: number;
+  kind: IncidentKind;
+  message: string;
+  occurredAt: string;
+  previousHealth?: HealthStatus;
+  previousValue?: number;
+  serverId: string;
+  serverName: string;
+  severity: IncidentSeverity;
+  title: string;
+}
+
 export interface StoredServer extends ServerSnapshotPayload {
   lastSeenAt: string;
   metricsHistory: ServerMetricPoint[];
+  incidents: IncidentEvent[];
   online: boolean;
   status: HealthStatus;
 }

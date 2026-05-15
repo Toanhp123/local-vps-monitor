@@ -1,14 +1,20 @@
 import { LoaderCircle, RefreshCw, Search } from "lucide-react";
+import type { IncidentEvent } from "../../../../shared/types";
+import { IncidentNotificationCenter } from "../../../entities/incident/ui/IncidentNotificationCenter";
 
 export function DashboardHeader({
+	incidents,
 	isScanAllDisabled,
 	isScanningAll,
+	now,
 	onScanAll,
 	query,
 	onQueryChange,
 }: {
+	incidents: IncidentEvent[];
 	isScanAllDisabled: boolean;
 	isScanningAll: boolean;
+	now: number;
 	onScanAll: () => void;
 	query: string;
 	onQueryChange: (query: string) => void;
@@ -33,6 +39,7 @@ export function DashboardHeader({
 						placeholder="Search server, app, runtime"
 					/>
 				</label>
+				<IncidentNotificationCenter incidents={incidents} now={now} />
 				<button
 					type="button"
 					className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"

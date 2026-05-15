@@ -1,14 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { ServerMetricPoint, StoredServer } from "../../shared/types";
+import type { IncidentEvent, ServerMetricPoint, StoredServer } from "../../shared/types";
 
 interface MonitorState {
   servers: Record<string, StoredServer>;
 }
 
-type LegacyStoredServer = Omit<StoredServer, "collectorVersion" | "metricsHistory"> & {
+type LegacyStoredServer = Omit<
+  StoredServer,
+  "collectorVersion" | "incidents" | "metricsHistory"
+> & {
   agentVersion?: string;
   collectorVersion?: string;
+  incidents?: IncidentEvent[];
   metricsHistory?: ServerMetricPoint[];
 };
 
@@ -20,6 +24,7 @@ const normalizeStoredServer = (server: LegacyStoredServer): StoredServer => {
   return {
     ...serverWithoutLegacyVersion,
     collectorVersion: collectorVersion || agentVersion || "unknown",
+    incidents: Array.isArray(server.incidents) ? server.incidents : [],
     metricsHistory: Array.isArray(server.metricsHistory) ? server.metricsHistory : []
   };
 };

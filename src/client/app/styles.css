@@ -8,3 +8,68 @@ html {
 body {
 	background: #eef1f5;
 }
+
+.incident-backdrop {
+	animation: incident-backdrop-in 160ms ease-out both;
+}
+
+.incident-backdrop.is-closing {
+	animation: incident-backdrop-out 160ms ease-in both;
+}
+
+.incident-drawer {
+	animation: incident-drawer-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.incident-drawer.is-closing {
+	animation: incident-drawer-out 180ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes incident-backdrop-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes incident-backdrop-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes incident-drawer-in {
+	from {
+		opacity: 0.92;
+		transform: translateX(24px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes incident-drawer-out {
+	from {
+		opacity: 1;
+		transform: translateX(0);
+	}
+	to {
+		opacity: 0.92;
+		transform: translateX(24px);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.incident-backdrop,
+	.incident-backdrop.is-closing,
+	.incident-drawer,
+	.incident-drawer.is-closing {
+		animation: none;
+	}
+}
