@@ -10,19 +10,20 @@ body {
 }
 
 .incident-backdrop {
-	animation: incident-backdrop-in 160ms ease-out both;
+	animation: incident-backdrop-in 180ms ease-out both;
 }
 
 .incident-backdrop.is-closing {
-	animation: incident-backdrop-out 160ms ease-in both;
+	animation: incident-backdrop-out 220ms ease-in both;
 }
 
 .incident-drawer {
-	animation: incident-drawer-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+	will-change: transform;
+	animation: incident-drawer-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .incident-drawer.is-closing {
-	animation: incident-drawer-out 180ms cubic-bezier(0.4, 0, 0.2, 1) both;
+	animation: incident-drawer-out 240ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 @keyframes incident-backdrop-in {
@@ -45,23 +46,19 @@ body {
 
 @keyframes incident-drawer-in {
 	from {
-		opacity: 0.92;
-		transform: translateX(24px);
+		transform: translate3d(100%, 0, 0);
 	}
 	to {
-		opacity: 1;
-		transform: translateX(0);
+		transform: translate3d(0, 0, 0);
 	}
 }
 
 @keyframes incident-drawer-out {
 	from {
-		opacity: 1;
-		transform: translateX(0);
+		transform: translate3d(0, 0, 0);
 	}
 	to {
-		opacity: 0.92;
-		transform: translateX(24px);
+		transform: translate3d(100%, 0, 0);
 	}
 }
 
