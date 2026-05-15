@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import type { StoredServer } from "../../../../shared/types";
 import { ServerTableRow } from "../../../entities/server/ui/ServerTableRow";
 import { ScanServerButton } from "../../../features/serverScan/ui/ScanServerButton";
@@ -63,32 +62,14 @@ export function ServerList({
 									<ServerTableRow
 										key={server.serverId}
 										actions={
-											<>
-												<button
-													type="button"
-													className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-													onClick={(event) => {
-														event.stopPropagation();
-														onOpenServer(
-															server.serverId,
-														);
-													}}
-													aria-label={`Open ${server.serverName} details`}
-												>
-													<ArrowRight size={15} />
-													Details
-												</button>
-												<ScanServerButton
-													ariaLabel={`Scan ${server.serverName}`}
-													isDisabled={isScanDisabled}
-													isScanning={isScanning}
-													onScan={() =>
-														onScanServer(
-															server.serverId,
-														)
-													}
-												/>
-											</>
+											<ScanServerButton
+												ariaLabel={`Scan ${server.serverName}`}
+												isDisabled={isScanDisabled}
+												isScanning={isScanning}
+												onScan={() =>
+													onScanServer(server.serverId)
+												}
+											/>
 										}
 										now={now}
 										onOpen={() => onOpenServer(server.serverId)}
