@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { AppSnapshot } from "../../../../shared/types";
 import { formatBytes } from "../../../shared/lib/format";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
@@ -7,6 +8,9 @@ const headerCellClass =
 	"border-t border-slate-200 bg-slate-50 px-3.5 py-3 text-left align-middle text-xs font-bold uppercase text-slate-500 whitespace-nowrap";
 const bodyCellClass =
 	"border-t border-slate-200 px-3.5 py-3 text-left align-middle whitespace-nowrap";
+const actionHeaderCellClass = `${headerCellClass} sticky right-0 z-20 min-w-28 text-right shadow-[-12px_0_16px_-16px_rgba(15,23,42,0.55)]`;
+const actionBodyCellClass =
+	"sticky right-0 z-10 min-w-28 border-t border-slate-200 bg-white px-3.5 py-3 text-right align-middle whitespace-nowrap shadow-[-12px_0_16px_-16px_rgba(15,23,42,0.55)]";
 
 const portItems = (ports?: string) => {
 	return ports
@@ -15,7 +19,15 @@ const portItems = (ports?: string) => {
 		.filter(Boolean);
 };
 
-export function ApplicationTable({ apps }: { apps: AppSnapshot[] }) {
+export function ApplicationTable({
+	actions,
+	apps,
+}: {
+	actions?: (app: AppSnapshot) => ReactNode;
+	apps: AppSnapshot[];
+}) {
+	const hasActions = Boolean(actions);
+
 	return (
 		<div className="overflow-x-auto">
 			<table className="w-full min-w-250 border-collapse">
@@ -28,6 +40,9 @@ export function ApplicationTable({ apps }: { apps: AppSnapshot[] }) {
 						<th className={headerCellClass}>Memory</th>
 						<th className={headerCellClass}>Image</th>
 						<th className={headerCellClass}>Ports</th>
+						{hasActions && (
+							<th className={actionHeaderCellClass}>Actions</th>
+						)}
 					</tr>
 				</thead>
 				<tbody>
@@ -81,13 +96,18 @@ export function ApplicationTable({ apps }: { apps: AppSnapshot[] }) {
 										"-"
 									)}
 								</td>
+								{actions && (
+									<td className={actionBodyCellClass}>
+										{actions(app)}
+									</td>
+								)}
 							</tr>
 						);
 					})}
 					{apps.length === 0 && (
 						<tr>
 							<td
-								colSpan={7}
+								colSpan={hasActions ? 8 : 7}
 								className="h-18 border-t border-slate-200 text-center text-slate-500"
 							>
 								No Docker or PM2 apps reported

@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useAppLogs } from "../../../features/appLogs/model/useAppLogs";
+import { AppLogsPanel } from "../../../features/appLogs/ui/AppLogsPanel";
 import { routes } from "../../../shared/config/routes";
 import { ServerDetailsView } from "../../../widgets/serverDetails/ui/ServerDetailsView";
 import { useMonitorPageContext } from "../../monitor/model/useMonitorPageContext";
@@ -17,6 +19,7 @@ export function ServerDetailsPage() {
 	const selectedServer = serverId
 		? overview?.servers.find((server) => server.serverId === serverId) || null
 		: null;
+	const appLogs = useAppLogs(serverId || "");
 
 	useEffect(() => {
 		if (!serverId || !overview) return;
@@ -41,16 +44,30 @@ export function ServerDetailsPage() {
 	}
 
 	return (
-		<ServerDetailsView
-			isScanDisabled={isAnyScanActive}
-			isScanning={activeScanId === selectedServer.serverId}
-			now={now}
-			onBack={() => {
-				navigate(routes.dashboard);
-				window.scrollTo({ top: 0 });
-			}}
-			onScan={() => handleScanServer(selectedServer.serverId)}
-			server={selectedServer}
-		/>
+		<>
+			<ServerDetailsView
+				isScanDisabled={isAnyScanActive}
+				isScanning={activeScanId === selectedServer.serverId}
+				now={now}
+				onBack={() => {
+					navigate(routes.dashboard);
+					window.scrollTo({ top: 0 });
+				}}
+				onOpenAppLogs={appLogs.loadLogs}
+				onScan={() => handleScanServer(selectedServer.serverId)}
+				server={selectedServer}
+			/>
+			<AppLogsPanel
+				app={appLogs.app}
+				error={appLogs.error}
+				isLoading={appLogs.isLoading}
+				isOpen={appLogs.isOpen}
+				lineCount={appLogs.lineCount}
+				logs={appLogs.logs}
+				onClose={appLogs.closeLogs}
+				onLineCountChange={appLogs.changeLineCount}
+				onRefresh={appLogs.refreshLogs}
+			/>
+		</>
 	);
 }

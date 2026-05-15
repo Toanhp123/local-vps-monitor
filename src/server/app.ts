@@ -6,6 +6,7 @@ import { localAccessGuard } from "./middleware/localAccessGuard";
 import { MonitorStateStore } from "./models/monitorStateStore";
 import { SshTargetConfigStore } from "./models/sshTargetConfigStore";
 import { createApiRouter } from "./routes/apiRoutes";
+import { AppLogsService } from "./services/appLogsService";
 import { HealthService } from "./services/healthService";
 import { LocalDockerScanService } from "./services/localDockerScanService";
 import { MonitorOverviewService } from "./services/monitorOverviewService";
@@ -58,12 +59,19 @@ export const createApp = () => {
     dataFile: serverConfig.dataFile,
     version: serverConfig.version
   });
+  const appLogsService = new AppLogsService(
+    monitorOverviewService,
+    sshTargetConfigStore,
+    serverConfig.localDockerCommandTimeoutMs,
+    serverConfig.sshCommandTimeoutMs
+  );
 
   app.use(localAccessGuard());
   app.use(express.json({ limit: "1mb" }));
   app.use(
     "/api",
     createApiRouter({
+      appLogsService,
       healthService,
       localDockerScanService,
       monitorOverviewService,

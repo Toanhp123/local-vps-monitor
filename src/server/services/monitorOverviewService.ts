@@ -26,6 +26,10 @@ export class MonitorOverviewService {
     return buildOverview(this.monitorStateStore.listServers(), this.offlineAfterMs);
   }
 
+  getServer(serverId: string) {
+    return this.getOverview().servers.find((server) => server.serverId === serverId);
+  }
+
   onOverviewUpdated(listener: OverviewListener) {
     this.overviewListeners.add(listener);
 

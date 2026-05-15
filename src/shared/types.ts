@@ -120,6 +120,16 @@ export interface SshScanAllResponse {
   }>;
 }
 
+export interface AppLogsResponse {
+  appId: string;
+  appName: string;
+  content: string;
+  fetchedAt: string;
+  kind: AppKind;
+  lines: number;
+  serverId: string;
+}
+
 export type RealtimeMessage =
   | {
       type: "overview.snapshot";

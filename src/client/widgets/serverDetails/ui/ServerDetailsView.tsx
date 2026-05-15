@@ -5,7 +5,7 @@ import {
 	SquareTerminal,
 	WifiOff,
 } from "lucide-react";
-import type { StoredServer } from "../../../../shared/types";
+import type { AppSnapshot, StoredServer } from "../../../../shared/types";
 import {
 	appGroupSourceLabels,
 	groupApplications,
@@ -13,6 +13,7 @@ import {
 import { ApplicationTable } from "../../../entities/application/ui/ApplicationTable";
 import { ServerMetricCharts } from "../../../entities/server/ui/ServerMetricCharts";
 import { ServerMetricsGrid } from "../../../entities/server/ui/ServerMetricsGrid";
+import { OpenAppLogsButton } from "../../../features/appLogs/ui/OpenAppLogsButton";
 import { ScanServerButton } from "../../../features/serverScan/ui/ScanServerButton";
 import { relativeTime } from "../../../shared/lib/format";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
@@ -22,6 +23,7 @@ export function ServerDetailsView({
 	isScanning,
 	now,
 	onBack,
+	onOpenAppLogs,
 	onScan,
 	server,
 }: {
@@ -29,6 +31,7 @@ export function ServerDetailsView({
 	isScanning: boolean;
 	now: number;
 	onBack: () => void;
+	onOpenAppLogs: (app: AppSnapshot) => void;
 	onScan: () => void;
 	server: StoredServer;
 }) {
@@ -167,7 +170,16 @@ export function ServerDetailsView({
 											</div>
 										</div>
 
-										<ApplicationTable apps={group.apps} />
+										<ApplicationTable
+											actions={(app) => (
+												<OpenAppLogsButton
+													onOpen={() =>
+														onOpenAppLogs(app)
+													}
+												/>
+											)}
+											apps={group.apps}
+										/>
 									</div>
 								);
 							})}
