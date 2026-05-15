@@ -22,7 +22,9 @@ export function IncidentNotificationCenter({
 }) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [isClosing, setIsClosing] = useState(false);
-	const [expandedServerId, setExpandedServerId] = useState<string | null>(null);
+	const [expandedServerId, setExpandedServerId] = useState<string | null>(
+		null,
+	);
 	const closeTimerRef = useRef<number | null>(null);
 	const { markAllRead, markIncidentsRead, readIncidentIds } =
 		useIncidentReadState(incidents);
@@ -52,8 +54,9 @@ export function IncidentNotificationCenter({
 		}
 
 		const groupToRead =
-			incidentGroups.find((group) => group.serverId === expandedServerId) ||
-			incidentGroups[0];
+			incidentGroups.find(
+				(group) => group.serverId === expandedServerId,
+			) || incidentGroups[0];
 
 		setIsClosing(false);
 		setIsOpen(true);
@@ -109,7 +112,9 @@ export function IncidentNotificationCenter({
 	useEffect(() => {
 		if (!expandedServerId) return;
 
-		if (!incidentGroups.some((group) => group.serverId === expandedServerId)) {
+		if (
+			!incidentGroups.some((group) => group.serverId === expandedServerId)
+		) {
 			setExpandedServerId(null);
 		}
 	}, [expandedServerId, incidentGroups]);
@@ -126,7 +131,9 @@ export function IncidentNotificationCenter({
 				{unreadStats.count > 0 && (
 					<span
 						className={`absolute -top-1 -right-1 flex min-h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] leading-none font-extrabold text-white ring-2 ring-white ${
-							unreadStats.activeCount > 0 ? "bg-red-600" : "bg-slate-700"
+							unreadStats.activeCount > 0
+								? "bg-red-600"
+								: "bg-slate-700"
 						}`}
 					>
 						{visibleBadgeCount(unreadStats.count)}
