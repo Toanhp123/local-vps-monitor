@@ -1,8 +1,8 @@
 # Local VPS Monitor
 
-Local VPS Monitor is a local-first dashboard for monitoring applications across VPS machines and local Docker containers from one screen.
+Local VPS Monitor is a local-first npm tool for monitoring applications across VPS machines and local Docker containers from one screen.
 
-It is built for developers who deploy apps with Docker or PM2 and want a quick way to check whether servers and apps are healthy without manually SSH-ing into each VPS.
+It is built for developers who run apps with Docker or PM2 and want a quick way to check whether servers and apps are healthy without manually SSH-ing into each VPS.
 
 ## What It Does
 
@@ -32,6 +32,8 @@ It is built for developers who deploy apps with Docker or PM2 and want a quick w
 - Docker Desktop or Docker Engine, only if you want Local Docker scanning
 
 ## Local Setup
+
+Run it directly on your machine with Node.js. No app container or Docker deployment is required.
 
 ```bash
 npm install
