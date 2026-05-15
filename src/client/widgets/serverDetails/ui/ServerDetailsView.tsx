@@ -20,6 +20,7 @@ import {
 	type QuickActionDefinition,
 } from "../../../features/quickActions/model/quickActions";
 import { QuickActionButton } from "../../../features/quickActions/ui/QuickActionButton";
+import { QuickActionMenu } from "../../../features/quickActions/ui/QuickActionMenu";
 import { ScanServerButton } from "../../../features/serverScan/ui/ScanServerButton";
 import { relativeTime } from "../../../shared/lib/format";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
@@ -202,25 +203,20 @@ export function ServerDetailsView({
 													buildAppQuickActions(server, app);
 
 												return (
-													<div className="flex flex-wrap justify-end gap-1.5">
+													<div className="flex justify-end gap-1.5">
 														<OpenAppLogsButton
 															onOpen={() =>
 																onOpenAppLogs(app)
 															}
 														/>
-														{appQuickActions.map(
-															(action) => (
-																<QuickActionButton
-																	key={
-																		action.actionId
-																	}
-																	action={action}
-																	onRun={
-																		onRunQuickAction
-																	}
-																/>
-															),
-														)}
+														<QuickActionMenu
+															actions={
+																appQuickActions
+															}
+															onRun={
+																onRunQuickAction
+															}
+														/>
 													</div>
 												);
 											}}

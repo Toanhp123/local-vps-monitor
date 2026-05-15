@@ -158,7 +158,11 @@ export interface AppLogsResponse {
 
 export type QuickActionId =
   | "docker.restart"
+  | "docker.start"
+  | "docker.stop"
   | "pm2.restart"
+  | "pm2.start"
+  | "pm2.stop"
   | "server.disk"
   | "server.memory"
   | "server.ports"

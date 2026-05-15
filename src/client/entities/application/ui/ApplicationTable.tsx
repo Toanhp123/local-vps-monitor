@@ -8,9 +8,9 @@ const headerCellClass =
 	"border-t border-slate-200 bg-slate-50 px-3.5 py-3 text-left align-middle text-xs font-bold uppercase text-slate-500 whitespace-nowrap";
 const bodyCellClass =
 	"border-t border-slate-200 px-3.5 py-3 text-left align-middle whitespace-nowrap";
-const actionHeaderCellClass = `${headerCellClass} sticky right-0 z-20 min-w-52 text-right shadow-[-12px_0_16px_-16px_rgba(15,23,42,0.55)]`;
+const actionHeaderCellClass = `${headerCellClass} sticky right-0 z-20 min-w-32 text-right shadow-[-12px_0_16px_-16px_rgba(15,23,42,0.55)]`;
 const actionBodyCellClass =
-	"sticky right-0 z-10 min-w-52 border-t border-slate-200 bg-white px-3.5 py-3 text-right align-middle whitespace-nowrap shadow-[-12px_0_16px_-16px_rgba(15,23,42,0.55)]";
+	"sticky right-0 z-10 min-w-32 border-t border-slate-200 bg-white px-3.5 py-3 text-right align-middle whitespace-nowrap shadow-[-12px_0_16px_-16px_rgba(15,23,42,0.55)]";
 
 const portItems = (ports?: string) => {
 	return ports

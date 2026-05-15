@@ -7,6 +7,8 @@ import {
 } from "./quickActionTargets";
 
 type ServerQuickActionId = Extract<QuickActionId, `server.${string}`>;
+type DockerQuickActionId = Extract<QuickActionId, `docker.${string}`>;
+type Pm2QuickActionId = Extract<QuickActionId, `pm2.${string}`>;
 
 export type QuickActionExecution =
 	| {
@@ -33,7 +35,11 @@ const shellQuote = (value: string) => {
 
 export const quickActionIds = [
 	"docker.restart",
+	"docker.start",
+	"docker.stop",
 	"pm2.restart",
+	"pm2.start",
+	"pm2.stop",
 	"server.disk",
 	"server.memory",
 	"server.ports",
@@ -47,7 +53,7 @@ export const isQuickActionId = (value: unknown): value is QuickActionId => {
 };
 
 export const quickActionRequiresApp = (actionId: QuickActionId) => {
-	return actionId === "docker.restart" || actionId === "pm2.restart";
+	return actionId.startsWith("docker.") || actionId.startsWith("pm2.");
 };
 
 const serverActions: Record<
@@ -107,10 +113,36 @@ const buildServerAction = ({
 	};
 };
 
-const buildDockerRestartAction = ({
+const dockerActionLabels: Record<DockerQuickActionId, string> = {
+	"docker.restart": "Restart Docker app",
+	"docker.start": "Start Docker app",
+	"docker.stop": "Stop Docker app",
+};
+
+const pm2ActionLabels: Record<Pm2QuickActionId, string> = {
+	"pm2.restart": "Restart PM2 app",
+	"pm2.start": "Start PM2 app",
+	"pm2.stop": "Stop PM2 app",
+};
+
+const isDockerQuickAction = (
+	actionId: QuickActionId,
+): actionId is DockerQuickActionId => {
+	return actionId.startsWith("docker.");
+};
+
+const isPm2QuickAction = (
+	actionId: QuickActionId,
+): actionId is Pm2QuickActionId => {
+	return actionId.startsWith("pm2.");
+};
+
+const buildDockerAction = ({
+	actionId,
 	app,
 	serverId,
 }: {
+	actionId: DockerQuickActionId;
 	app: AppSnapshot;
 	serverId: string;
 }): BuiltQuickAction => {
@@ -121,16 +153,17 @@ const buildDockerRestartAction = ({
 	}
 
 	const containerRef = dockerContainerRef(app);
-	const commandPreview = `docker restart ${shellQuote(containerRef)}`;
+	const dockerSubcommand = actionId.replace("docker.", "");
+	const commandPreview = `docker ${dockerSubcommand} ${shellQuote(containerRef)}`;
 
 	return {
-		actionId: "docker.restart",
+		actionId,
 		appId: app.id,
-		commandLabel: "Restart Docker app",
+		commandLabel: dockerActionLabels[actionId],
 		commandPreview,
 		execution: isLocalDockerServer(serverId)
 			? {
-					args: ["restart", containerRef],
+					args: [dockerSubcommand, containerRef],
 					file: "docker",
 					kind: "local",
 				}
@@ -141,10 +174,12 @@ const buildDockerRestartAction = ({
 	};
 };
 
-const buildPm2RestartAction = ({
+const buildPm2Action = ({
+	actionId,
 	app,
 	serverId,
 }: {
+	actionId: Pm2QuickActionId;
 	app: AppSnapshot;
 	serverId: string;
 }): BuiltQuickAction => {
@@ -161,12 +196,13 @@ const buildPm2RestartAction = ({
 	}
 
 	const processRef = pm2ProcessRef(app);
-	const commandPreview = `pm2 restart ${shellQuote(processRef)}`;
+	const pm2Subcommand = actionId.replace("pm2.", "");
+	const commandPreview = `pm2 ${pm2Subcommand} ${shellQuote(processRef)}`;
 
 	return {
-		actionId: "pm2.restart",
+		actionId,
 		appId: app.id,
-		commandLabel: "Restart PM2 app",
+		commandLabel: pm2ActionLabels[actionId],
 		commandPreview,
 		execution: {
 			command: commandPreview,
@@ -194,12 +230,12 @@ export const buildQuickAction = ({
 		);
 	}
 
-	if (actionId === "docker.restart") {
-		return buildDockerRestartAction({ app, serverId });
+	if (isDockerQuickAction(actionId)) {
+		return buildDockerAction({ actionId, app, serverId });
 	}
 
-	if (actionId === "pm2.restart") {
-		return buildPm2RestartAction({ app, serverId });
+	if (isPm2QuickAction(actionId)) {
+		return buildPm2Action({ actionId, app, serverId });
 	}
 
 	throw new QuickActionUnsupportedError(

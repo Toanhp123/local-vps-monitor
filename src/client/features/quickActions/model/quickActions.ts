@@ -10,6 +10,7 @@ const localDockerServerId = "local-docker";
 export interface QuickActionDefinition extends QuickActionRunInput {
 	commandPreview: string;
 	description: string;
+	group: "app" | "server";
 	label: string;
 	requiresConfirmation: boolean;
 	tone: "default" | "danger";
@@ -57,6 +58,7 @@ const serverAction = ({
 	actionId,
 	commandPreview,
 	description,
+	group: "server",
 	label,
 	requiresConfirmation: false,
 	serverId,
@@ -106,35 +108,97 @@ export const buildAppQuickActions = (
 ): QuickActionDefinition[] => {
 	if (app.kind === "docker") {
 		const containerRef = dockerContainerRef(app);
+		const dockerAction = ({
+			actionId,
+			description,
+			label,
+			tone = "danger",
+		}: {
+			actionId: "docker.restart" | "docker.start" | "docker.stop";
+			description: string;
+			label: string;
+			tone?: "default" | "danger";
+		}): QuickActionDefinition => {
+			const dockerSubcommand = actionId.replace("docker.", "");
 
-		return [
-			{
-				actionId: "docker.restart",
+			return {
+				actionId,
 				appId: app.id,
-				commandPreview: `docker restart ${shellQuote(containerRef)}`,
-				description: `Restart ${app.name}.`,
-				label: "Restart",
+				commandPreview: `docker ${dockerSubcommand} ${shellQuote(containerRef)}`,
+				description,
+				group: "app",
+				label,
 				requiresConfirmation: true,
 				serverId: server.serverId,
-				tone: "danger",
-			},
+				tone,
+			};
+		};
+
+		return [
+			dockerAction({
+				actionId: "docker.restart",
+				description: `Restart ${app.name}.`,
+				label: "Restart",
+			}),
+			dockerAction({
+				actionId: "docker.start",
+				description: `Start ${app.name}.`,
+				label: "Start",
+				tone: "default",
+			}),
+			dockerAction({
+				actionId: "docker.stop",
+				description: `Stop ${app.name}.`,
+				label: "Stop",
+			}),
 		];
 	}
 
 	if (app.kind === "pm2" && server.serverId !== localDockerServerId) {
 		const processRef = pm2ProcessRef(app);
+		const pm2Action = ({
+			actionId,
+			description,
+			label,
+			tone = "danger",
+		}: {
+			actionId: "pm2.restart" | "pm2.start" | "pm2.stop";
+			description: string;
+			label: string;
+			tone?: "default" | "danger";
+		}): QuickActionDefinition => {
+			const pm2Subcommand = actionId.replace("pm2.", "");
 
-		return [
-			{
-				actionId: "pm2.restart",
+			return {
+				actionId,
 				appId: app.id,
-				commandPreview: `pm2 restart ${shellQuote(processRef)}`,
-				description: `Restart ${app.name}.`,
-				label: "Restart",
+				commandPreview: `pm2 ${pm2Subcommand} ${shellQuote(processRef)}`,
+				description,
+				group: "app",
+				label,
 				requiresConfirmation: true,
 				serverId: server.serverId,
-				tone: "danger",
-			},
+				tone,
+			};
+		};
+
+		return [
+			pm2Action({
+				actionId: "pm2.restart",
+				description: `Restart ${app.name}.`,
+				label: "Restart",
+			}),
+			pm2Action({
+				actionId: "pm2.start",
+				description: `Start ${app.name}.`,
+				label: "Start",
+				tone: "default",
+			}),
+			pm2Action({
+				actionId: "pm2.stop",
+				description: `Stop ${app.name}.`,
+				label: "Stop",
+			}),
 		];
 	}
 
