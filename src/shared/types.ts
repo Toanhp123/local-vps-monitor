@@ -13,12 +13,21 @@ export interface HostMetrics {
   memoryFreeBytes: number;
 }
 
+export type AppGroupSource = "docker-compose" | "docker" | "pm2";
+
+export interface AppGroup {
+  id: string;
+  name: string;
+  source: AppGroupSource;
+}
+
 export interface AppSnapshot {
   id: string;
   name: string;
   kind: AppKind;
   status: string;
   health: HealthStatus;
+  group?: AppGroup;
   cpuPercent?: number;
   memoryBytes?: number;
   image?: string;

@@ -89,7 +89,6 @@ export function DashboardPage() {
 
 					<SummaryStats overview={overview} />
 					<LocalDockerPanel
-						error={localDockerScanner.error}
 						isScanDisabled={isAnyScanActive}
 						isScanning={localDockerScanner.isScanning}
 						onScan={localDockerScanner.scan}

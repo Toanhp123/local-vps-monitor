@@ -7,12 +7,10 @@ import {
 } from "lucide-react";
 
 export function LocalDockerPanel({
-	error,
 	isScanDisabled,
 	isScanning,
 	onScan,
 }: {
-	error: string;
 	isScanDisabled: boolean;
 	isScanning: boolean;
 	onScan: () => void;
@@ -54,12 +52,6 @@ export function LocalDockerPanel({
 					{isScanning ? "Scanning" : "Scan Docker"}
 				</button>
 			</div>
-
-			{error && (
-				<div className="border-t border-slate-200 px-4.5 py-3 text-sm font-bold text-rose-700">
-					{error}
-				</div>
-			)}
 		</section>
 	);
 }

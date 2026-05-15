@@ -78,6 +78,7 @@ export const filterServers = (
 				apps: server.apps.filter((app) => {
 					return (
 						app.name.toLowerCase().includes(normalizedQuery) ||
+						app.group?.name.toLowerCase().includes(normalizedQuery) ||
 						app.kind.toLowerCase().includes(normalizedQuery) ||
 						app.status.toLowerCase().includes(normalizedQuery) ||
 						app.health.toLowerCase().includes(normalizedQuery)

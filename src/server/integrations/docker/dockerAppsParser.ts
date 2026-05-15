@@ -1,5 +1,8 @@
 import type { AppSnapshot, HealthStatus } from "../../../shared/types";
 
+const composeProjectLabel = "com.docker.compose.project";
+const composeServiceLabel = "com.docker.compose.service";
+
 export interface DockerPsRow {
 	ID?: string;
 	Image?: string;
@@ -21,12 +24,17 @@ export interface DockerInspectRow {
 	Id?: string;
 	Name?: string;
 	RestartCount?: number;
+	Config?: {
+		Labels?: Record<string, string> | null;
+	};
 	State?: {
 		StartedAt?: string;
 	};
 }
 
 export interface DockerInspectMetadata {
+	composeProject?: string;
+	composeService?: string;
 	restartCount?: number;
 	startedAt?: string;
 }
@@ -90,7 +98,10 @@ export const buildDockerInspectMetadata = (rows: DockerInspectRow[]) => {
 	const metadata = new Map<string, DockerInspectMetadata>();
 
 	for (const row of rows) {
+		const labels = row.Config?.Labels || {};
 		const entry: DockerInspectMetadata = {
+			composeProject: labels[composeProjectLabel],
+			composeService: labels[composeServiceLabel],
 			restartCount:
 				typeof row.RestartCount === "number"
 					? row.RestartCount
@@ -129,13 +140,25 @@ export const buildDockerApps = (
 		const metadata =
 			inspectMetadata.get(row.ID || "") ||
 			inspectMetadata.get(row.Names || "");
+		const composeProject = metadata?.composeProject?.trim();
 
 		return {
 			id: `docker:${row.ID || row.Names}`,
-			name: row.Names || row.ID || "unknown-container",
+			name:
+				metadata?.composeService ||
+				row.Names ||
+				row.ID ||
+				"unknown-container",
 			kind: "docker",
 			status: row.Status || row.State || "unknown",
 			health: dockerHealth(row.State, row.Status),
+			group: composeProject
+				? {
+						id: `docker-compose:${composeProject}`,
+						name: composeProject,
+						source: "docker-compose",
+					}
+				: undefined,
 			cpuPercent: parsePercent(stat?.CPUPerc),
 			memoryBytes: parseMemoryBytes(stat?.MemUsage),
 			image: row.Image,
@@ -145,6 +168,8 @@ export const buildDockerApps = (
 				dockerId: row.ID,
 				state: row.State,
 				startedAt: metadata?.startedAt,
+				composeProject: metadata?.composeProject,
+				composeService: metadata?.composeService,
 			},
 		};
 	});

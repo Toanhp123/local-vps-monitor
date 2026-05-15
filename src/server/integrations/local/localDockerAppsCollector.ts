@@ -30,7 +30,7 @@ const dockerError = (stderr: string) => {
 		return "Docker CLI was not found on this machine";
 	}
 
-	if (/cannot connect|is the docker daemon running/i.test(message)) {
+	if (/cannot connect|failed to connect|daemon is running/i.test(message)) {
 		return "Docker is not running on this machine";
 	}
 
