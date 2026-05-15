@@ -38,7 +38,7 @@ const closeSocketSafely = (socket: WebSocket | null) => {
 	}
 };
 
-export function useDashboardOverview() {
+export function useMonitorOverview() {
 	const [overview, setOverview] = useState<OverviewResponse | null>(null);
 	const [query, setQuery] = useState("");
 	const [viewFilter, setViewFilter] = useState<ServerViewFilter>("all");

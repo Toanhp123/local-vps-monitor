@@ -1,7 +1,7 @@
-import { Fragment, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import type { StoredServer } from "../../../../shared/types";
 import { ServerTableRow } from "../../../entities/server/ui/ServerTableRow";
-import { ServerExpandedDetails } from "./ServerExpandedDetails";
+import { ScanServerButton } from "../../../features/serverScan/ui/ScanServerButton";
 import { ServerListEmptyState } from "./ServerListEmptyState";
 import { ServerTableHeader } from "./ServerTableHeader";
 
@@ -10,6 +10,7 @@ export function ServerList({
 	hasActiveFilter,
 	isScanDisabled,
 	now,
+	onOpenServer,
 	onScanServer,
 	query,
 	servers,
@@ -18,30 +19,16 @@ export function ServerList({
 	hasActiveFilter: boolean;
 	isScanDisabled: boolean;
 	now: number;
+	onOpenServer: (serverId: string) => void;
 	onScanServer: (serverId: string) => void;
 	query: string;
 	servers: StoredServer[];
 }) {
-	const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 	const emptyTitle = query.trim()
 		? "No matching servers"
 		: hasActiveFilter
 			? "No servers in this view"
 			: "No servers yet";
-
-	const toggleServer = (serverId: string) => {
-		setExpandedIds((current) => {
-			const next = new Set(current);
-
-			if (next.has(serverId)) {
-				next.delete(serverId);
-			} else {
-				next.add(serverId);
-			}
-
-			return next;
-		});
-	};
 
 	return (
 		<section
@@ -54,7 +41,7 @@ export function ServerList({
 						Server Overview
 					</h2>
 					<p className="mt-1 text-sm font-semibold text-slate-500">
-						Servers, health, and applications
+						Click a server to open its detail view
 					</p>
 				</div>
 				<span className="inline-flex min-h-8 items-center rounded-full bg-slate-100 px-3 text-sm font-extrabold text-slate-700">
@@ -70,29 +57,43 @@ export function ServerList({
 						<ServerTableHeader />
 						<tbody>
 							{servers.map((server) => {
-								const isExpanded = expandedIds.has(server.serverId);
 								const isScanning = activeScanId === server.serverId;
 
 								return (
-									<Fragment key={server.serverId}>
-										<ServerTableRow
-											isExpanded={isExpanded}
-											isScanDisabled={isScanDisabled}
-											isScanning={isScanning}
-											now={now}
-											onScan={() => onScanServer(server.serverId)}
-											onToggle={() => toggleServer(server.serverId)}
-											server={server}
-										/>
-
-										{isExpanded && (
-											<tr>
-												<td colSpan={8} className="border-b border-slate-200 p-0">
-													<ServerExpandedDetails server={server} />
-												</td>
-											</tr>
-										)}
-									</Fragment>
+									<ServerTableRow
+										key={server.serverId}
+										actions={
+											<>
+												<button
+													type="button"
+													className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+													onClick={(event) => {
+														event.stopPropagation();
+														onOpenServer(
+															server.serverId,
+														);
+													}}
+													aria-label={`Open ${server.serverName} details`}
+												>
+													<ArrowRight size={15} />
+													Details
+												</button>
+												<ScanServerButton
+													ariaLabel={`Scan ${server.serverName}`}
+													isDisabled={isScanDisabled}
+													isScanning={isScanning}
+													onScan={() =>
+														onScanServer(
+															server.serverId,
+														)
+													}
+												/>
+											</>
+										}
+										now={now}
+										onOpen={() => onOpenServer(server.serverId)}
+										server={server}
+									/>
 								);
 							})}
 						</tbody>

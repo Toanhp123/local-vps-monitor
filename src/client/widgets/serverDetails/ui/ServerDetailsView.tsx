@@ -1,4 +1,10 @@
-import { Box, Server, SquareTerminal, WifiOff } from "lucide-react";
+import {
+	ArrowLeft,
+	Box,
+	Server,
+	SquareTerminal,
+	WifiOff,
+} from "lucide-react";
 import type { StoredServer } from "../../../../shared/types";
 import {
 	appGroupSourceLabels,
@@ -7,9 +13,25 @@ import {
 import { ApplicationTable } from "../../../entities/application/ui/ApplicationTable";
 import { ServerMetricCharts } from "../../../entities/server/ui/ServerMetricCharts";
 import { ServerMetricsGrid } from "../../../entities/server/ui/ServerMetricsGrid";
+import { ScanServerButton } from "../../../features/serverScan/ui/ScanServerButton";
+import { relativeTime } from "../../../shared/lib/format";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 
-export function ServerExpandedDetails({ server }: { server: StoredServer }) {
+export function ServerDetailsView({
+	isScanDisabled,
+	isScanning,
+	now,
+	onBack,
+	onScan,
+	server,
+}: {
+	isScanDisabled: boolean;
+	isScanning: boolean;
+	now: number;
+	onBack: () => void;
+	onScan: () => void;
+	server: StoredServer;
+}) {
 	const dockerApps = server.apps.filter(
 		(app) => app.kind === "docker",
 	).length;
@@ -17,45 +39,69 @@ export function ServerExpandedDetails({ server }: { server: StoredServer }) {
 	const appGroups = groupApplications(server.apps);
 
 	return (
-		<div className="bg-slate-100 px-3.5 py-3">
-			<div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-				<div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 max-md:flex-col max-md:items-stretch">
-					<div className="flex min-w-0 items-center gap-2.5">
-						<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+		<section className="grid gap-4">
+			<div className="rounded-lg border border-slate-200 bg-white p-4.5">
+				<button
+					type="button"
+					className="mb-4 inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+					onClick={onBack}
+				>
+					<ArrowLeft size={16} />
+					Back to dashboard
+				</button>
+
+				<div className="flex items-start justify-between gap-4 max-md:flex-col">
+					<div className="flex min-w-0 items-start gap-3">
+						<span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
 							{server.online ? (
-								<Server size={18} />
+								<Server size={21} />
 							) : (
-								<WifiOff size={18} />
+								<WifiOff size={21} />
 							)}
 						</span>
 						<div className="min-w-0">
 							<div className="flex min-w-0 flex-wrap items-center gap-2">
-								<strong className="max-w-80 overflow-hidden text-ellipsis text-slate-900">
+								<h1 className="max-w-140 overflow-hidden text-ellipsis text-2xl leading-tight font-extrabold text-slate-900">
 									{server.serverName}
-								</strong>
+								</h1>
 								<StatusBadge status={server.status} />
 							</div>
-							<span className="mt-0.5 block max-w-100 overflow-hidden text-sm font-semibold text-ellipsis text-slate-500">
+							<p className="mt-1 max-w-140 overflow-hidden text-sm font-semibold text-ellipsis text-slate-500">
 								{server.host.hostname}
-							</span>
+							</p>
+							<div className="mt-3 flex flex-wrap items-center gap-1.5">
+								<span className="inline-flex min-h-7 items-center rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-700">
+									{server.apps.length} apps
+								</span>
+								<span className="inline-flex min-h-7 items-center gap-1.5 rounded-full bg-blue-50 px-2.5 text-xs font-extrabold text-blue-700">
+									<Box size={13} />
+									{dockerApps} Docker
+								</span>
+								<span className="inline-flex min-h-7 items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 text-xs font-extrabold text-emerald-700">
+									<SquareTerminal size={13} />
+									{pm2Apps} PM2
+								</span>
+								<span className="inline-flex min-h-7 items-center rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-500">
+									Last scan {relativeTime(server.lastSeenAt, now)}
+								</span>
+							</div>
 						</div>
 					</div>
 
-					<div className="flex flex-wrap items-center gap-1.5">
-						<span className="inline-flex min-h-7 items-center rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-700">
-							{server.apps.length} apps
-						</span>
-						<span className="inline-flex min-h-7 items-center gap-1.5 rounded-full bg-blue-50 px-2.5 text-xs font-extrabold text-blue-700">
-							<Box size={13} />
-							{dockerApps}
-						</span>
-						<span className="inline-flex min-h-7 items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 text-xs font-extrabold text-emerald-700">
-							<SquareTerminal size={13} />
-							{pm2Apps}
-						</span>
+					<div className="max-md:w-full [&>button]:min-h-10 [&>button]:w-full [&>button]:px-3.5">
+						<ScanServerButton
+							ariaLabel={`Scan ${server.serverName}`}
+							isDisabled={isScanDisabled}
+							isScanning={isScanning}
+							label="Scan server"
+							onScan={onScan}
+							variant="primary"
+						/>
 					</div>
 				</div>
+			</div>
 
+			<div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
 				<ServerMetricsGrid server={server} />
 				<ServerMetricCharts server={server} />
 
@@ -131,6 +177,6 @@ export function ServerExpandedDetails({ server }: { server: StoredServer }) {
 					)}
 				</div>
 			</div>
-		</div>
+		</section>
 	);
 }

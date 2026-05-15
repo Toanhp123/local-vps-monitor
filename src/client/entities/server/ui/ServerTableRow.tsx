@@ -1,11 +1,5 @@
-import {
-	ChevronDown,
-	ChevronRight,
-	LoaderCircle,
-	RefreshCw,
-	Server,
-	WifiOff,
-} from "lucide-react";
+import type { ReactNode } from "react";
+import { Server, WifiOff } from "lucide-react";
 import type { StoredServer } from "../../../../shared/types";
 import { formatBytes, relativeTime } from "../../../shared/lib/format";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
@@ -15,31 +9,22 @@ const bodyCellClass =
 	"border-b border-slate-200 px-3.5 py-3 text-left align-middle whitespace-nowrap";
 
 export function ServerTableRow({
-	isExpanded,
-	isScanDisabled,
-	isScanning,
+	actions,
 	now,
-	onScan,
-	onToggle,
+	onOpen,
 	server,
 }: {
-	isExpanded: boolean;
-	isScanDisabled: boolean;
-	isScanning: boolean;
+	actions: ReactNode;
 	now: number;
-	onScan: () => void;
-	onToggle: () => void;
+	onOpen: () => void;
 	server: StoredServer;
 }) {
 	const memory = serverMemory(server);
 
 	return (
-		<tr className="cursor-pointer hover:bg-blue-50/50" onClick={onToggle}>
+		<tr className="cursor-pointer hover:bg-blue-50/50" onClick={onOpen}>
 			<td className={`${bodyCellClass} min-w-68`}>
 				<div className="flex items-center gap-2.5">
-					<span className="text-slate-400">
-						{isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-					</span>
 					<span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
 						{server.online ? <Server size={17} /> : <WifiOff size={17} />}
 					</span>
@@ -85,23 +70,7 @@ export function ServerTableRow({
 				</span>
 			</td>
 			<td className={`${bodyCellClass} text-right`}>
-				<button
-					type="button"
-					className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-					onClick={(event) => {
-						event.stopPropagation();
-						onScan();
-					}}
-					disabled={isScanDisabled}
-					aria-label={`Scan ${server.serverName}`}
-				>
-					{isScanning ? (
-						<LoaderCircle size={15} className="animate-spin" />
-					) : (
-						<RefreshCw size={15} />
-					)}
-					{isScanning ? "Scanning" : "Scan"}
-				</button>
+				<div className="flex items-center justify-end gap-2">{actions}</div>
 			</td>
 		</tr>
 	);
