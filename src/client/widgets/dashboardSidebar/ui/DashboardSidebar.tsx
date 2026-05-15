@@ -3,14 +3,16 @@ import {
 	AlertTriangle,
 	Box,
 	CircleX,
+	LayoutDashboard,
 	DatabaseZap,
 	Server,
 	SquareTerminal,
 	WifiOff,
 } from "lucide-react";
-import type { OverviewResponse } from "../../../../shared/types";
+import type { OverviewResponse, StoredServer } from "../../../../shared/types";
 import type { ServerViewFilter } from "../../../entities/server/model/serverViewFilter";
 import type { RealtimeStatus } from "../../../shared/api/realtime";
+import { StatusBadge } from "../../../shared/ui/StatusBadge";
 
 const realtimeText: Record<RealtimeStatus, string> = {
 	connecting: "Connecting",
@@ -28,14 +30,20 @@ const realtimeClasses: Record<RealtimeStatus, string> = {
 
 export function DashboardSidebar({
 	activeFilter,
+	isServerDetail,
+	onDashboardOpen,
 	onFilterChange,
 	overview,
 	realtimeStatus,
+	selectedServer,
 }: {
 	activeFilter: ServerViewFilter;
+	isServerDetail: boolean;
+	onDashboardOpen: () => void;
 	onFilterChange: (filter: ServerViewFilter) => void;
 	overview: OverviewResponse | null;
 	realtimeStatus: RealtimeStatus;
+	selectedServer: StoredServer | null;
 }) {
 	const summary = overview?.summary;
 	const servers = overview?.servers ?? [];
@@ -124,42 +132,95 @@ export function DashboardSidebar({
 					</h1>
 				</div>
 
-				<div className="grid gap-1.5">
-					<div className="mb-1 px-3 text-xs font-bold tracking-wide text-slate-400 uppercase">
-						View
-					</div>
-					{filterItems.map((item) => {
-						const Icon = item.icon;
-						const isActive = activeFilter === item.filter;
-						const toneClass =
-							item.tone === "bad"
-								? "text-rose-700"
-								: item.tone === "warn"
-									? "text-amber-700"
-									: "text-slate-700";
-
-						return (
+				{isServerDetail ? (
+					<div className="grid gap-3">
+						<div className="grid gap-1.5">
+							<div className="mb-1 px-3 text-xs font-bold tracking-wide text-slate-400 uppercase">
+								Navigation
+							</div>
 							<button
-								key={item.filter}
 								type="button"
-								className={`inline-flex min-h-10 cursor-pointer items-center justify-between gap-2 rounded-lg px-3 text-sm font-extrabold ${
-									isActive
-										? "bg-blue-50 text-blue-700"
-										: "text-slate-700 hover:bg-slate-50"
-								}`}
-								onClick={() => onFilterChange(item.filter)}
+								className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm font-extrabold text-slate-700 hover:bg-slate-50"
+								onClick={onDashboardOpen}
 							>
-								<span className="inline-flex min-w-0 items-center gap-2">
-									<Icon size={16} className={isActive ? "" : toneClass} />
-									<span className="truncate">{item.label}</span>
-								</span>
-								<span className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-500">
-									{item.count}
-								</span>
+								<LayoutDashboard size={16} />
+								Dashboard
 							</button>
-						);
-					})}
-				</div>
+							<div className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-blue-50 px-3 text-sm font-extrabold text-blue-700">
+								<Server size={16} />
+								Server detail
+							</div>
+						</div>
+
+						<div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+							<span className="block text-xs font-bold tracking-wide text-slate-400 uppercase">
+								Current server
+							</span>
+							{selectedServer ? (
+								<div className="mt-2 grid gap-2">
+									<strong className="block overflow-hidden text-ellipsis text-slate-900">
+										{selectedServer.serverName}
+									</strong>
+									<span className="block overflow-hidden text-sm font-semibold text-ellipsis text-slate-500">
+										{selectedServer.host.hostname}
+									</span>
+									<div className="flex flex-wrap gap-1.5">
+										<StatusBadge status={selectedServer.status} />
+										<span className="inline-flex min-h-6 items-center rounded-full bg-white px-2 text-xs font-extrabold text-slate-600">
+											{selectedServer.apps.length} apps
+										</span>
+									</div>
+								</div>
+							) : (
+								<span className="mt-2 block text-sm font-semibold text-slate-500">
+									Loading
+								</span>
+							)}
+						</div>
+					</div>
+				) : (
+					<div className="grid gap-1.5">
+						<div className="mb-1 px-3 text-xs font-bold tracking-wide text-slate-400 uppercase">
+							View
+						</div>
+						{filterItems.map((item) => {
+							const Icon = item.icon;
+							const isActive = activeFilter === item.filter;
+							const toneClass =
+								item.tone === "bad"
+									? "text-rose-700"
+									: item.tone === "warn"
+										? "text-amber-700"
+										: "text-slate-700";
+
+							return (
+								<button
+									key={item.filter}
+									type="button"
+									className={`inline-flex min-h-10 cursor-pointer items-center justify-between gap-2 rounded-lg px-3 text-sm font-extrabold ${
+										isActive
+											? "bg-blue-50 text-blue-700"
+											: "text-slate-700 hover:bg-slate-50"
+									}`}
+									onClick={() => onFilterChange(item.filter)}
+								>
+									<span className="inline-flex min-w-0 items-center gap-2">
+										<Icon
+											size={16}
+											className={isActive ? "" : toneClass}
+										/>
+										<span className="truncate">
+											{item.label}
+										</span>
+									</span>
+									<span className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-500">
+										{item.count}
+									</span>
+								</button>
+							);
+						})}
+					</div>
+				)}
 
 				<div className="grid gap-2 border-t border-slate-200 pt-4 max-lg:grid-cols-3 max-sm:grid-cols-1">
 					<div className="rounded-lg bg-slate-50 px-3 py-2.5">

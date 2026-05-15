@@ -214,18 +214,17 @@ function MetricChartCard({ series }: { series: ChartSeries }) {
 								strokeWidth="3"
 								vectorEffect="non-scaling-stroke"
 							/>
-							{hoverPoint && (
-								<circle
-									cx={hoverPoint.x}
-									cy={hoverPoint.y}
-									r="3"
-									fill="white"
-									stroke={series.color}
-									strokeWidth="2"
-									vectorEffect="non-scaling-stroke"
-								/>
-							)}
 						</svg>
+						{hoverPoint && (
+							<span
+								className="pointer-events-none absolute z-10 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white shadow-sm"
+								style={{
+									borderColor: series.color,
+									left: `${(hoverPoint.x / 240) * 100}%`,
+									top: `${(hoverPoint.y / 72) * 100}%`,
+								}}
+							/>
+						)}
 						{hoverState && (
 							<div
 								className="pointer-events-none fixed z-50 min-w-32 max-w-[calc(100vw-1.5rem)] -translate-x-1/2 rounded-md border bg-white px-2.5 py-1.5 text-xs shadow-lg"

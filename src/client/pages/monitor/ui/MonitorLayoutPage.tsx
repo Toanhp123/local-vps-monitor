@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useMatch, useNavigate } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 import { useLocalDockerScanner } from "../../../features/localDockerScan/model/useLocalDockerScanner";
 import { useSshTargetManager } from "../../../features/sshTargetManagement/model/useSshTargetManager";
@@ -27,6 +27,12 @@ export function MonitorLayoutPage() {
 	} = useMonitorOverview();
 	const localDockerScanner = useLocalDockerScanner(loadOverview);
 	const sshTargetManager = useSshTargetManager(loadOverview);
+	const serverDetailMatch = useMatch("/servers/:serverId");
+	const selectedServerId = serverDetailMatch?.params.serverId;
+	const selectedServer = selectedServerId
+		? overview?.servers.find((server) => server.serverId === selectedServerId) ||
+			null
+		: null;
 	const activeScanId = localDockerScanner.activeScanSource === "server-list"
 		? localDockerScanner.serverId
 		: sshTargetManager.activeScanId;
@@ -37,6 +43,10 @@ export function MonitorLayoutPage() {
 
 	const handleFilterChange = (nextFilter: typeof viewFilter) => {
 		setViewFilter(nextFilter);
+		navigate(routes.dashboard);
+		window.scrollTo({ top: 0 });
+	};
+	const openDashboard = () => {
 		navigate(routes.dashboard);
 		window.scrollTo({ top: 0 });
 	};
@@ -86,9 +96,12 @@ export function MonitorLayoutPage() {
 		<div className="flex min-h-screen bg-[#eef1f5] text-slate-900 antialiased max-lg:flex-col">
 			<DashboardSidebar
 				activeFilter={viewFilter}
+				isServerDetail={Boolean(serverDetailMatch)}
+				onDashboardOpen={openDashboard}
 				onFilterChange={handleFilterChange}
 				overview={overview}
 				realtimeStatus={realtimeStatus}
+				selectedServer={selectedServer}
 			/>
 
 			<main className="min-w-0 flex-1">
