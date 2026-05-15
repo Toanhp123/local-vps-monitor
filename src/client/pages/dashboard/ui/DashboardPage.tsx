@@ -28,11 +28,9 @@ export function DashboardPage() {
 	} = useDashboardOverview();
 	const localDockerScanner = useLocalDockerScanner(loadOverview);
 	const sshTargetManager = useSshTargetManager(loadOverview);
-	const activeScanId = localDockerScanner.isScanning
+	const activeScanId = localDockerScanner.activeScanSource === "server-list"
 		? localDockerScanner.serverId
 		: sshTargetManager.activeScanId;
-	const isSshScanAllActive =
-		sshTargetManager.activeScanId === sshTargetManager.scanAllId;
 	const isAnyScanActive =
 		isScanAllActive ||
 		localDockerScanner.isScanning ||
@@ -41,7 +39,7 @@ export function DashboardPage() {
 		if (isAnyScanActive) return;
 
 		if (serverId === localDockerScanner.serverId) {
-			void localDockerScanner.scan();
+			void localDockerScanner.scanFrom("server-list");
 			return;
 		}
 
@@ -90,8 +88,11 @@ export function DashboardPage() {
 					<SummaryStats overview={overview} />
 					<LocalDockerPanel
 						isScanDisabled={isAnyScanActive}
-						isScanning={localDockerScanner.isScanning}
-						onScan={localDockerScanner.scan}
+						isScanning={localDockerScanner.activeScanSource === "panel"}
+						onScan={() => {
+							if (isAnyScanActive) return;
+							void localDockerScanner.scanFrom("panel");
+						}}
 					/>
 					<SshTargetManagerPanel
 						activeScanId={activeScanId}

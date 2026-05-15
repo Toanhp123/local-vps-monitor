@@ -4,15 +4,21 @@ import type { ToastState } from "../../../shared/ui/Toast";
 
 export const localDockerServerId = "local-docker";
 
+export type LocalDockerScanSource = "panel" | "server-list";
+
 const errorMessage = (error: unknown) => {
 	return error instanceof Error ? error.message : String(error);
 };
 
+interface BackgroundScanOptions {
+	showSuccessToast?: boolean;
+}
+
 export function useLocalDockerScanner(
 	onScanComplete?: () => void | Promise<void>,
 ) {
-	const [isScanning, setIsScanning] = useState(false);
-	const [error, setError] = useState("");
+	const [activeScanSource, setActiveScanSource] =
+		useState<LocalDockerScanSource | null>(null);
 	const [toast, setToast] = useState<ToastState | null>(null);
 
 	useEffect(() => {
@@ -35,49 +41,56 @@ export function useLocalDockerScanner(
 		}
 	}, [onScanComplete]);
 
-	const scan = useCallback(async () => {
-		setIsScanning(true);
-		setError("");
+	const runScan = useCallback(
+		async ({
+			source,
+			showSuccessToast,
+		}: {
+			source: LocalDockerScanSource | null;
+			showSuccessToast: boolean;
+		}) => {
+			if (source) setActiveScanSource(source);
 
-		try {
-			const result = await scanLocalDocker();
-			setToast({
-				tone: "success",
-				message: `${result.serverName}: ${result.appCount} apps scanned`,
-			});
-			await refreshOverview();
-		} catch (requestError) {
-			const message = errorMessage(requestError);
-			setError(message);
-			setToast({
-				tone: "error",
-				message,
-			});
-		} finally {
-			setIsScanning(false);
-		}
-	}, [refreshOverview]);
+			try {
+				const result = await scanLocalDocker();
+				if (showSuccessToast) {
+					setToast({
+						tone: "success",
+						message: `${result.serverName}: ${result.appCount} apps scanned`,
+					});
+				}
+				await refreshOverview();
+			} catch (requestError) {
+				const message = errorMessage(requestError);
+				setToast({
+					tone: "error",
+					message,
+				});
+			} finally {
+				if (source) setActiveScanSource(null);
+			}
+		},
+		[refreshOverview],
+	);
 
-	const scanInBackground = useCallback(async () => {
-		setError("");
+	const scanFrom = useCallback(async (source: LocalDockerScanSource) => {
+		await runScan({ source, showSuccessToast: true });
+	}, [runScan]);
 
-		try {
-			await scanLocalDocker();
-			await refreshOverview();
-		} catch (requestError) {
-			const message = errorMessage(requestError);
-			setError(message);
-			setToast({
-				tone: "error",
-				message,
+	const scanInBackground = useCallback(
+		async (options: BackgroundScanOptions = {}) => {
+			await runScan({
+				source: null,
+				showSuccessToast: Boolean(options.showSuccessToast),
 			});
-		}
-	}, [refreshOverview]);
+		},
+		[runScan],
+	);
 
 	return {
-		error,
-		isScanning,
-		scan,
+		activeScanSource,
+		isScanning: Boolean(activeScanSource),
+		scanFrom,
 		scanInBackground,
 		serverId: localDockerServerId,
 		toast,
