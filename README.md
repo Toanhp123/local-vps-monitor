@@ -23,7 +23,7 @@ It is built for developers who run apps with Docker or PM2 and want a quick way 
 - The API and WebSocket reject non-local `Host` and `Origin` headers.
 - No SSH password is requested or stored.
 - SSH private key content is not persisted; only the local key file path is stored.
-- SSH host keys are verified through your local `~/.ssh/known_hosts`.
+- SSH host keys are verified through your local `known_hosts` file.
 - Quick actions use predefined commands only; there is no free-form remote shell.
 - There is no remote agent mode and no public ingest endpoint.
 
@@ -31,6 +31,7 @@ It is built for developers who run apps with Docker or PM2 and want a quick way 
 
 - Node.js 20+
 - npm
+- OpenSSH Client in your terminal: `ssh`, `ssh-keygen`, and `ssh-keyscan`
 - SSH access to your VPS machines
 - Docker Desktop or Docker Engine, only if you want Local Docker scanning
 
@@ -38,9 +39,19 @@ It is built for developers who run apps with Docker or PM2 and want a quick way 
 
 Run it directly on your machine with Node.js. No app container or Docker deployment is required.
 
+### Windows PowerShell
+
+```powershell
+npm install
+Copy-Item .env.example .env
+npm run dev
+```
+
+### macOS or Linux
+
 ```bash
 npm install
-copy .env.example .env
+cp .env.example .env
 npm run dev
 ```
 
@@ -58,11 +69,71 @@ http://127.0.0.1:3101
 
 ## SSH Target Setup
 
+The dashboard connects to each VPS through a local SSH private key. Do not paste key content into the dashboard; paste the private key file path.
+
+### Windows PowerShell
+
+Create a monitor SSH key:
+
+```powershell
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.ssh" | Out-Null
+ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\vps_monitor"
+```
+
+When `ssh-keygen` asks for a passphrase, press Enter twice to leave it empty.
+
+Before running the next commands, replace:
+
+- `root`: your VPS SSH user, for example `root`, `ubuntu`, or `debian`
+- `your-vps-ip`: your VPS IP address or domain, for example `203.0.113.10`
+- `22`: your VPS SSH port, if it is not the default port
+
+For example, `root@your-vps-ip` becomes `root@203.0.113.10`.
+
+Copy the public key to your VPS:
+
+```powershell
+Get-Content "$env:USERPROFILE\.ssh\vps_monitor.pub" | ssh root@your-vps-ip "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
+```
+
+Trust the VPS host key:
+
+```powershell
+ssh-keyscan -p 22 your-vps-ip | Out-File -FilePath "$env:USERPROFILE\.ssh\known_hosts" -Append -Encoding ascii
+```
+
+Test the SSH key:
+
+```powershell
+ssh -i "$env:USERPROFILE\.ssh\vps_monitor" root@your-vps-ip "echo ok"
+```
+
+Then open the dashboard and add a target with:
+
+- Name: any label, for example `Production VPS`
+- Host: your VPS IP or domain
+- Port: usually `22`
+- SSH user: for example `root`
+- Private key path: `C:\Users\your-name\.ssh\vps_monitor`, replace `your-name` with your Windows username
+
+### macOS or Linux
+
 Create a monitor SSH key:
 
 ```bash
+mkdir -p ~/.ssh
 ssh-keygen -t ed25519 -f ~/.ssh/vps_monitor
 ```
+
+When `ssh-keygen` asks for a passphrase, press Enter twice to leave it empty.
+
+Before running the next commands, replace:
+
+- `root`: your VPS SSH user, for example `root`, `ubuntu`, or `debian`
+- `your-vps-ip`: your VPS IP address or domain, for example `203.0.113.10`
+- `22`: your VPS SSH port, if it is not the default port
+
+For example, `root@your-vps-ip` becomes `root@203.0.113.10`.
 
 Copy the public key to your VPS:
 
@@ -76,13 +147,19 @@ Trust the VPS host key:
 ssh-keyscan -p 22 your-vps-ip >> ~/.ssh/known_hosts
 ```
 
+Test the SSH key:
+
+```bash
+ssh -i ~/.ssh/vps_monitor root@your-vps-ip "echo ok"
+```
+
 Then open the dashboard and add a target with:
 
-- Name
-- Host
-- Port
-- SSH user
-- Private key path
+- Name: any label, for example `Production VPS`
+- Host: your VPS IP or domain
+- Port: usually `22`
+- SSH user: for example `root`
+- Private key path: `~/.ssh/vps_monitor`
 
 Click `Scan`, `Scan All`, or wait for automatic scans.
 
