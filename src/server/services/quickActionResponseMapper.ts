@@ -1,6 +1,6 @@
-import type { QuickActionRunResponse } from "../../../shared/types";
-import { stripAnsi } from "../../lib/stripAnsi";
-import type { BuiltQuickAction } from "./quickActionCatalog";
+import type { QuickActionRunResponse } from "../../shared/types";
+import type { BuiltQuickAction } from "../domain/quickActions/quickActionCatalog";
+import { stripAnsi } from "../lib/stripAnsi";
 
 const outputLimit = 24_000;
 
@@ -17,7 +17,7 @@ const limitOutput = (value: string) => {
 	return `${value.slice(0, outputLimit)}\n[output truncated]`;
 };
 
-export const quickActionResponse = ({
+export const createQuickActionResponse = ({
 	action,
 	result,
 	serverId,

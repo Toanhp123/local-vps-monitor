@@ -11,10 +11,10 @@ import {
 	QuickActionNotFoundError,
 	QuickActionUnsupportedError,
 } from "../domain/quickActions/quickActionErrors";
-import { quickActionResponse } from "../domain/quickActions/quickActionResponse";
 import { QuickActionRunner } from "../integrations/quickActions/quickActionRunner";
 import type { SshTargetConfigStore } from "../stores/sshTargetConfigStore";
 import type { MonitorOverviewService } from "./monitorOverviewService";
+import { createQuickActionResponse } from "./quickActionResponseMapper";
 
 export {
 	isQuickActionId,
@@ -76,7 +76,7 @@ export class QuickActionService {
 
 		const result = await this.runner.run(action.execution, target);
 
-		return quickActionResponse({
+		return createQuickActionResponse({
 			action,
 			result,
 			serverId: input.serverId,

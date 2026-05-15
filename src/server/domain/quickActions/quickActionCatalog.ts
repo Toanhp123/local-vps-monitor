@@ -1,11 +1,8 @@
 import type { AppSnapshot, QuickActionId } from "../../../shared/types";
+import { dockerContainerRef, pm2ProcessRef } from "../applications/appRuntimeRefs";
+import { isLocalDockerServer } from "../servers/serverIds";
 import { shellQuote } from "../../lib/shellQuote";
 import { QuickActionUnsupportedError } from "./quickActionErrors";
-import {
-	dockerContainerRef,
-	isLocalDockerServer,
-	pm2ProcessRef,
-} from "./quickActionTargets";
 
 type ServerQuickActionId = Extract<QuickActionId, `server.${string}`>;
 type DockerQuickActionId = Extract<QuickActionId, `docker.${string}`>;
