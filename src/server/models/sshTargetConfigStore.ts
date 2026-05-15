@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import type { SshTarget, SshTargetCreateInput } from "../../shared/types";
+import type { SshTarget, SshTargetCreateInput, SshTargetUpdateInput } from "../../shared/types";
 
 interface SshTargetState {
   targets: Record<string, SshTarget>;
@@ -16,6 +16,15 @@ const normalizeTargetInput = (input: SshTargetCreateInput) => ({
   username: input.username.trim(),
   privateKeyPath: input.privateKeyPath.trim(),
   enabled: input.enabled ?? true
+});
+
+const normalizeTargetUpdateInput = (input: SshTargetUpdateInput) => ({
+  ...(input.name !== undefined ? { name: input.name.trim() } : {}),
+  ...(input.host !== undefined ? { host: input.host.trim() } : {}),
+  ...(input.port !== undefined ? { port: input.port } : {}),
+  ...(input.username !== undefined ? { username: input.username.trim() } : {}),
+  ...(input.privateKeyPath !== undefined ? { privateKeyPath: input.privateKeyPath.trim() } : {}),
+  ...(input.enabled !== undefined ? { enabled: input.enabled } : {})
 });
 
 export class SshTargetConfigStore {
@@ -46,6 +55,44 @@ export class SshTargetConfigStore {
     };
 
     this.state.targets[target.id] = target;
+    this.save();
+
+    return target;
+  }
+
+  createMany(inputs: SshTargetCreateInput[]) {
+    const targets = inputs.map((input) => {
+      const now = new Date().toISOString();
+      const normalized = normalizeTargetInput(input);
+
+      return {
+        id: `ssh-${crypto.randomUUID()}`,
+        ...normalized,
+        createdAt: now,
+        updatedAt: now
+      } satisfies SshTarget;
+    });
+
+    for (const target of targets) {
+      this.state.targets[target.id] = target;
+    }
+
+    this.save();
+
+    return targets;
+  }
+
+  update(targetId: string, input: SshTargetUpdateInput) {
+    const current = this.state.targets[targetId];
+    if (!current) return null;
+
+    const target: SshTarget = {
+      ...current,
+      ...normalizeTargetUpdateInput(input),
+      updatedAt: new Date().toISOString()
+    };
+
+    this.state.targets[targetId] = target;
     this.save();
 
     return target;

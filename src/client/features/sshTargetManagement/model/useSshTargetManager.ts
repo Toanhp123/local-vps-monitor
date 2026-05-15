@@ -2,16 +2,21 @@ import { useCallback, useEffect, useState } from "react";
 import type {
 	SshTarget,
 	SshTargetBootstrapInput,
+	SshTargetBulkImportInput,
 	SshTargetCreateInput,
+	SshTargetUpdateInput,
 } from "../../../../shared/types";
 import type { ToastState } from "../../../shared/ui/Toast";
 import {
 	bootstrapSshTarget,
+	bulkImportSshTargets,
 	createSshTarget,
 	deleteSshTarget,
 	fetchSshTargets,
 	scanAllSshTargets,
 	scanSshTarget,
+	testSshTarget,
+	updateSshTarget,
 } from "../../../shared/api/sshTargetsApi";
 
 const scanAllId = "__all__";
@@ -29,6 +34,7 @@ export function useSshTargetManager(
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [activeScanId, setActiveScanId] = useState<string | null>(null);
+	const [activeTestId, setActiveTestId] = useState<string | null>(null);
 	const [activeScanSource, setActiveScanSource] =
 		useState<SshTargetScanSource | null>(null);
 	const [error, setError] = useState("");
@@ -146,6 +152,95 @@ export function useSshTargetManager(
 		}
 	}, []);
 
+	const editTarget = useCallback(
+		async (targetId: string, input: SshTargetUpdateInput) => {
+			setIsSaving(true);
+			setError("");
+
+			try {
+				const target = await updateSshTarget(targetId, input);
+				setTargets((current) =>
+					current.map((item) => (item.id === target.id ? target : item)),
+				);
+				setToast({
+					tone: "success",
+					message: `${target.name} updated`,
+				});
+				return true;
+			} catch (requestError) {
+				const message = errorMessage(requestError);
+				setError(message);
+				setToast({
+					tone: "error",
+					message,
+				});
+				return false;
+			} finally {
+				setIsSaving(false);
+			}
+		},
+		[],
+	);
+
+	const bulkImportTargets = useCallback(async (input: SshTargetBulkImportInput) => {
+		setIsSaving(true);
+		setError("");
+
+		try {
+			const result = await bulkImportSshTargets(input);
+			setTargets((current) => [...current, ...result.targets]);
+			const errorMessageText = result.errors
+				.map((entry) => `${entry.name || entry.host || `Row ${entry.index + 1}`}: ${entry.message}`)
+				.join("; ");
+
+			if (result.errors.length > 0) {
+				setError(errorMessageText);
+			}
+
+			setToast({
+				tone: result.errors.length > 0 ? "error" : "success",
+				message: `${result.targets.length} imported, ${result.errors.length} failed`,
+			});
+
+			return result.errors.length === 0;
+		} catch (requestError) {
+			const message = errorMessage(requestError);
+			setError(message);
+			setToast({
+				tone: "error",
+				message,
+			});
+			return false;
+		} finally {
+			setIsSaving(false);
+		}
+	}, []);
+
+	const testTarget = useCallback(async (targetId: string) => {
+		setActiveTestId(targetId);
+		setError("");
+
+		try {
+			const result = await testSshTarget(targetId);
+			setToast({
+				tone: result.ok ? "success" : "error",
+				message: result.message,
+			});
+			if (!result.ok) {
+				setError(result.message);
+			}
+		} catch (requestError) {
+			const message = errorMessage(requestError);
+			setError(message);
+			setToast({
+				tone: "error",
+				message,
+			});
+		} finally {
+			setActiveTestId(null);
+		}
+	}, []);
+
 	const scanTarget = useCallback(
 		async (
 			targetId: string,
@@ -214,8 +309,11 @@ export function useSshTargetManager(
 	return {
 		activeScanId,
 		activeScanSource,
+		activeTestId,
 		addTarget,
 		bootstrapTarget,
+		bulkImportTargets,
+		editTarget,
 		error,
 		isLoading,
 		isSaving,
@@ -224,6 +322,7 @@ export function useSshTargetManager(
 		scanAllId,
 		scanAllTargets,
 		scanTarget,
+		testTarget,
 		toast,
 		targets,
 	};

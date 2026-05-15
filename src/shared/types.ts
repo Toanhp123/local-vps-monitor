@@ -133,8 +133,44 @@ export interface SshTargetBootstrapInput {
   enabled?: boolean;
 }
 
+export interface SshTargetUpdateInput {
+  name?: string;
+  host?: string;
+  port?: number;
+  username?: string;
+  privateKeyPath?: string;
+  enabled?: boolean;
+}
+
 export interface SshTargetListResponse {
   targets: SshTarget[];
+}
+
+export type SshTargetBulkImportInput =
+  | {
+      authMode: "key";
+      targets: SshTargetCreateInput[];
+    }
+  | {
+      authMode: "password";
+      targets: SshTargetBootstrapInput[];
+    };
+
+export interface SshTargetBulkImportResponse {
+  targets: SshTarget[];
+  errors: Array<{
+    host?: string;
+    index: number;
+    message: string;
+    name?: string;
+  }>;
+}
+
+export interface SshTargetTestResponse {
+  checkedAt: string;
+  message: string;
+  ok: boolean;
+  targetId: string;
 }
 
 export interface ScanResult {

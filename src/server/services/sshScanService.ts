@@ -1,5 +1,5 @@
 import type { ServerSnapshotPayload, SshScanAllResponse, SshScanResult, SshTarget } from "../../shared/types";
-import { connectSshTarget } from "../integrations/ssh/sshCommandRunner";
+import { connectSshTarget, runSshCommand } from "../integrations/ssh/sshCommandRunner";
 import { collectSshDockerApps } from "../integrations/ssh/sshDockerAppsCollector";
 import { collectSshHostMetrics } from "../integrations/ssh/sshHostMetricsCollector";
 import { collectSshPm2Apps } from "../integrations/ssh/sshPm2AppsCollector";
@@ -63,6 +63,28 @@ export class SshScanService {
     if (!target) throw new SshTargetNotFoundError(targetId);
 
     return this.scanKnownTarget(target);
+  }
+
+  async testTarget(targetId: string) {
+    const target = this.targetConfigStore.get(targetId);
+    if (!target) throw new SshTargetNotFoundError(targetId);
+
+    const checkedAt = new Date().toISOString();
+    const client = await connectSshTarget(target, this.commandTimeoutMs);
+
+    try {
+      const result = await runSshCommand(client, "echo ok", this.commandTimeoutMs);
+      const output = [result.stdout.trim(), result.stderr.trim()].filter(Boolean).join("\n");
+
+      return {
+        checkedAt,
+        message: result.ok ? "SSH key login succeeded." : output || "SSH test command failed.",
+        ok: result.ok,
+        targetId
+      };
+    } finally {
+      client.end();
+    }
   }
 
   async scanAllTargets(): Promise<SshScanAllResponse> {

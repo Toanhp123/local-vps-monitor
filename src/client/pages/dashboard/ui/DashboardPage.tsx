@@ -59,14 +59,18 @@ export function DashboardPage() {
 			/>
 			<SshTargetManagerPanel
 				activeScanId={activeSshTargetScanId}
+				activeTestId={sshTargetManager.activeTestId}
 				error={sshTargetManager.error}
 				isScanDisabled={isAnyScanActive}
 				isLoading={sshTargetManager.isLoading}
 				isSaving={sshTargetManager.isSaving}
 				onAddTarget={sshTargetManager.addTarget}
 				onBootstrapTarget={sshTargetManager.bootstrapTarget}
+				onBulkImportTargets={sshTargetManager.bulkImportTargets}
+				onEditTarget={sshTargetManager.editTarget}
 				onRemoveTarget={sshTargetManager.removeTarget}
 				onScanTarget={sshTargetManager.scanTarget}
+				onTestTarget={sshTargetManager.testTarget}
 				targets={sshTargetManager.targets}
 			/>
 			<ServerList

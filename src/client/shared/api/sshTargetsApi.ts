@@ -3,8 +3,12 @@ import type {
 	SshScanResult,
 	SshTarget,
 	SshTargetBootstrapInput,
+	SshTargetBulkImportInput,
+	SshTargetBulkImportResponse,
 	SshTargetCreateInput,
 	SshTargetListResponse,
+	SshTargetTestResponse,
+	SshTargetUpdateInput,
 } from "../../../shared/types";
 
 const parseErrorMessage = async (response: Response) => {
@@ -61,11 +65,55 @@ export const bootstrapSshTarget = async (
 	return body.target;
 };
 
+export const bulkImportSshTargets = async (
+	input: SshTargetBulkImportInput,
+): Promise<SshTargetBulkImportResponse> => {
+	const response = await fetch("/api/ssh-targets/import", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(input),
+	});
+	await ensureOk(response);
+
+	return (await response.json()) as SshTargetBulkImportResponse;
+};
+
+export const updateSshTarget = async (
+	targetId: string,
+	input: SshTargetUpdateInput,
+): Promise<SshTarget> => {
+	const response = await fetch(`/api/ssh-targets/${targetId}`, {
+		method: "PATCH",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(input),
+	});
+	await ensureOk(response);
+
+	const body = (await response.json()) as { target: SshTarget };
+	return body.target;
+};
+
 export const deleteSshTarget = async (targetId: string) => {
 	const response = await fetch(`/api/ssh-targets/${targetId}`, {
 		method: "DELETE",
 	});
 	await ensureOk(response);
+};
+
+export const testSshTarget = async (
+	targetId: string,
+): Promise<SshTargetTestResponse> => {
+	const response = await fetch(`/api/ssh-targets/${targetId}/test`, {
+		method: "POST",
+	});
+	await ensureOk(response);
+
+	const body = (await response.json()) as { result: SshTargetTestResponse };
+	return body.result;
 };
 
 export const scanSshTarget = async (

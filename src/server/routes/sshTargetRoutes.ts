@@ -19,8 +19,11 @@ export const createSshTargetRouter = (
   router.get("/ssh-targets", sshTargetsController.listTargets);
   router.post("/ssh-targets", sshTargetsController.createTarget);
   router.post("/ssh-targets/bootstrap", sshTargetsController.bootstrapTarget);
+  router.post("/ssh-targets/import", sshTargetsController.bulkImportTargets);
   router.post("/ssh-targets/scan-all", sshTargetsController.scanAllTargets);
+  router.post("/ssh-targets/:targetId/test", sshTargetsController.testTarget);
   router.post("/ssh-targets/:targetId/scan", sshTargetsController.scanTarget);
+  router.patch("/ssh-targets/:targetId", sshTargetsController.updateTarget);
   router.delete("/ssh-targets/:targetId", sshTargetsController.deleteTarget);
 
   return router;
