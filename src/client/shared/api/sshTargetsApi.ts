@@ -2,6 +2,7 @@ import type {
 	SshScanAllResponse,
 	SshScanResult,
 	SshTarget,
+	SshTargetBootstrapInput,
 	SshTargetCreateInput,
 	SshTargetListResponse,
 } from "../../../shared/types";
@@ -32,6 +33,22 @@ export const createSshTarget = async (
 	input: SshTargetCreateInput,
 ): Promise<SshTarget> => {
 	const response = await fetch("/api/ssh-targets", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(input),
+	});
+	await ensureOk(response);
+
+	const body = (await response.json()) as { target: SshTarget };
+	return body.target;
+};
+
+export const bootstrapSshTarget = async (
+	input: SshTargetBootstrapInput,
+): Promise<SshTarget> => {
+	const response = await fetch("/api/ssh-targets/bootstrap", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",

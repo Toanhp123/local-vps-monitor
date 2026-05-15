@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import type { SshTarget, SshTargetCreateInput } from "../../../../shared/types";
+import type {
+	SshTarget,
+	SshTargetBootstrapInput,
+	SshTargetCreateInput,
+} from "../../../../shared/types";
 import type { ToastState } from "../../../shared/ui/Toast";
 import {
+	bootstrapSshTarget,
 	createSshTarget,
 	deleteSshTarget,
 	fetchSshTargets,
@@ -17,7 +22,9 @@ const errorMessage = (error: unknown) => {
 	return error instanceof Error ? error.message : String(error);
 };
 
-export function useSshTargetManager(onScanComplete?: () => void | Promise<void>) {
+export function useSshTargetManager(
+	onScanComplete?: () => void | Promise<void>,
+) {
 	const [targets, setTargets] = useState<SshTarget[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
@@ -64,17 +71,42 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 		}
 	}, [onScanComplete]);
 
-	const addTarget = useCallback(
-		async (input: SshTargetCreateInput) => {
+	const addTarget = useCallback(async (input: SshTargetCreateInput) => {
+		setIsSaving(true);
+		setError("");
+
+		try {
+			const target = await createSshTarget(input);
+			setTargets((current) => [...current, target]);
+			setToast({
+				tone: "success",
+				message: `${target.name} added`,
+			});
+			return true;
+		} catch (requestError) {
+			const message = errorMessage(requestError);
+			setError(message);
+			setToast({
+				tone: "error",
+				message,
+			});
+			return false;
+		} finally {
+			setIsSaving(false);
+		}
+	}, []);
+
+	const bootstrapTarget = useCallback(
+		async (input: SshTargetBootstrapInput) => {
 			setIsSaving(true);
 			setError("");
 
 			try {
-				const target = await createSshTarget(input);
+				const target = await bootstrapSshTarget(input);
 				setTargets((current) => [...current, target]);
 				setToast({
 					tone: "success",
-					message: `${target.name} added`
+					message: `${target.name} added`,
 				});
 				return true;
 			} catch (requestError) {
@@ -82,7 +114,7 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 				setError(message);
 				setToast({
 					tone: "error",
-					message
+					message,
 				});
 				return false;
 			} finally {
@@ -102,14 +134,14 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 			);
 			setToast({
 				tone: "success",
-				message: "SSH target deleted"
+				message: "SSH target deleted",
 			});
 		} catch (requestError) {
 			const message = errorMessage(requestError);
 			setError(message);
 			setToast({
 				tone: "error",
-				message
+				message,
 			});
 		}
 	}, []);
@@ -127,7 +159,7 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 				const result = await scanSshTarget(targetId);
 				setToast({
 					tone: "success",
-					message: `${result.serverName}: ${result.appCount} apps scanned`
+					message: `${result.serverName}: ${result.appCount} apps scanned`,
 				});
 				await refreshOverview();
 			} catch (requestError) {
@@ -135,7 +167,7 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 				setError(message);
 				setToast({
 					tone: "error",
-					message
+					message,
 				});
 			} finally {
 				setActiveScanId(null);
@@ -154,14 +186,16 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 			const result = await scanAllSshTargets();
 			setToast({
 				tone: result.errors.length > 0 ? "error" : "success",
-				message: `${result.results.length} VPS scanned, ${result.errors.length} failed`
+				message: `${result.results.length} VPS scanned, ${result.errors.length} failed`,
 			});
 			if (result.errors.length > 0) {
-				const message = result.errors.map((entry) => entry.message).join("; ");
+				const message = result.errors
+					.map((entry) => entry.message)
+					.join("; ");
 				setError(message);
 				setToast({
 					tone: "error",
-					message
+					message,
 				});
 			}
 			await refreshOverview();
@@ -170,7 +204,7 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 			setError(message);
 			setToast({
 				tone: "error",
-				message
+				message,
 			});
 		} finally {
 			setActiveScanId(null);
@@ -181,6 +215,7 @@ export function useSshTargetManager(onScanComplete?: () => void | Promise<void>)
 		activeScanId,
 		activeScanSource,
 		addTarget,
+		bootstrapTarget,
 		error,
 		isLoading,
 		isSaving,

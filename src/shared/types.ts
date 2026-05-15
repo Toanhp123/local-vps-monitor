@@ -124,6 +124,15 @@ export interface SshTargetCreateInput {
   enabled?: boolean;
 }
 
+export interface SshTargetBootstrapInput {
+  name: string;
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  enabled?: boolean;
+}
+
 export interface SshTargetListResponse {
   targets: SshTarget[];
 }

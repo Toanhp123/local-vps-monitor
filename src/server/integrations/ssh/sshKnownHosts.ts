@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import type { SshTarget } from "../../../shared/types";
 
+type KnownHostTarget = Pick<SshTarget, "host" | "port">;
+
 interface KnownHostEntry {
   marker?: string;
   hostPatterns: string;
@@ -12,6 +14,7 @@ interface KnownHostEntry {
 }
 
 export interface KnownHostVerification {
+  status: "trusted" | "missing-file" | "not-found" | "mismatch" | "revoked";
   trusted: boolean;
   message?: string;
 }
@@ -92,18 +95,37 @@ const hostPatternMatches = (hostPatterns: string, candidates: string[]) => {
   return matched;
 };
 
-const targetHostCandidates = (target: SshTarget) => {
+const targetHostCandidates = (target: KnownHostTarget) => {
   const host = target.host.trim().toLowerCase();
 
   return Array.from(new Set([host, `[${host}]:${target.port}`]));
 };
 
-export const verifyKnownHostKey = (target: SshTarget, key: Buffer): KnownHostVerification => {
+const knownHostPatternForTarget = (target: KnownHostTarget) => {
+  const host = target.host.trim().toLowerCase();
+  return target.port === 22 ? host : `[${host}]:${target.port}`;
+};
+
+const keyTypeFromBlob = (key: Buffer) => {
+  if (key.length < 4) return "ssh-ed25519";
+
+  const typeLength = key.readUInt32BE(0);
+  const typeStart = 4;
+  const typeEnd = typeStart + typeLength;
+
+  if (typeLength <= 0 || typeEnd > key.length) return "ssh-ed25519";
+
+  const keyType = key.toString("utf8", typeStart, typeEnd);
+  return /^[A-Za-z0-9._@-]+$/.test(keyType) ? keyType : "ssh-ed25519";
+};
+
+export const verifyKnownHostKey = (target: KnownHostTarget, key: Buffer): KnownHostVerification => {
   const knownHostsPath = resolveKnownHostsPath();
   const fingerprint = keyFingerprint(key);
 
   if (!fs.existsSync(knownHostsPath)) {
     return {
+      status: "missing-file",
       trusted: false,
       message: `SSH host key is not trusted because ${knownHostsPath} does not exist. Add the VPS host key first, for example: ssh-keyscan -p ${target.port} ${target.host} >> ~/.ssh/known_hosts. Remote key: ${fingerprint}`
     };
@@ -123,6 +145,7 @@ export const verifyKnownHostKey = (target: SshTarget, key: Buffer): KnownHostVer
 
     if (entry.marker === "@revoked") {
       return {
+        status: "revoked",
         trusted: false,
         message: `SSH host key for ${target.host} is revoked in ${knownHostsPath}.`
       };
@@ -130,14 +153,42 @@ export const verifyKnownHostKey = (target: SshTarget, key: Buffer): KnownHostVer
 
     const trustedKey = Buffer.from(entry.encodedKey, "base64");
     if (trustedKey.length === key.length && crypto.timingSafeEqual(trustedKey, key)) {
-      return { trusted: true };
+      return { status: "trusted", trusted: true };
     }
   }
 
   return {
+    status: hostMatched ? "mismatch" : "not-found",
     trusted: false,
     message: hostMatched
       ? `SSH host key mismatch for ${target.host}. The remote key does not match ${knownHostsPath}. Remote key: ${fingerprint}`
       : `SSH host key is not trusted for ${target.host}. Add the VPS host key first, for example: ssh-keyscan -p ${target.port} ${target.host} >> ~/.ssh/known_hosts. Remote key: ${fingerprint}`
   };
+};
+
+export const addKnownHostKey = (target: KnownHostTarget, key: Buffer) => {
+  const verification = verifyKnownHostKey(target, key);
+  if (verification.trusted) return;
+
+  if (verification.status === "mismatch" || verification.status === "revoked") {
+    throw new Error(verification.message);
+  }
+
+  const knownHostsPath = resolveKnownHostsPath();
+  fs.mkdirSync(path.dirname(knownHostsPath), { recursive: true });
+  const needsLineBreak =
+    fs.existsSync(knownHostsPath) &&
+    fs.statSync(knownHostsPath).size > 0 &&
+    !fs.readFileSync(knownHostsPath, "utf8").endsWith("\n");
+  fs.appendFileSync(
+    knownHostsPath,
+    `${needsLineBreak ? "\n" : ""}${knownHostPatternForTarget(target)} ${keyTypeFromBlob(key)} ${key.toString("base64")}\n`,
+    {
+      mode: 0o600
+    }
+  );
+
+  if (process.platform !== "win32") {
+    fs.chmodSync(knownHostsPath, 0o600);
+  }
 };

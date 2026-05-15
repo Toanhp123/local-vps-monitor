@@ -64,6 +64,7 @@ export function DashboardPage() {
 				isLoading={sshTargetManager.isLoading}
 				isSaving={sshTargetManager.isSaving}
 				onAddTarget={sshTargetManager.addTarget}
+				onBootstrapTarget={sshTargetManager.bootstrapTarget}
 				onRemoveTarget={sshTargetManager.removeTarget}
 				onScanTarget={sshTargetManager.scanTarget}
 				targets={sshTargetManager.targets}

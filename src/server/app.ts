@@ -12,6 +12,7 @@ import { LocalDockerScanService } from "./services/localDockerScanService";
 import { MonitorOverviewService } from "./services/monitorOverviewService";
 import { QuickActionService } from "./services/quickActionService";
 import { SshScanService } from "./services/sshScanService";
+import { SshTargetBootstrapService } from "./services/sshTargetBootstrapService";
 import { SshTargetConfigService } from "./services/sshTargetConfigService";
 
 const mountClientApp = (app: Express) => {
@@ -49,6 +50,10 @@ export const createApp = () => {
     serverConfig.version
   );
   const sshTargetConfigService = new SshTargetConfigService(sshTargetConfigStore);
+  const sshTargetBootstrapService = new SshTargetBootstrapService(
+    sshTargetConfigService,
+    serverConfig.sshCommandTimeoutMs
+  );
   const sshScanService = new SshScanService(
     sshTargetConfigStore,
     monitorOverviewService,
@@ -84,6 +89,7 @@ export const createApp = () => {
       monitorOverviewService,
       quickActionService,
       sshScanService,
+      sshTargetBootstrapService,
       sshTargetConfigService
     })
   );

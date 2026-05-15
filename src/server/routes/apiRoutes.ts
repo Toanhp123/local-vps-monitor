@@ -5,6 +5,7 @@ import type { LocalDockerScanService } from "../services/localDockerScanService"
 import type { MonitorOverviewService } from "../services/monitorOverviewService";
 import type { QuickActionService } from "../services/quickActionService";
 import type { SshScanService } from "../services/sshScanService";
+import type { SshTargetBootstrapService } from "../services/sshTargetBootstrapService";
 import type { SshTargetConfigService } from "../services/sshTargetConfigService";
 import { createHealthRouter } from "./healthRoutes";
 import { createAppLogsRouter } from "./appLogsRoutes";
@@ -20,6 +21,7 @@ interface ApiRouterDependencies {
   monitorOverviewService: MonitorOverviewService;
   quickActionService: QuickActionService;
   sshScanService: SshScanService;
+  sshTargetBootstrapService: SshTargetBootstrapService;
   sshTargetConfigService: SshTargetConfigService;
 }
 
@@ -30,6 +32,7 @@ export const createApiRouter = ({
   monitorOverviewService,
   quickActionService,
   sshScanService,
+  sshTargetBootstrapService,
   sshTargetConfigService
 }: ApiRouterDependencies) => {
   const router = Router();
@@ -39,7 +42,7 @@ export const createApiRouter = ({
   router.use(createLocalDockerRouter(localDockerScanService));
   router.use(createOverviewRouter(monitorOverviewService));
   router.use(createQuickActionsRouter(quickActionService));
-  router.use(createSshTargetRouter(sshTargetConfigService, sshScanService));
+  router.use(createSshTargetRouter(sshTargetConfigService, sshScanService, sshTargetBootstrapService));
 
   return router;
 };

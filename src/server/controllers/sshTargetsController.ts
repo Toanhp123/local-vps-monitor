@@ -1,8 +1,9 @@
 import type { RequestHandler } from "express";
 import { errorMessage } from "../lib/errorMessage";
 import { SshScanService, SshTargetNotFoundError } from "../services/sshScanService";
+import type { SshTargetBootstrapService } from "../services/sshTargetBootstrapService";
 import type { SshTargetConfigService } from "../services/sshTargetConfigService";
-import { sshTargetConfigCreateSchema } from "../validators/sshTargetConfigSchema";
+import { sshTargetBootstrapSchema, sshTargetConfigCreateSchema } from "../validators/sshTargetConfigSchema";
 
 const paramString = (value: string | string[] | undefined) => {
   return Array.isArray(value) ? value[0] : value;
@@ -11,7 +12,8 @@ const paramString = (value: string | string[] | undefined) => {
 export class SshTargetsController {
   constructor(
     private readonly sshTargetConfigService: SshTargetConfigService,
-    private readonly sshScanService: SshScanService
+    private readonly sshScanService: SshScanService,
+    private readonly sshTargetBootstrapService: SshTargetBootstrapService
   ) {}
 
   listTargets: RequestHandler = (_request, response) => {
@@ -27,6 +29,21 @@ export class SshTargetsController {
 
     const target = this.sshTargetConfigService.createTarget(parsed.data);
     response.status(201).json({ target });
+  };
+
+  bootstrapTarget: RequestHandler = async (request, response) => {
+    const parsed = sshTargetBootstrapSchema.safeParse(request.body);
+    if (!parsed.success) {
+      response.status(400).json({ error: "Invalid SSH target bootstrap input", details: parsed.error.flatten() });
+      return;
+    }
+
+    try {
+      const target = await this.sshTargetBootstrapService.bootstrapTarget(parsed.data);
+      response.status(201).json({ target });
+    } catch (error) {
+      response.status(502).json({ error: "SSH target setup failed", message: errorMessage(error) });
+    }
   };
 
   deleteTarget: RequestHandler = (request, response) => {

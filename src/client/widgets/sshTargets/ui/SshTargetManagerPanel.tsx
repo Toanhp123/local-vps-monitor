@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import {
 	ChevronDown,
 	ChevronUp,
+	CircleHelp,
 	KeyRound,
 	LoaderCircle,
 	Plus,
@@ -11,13 +12,21 @@ import {
 	ShieldCheck,
 	Trash2,
 } from "lucide-react";
-import type { SshTarget, SshTargetCreateInput } from "../../../../shared/types";
+import type {
+	SshTarget,
+	SshTargetBootstrapInput,
+	SshTargetCreateInput,
+} from "../../../../shared/types";
+
+type SshAuthMode = "password" | "key";
 
 const defaultForm = {
 	name: "",
 	host: "",
 	port: "22",
 	username: "",
+	authMode: "password" as SshAuthMode,
+	password: "",
 	privateKeyPath: "",
 };
 
@@ -32,6 +41,7 @@ export function SshTargetManagerPanel({
 	isScanDisabled,
 	isSaving,
 	onAddTarget,
+	onBootstrapTarget,
 	onRemoveTarget,
 	onScanTarget,
 	targets,
@@ -42,6 +52,7 @@ export function SshTargetManagerPanel({
 	isScanDisabled: boolean;
 	isSaving: boolean;
 	onAddTarget: (input: SshTargetCreateInput) => Promise<boolean>;
+	onBootstrapTarget: (input: SshTargetBootstrapInput) => Promise<boolean>;
 	onRemoveTarget: (targetId: string) => void;
 	onScanTarget: (targetId: string) => void;
 	targets: SshTarget[];
@@ -51,8 +62,19 @@ export function SshTargetManagerPanel({
 	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 	const showManagement =
 		(!isLoading && targets.length === 0) || isManagingTargets;
+	const credentialLabel =
+		form.authMode === "password" ? "Setup password" : "Private key path";
+	const credentialHelp =
+		form.authMode === "password"
+			? "Used only for this setup request, then discarded. Not stored."
+			: "Use the private key file, not the .pub file.";
+	const credentialPlaceholder =
+		form.authMode === "password" ? "SSH password" : "~/.ssh/vps_monitor";
 
-	const updateField = (field: keyof typeof defaultForm, value: string) => {
+	const updateField = <Field extends keyof typeof defaultForm>(
+		field: Field,
+		value: (typeof defaultForm)[Field],
+	) => {
 		setForm((current) => ({
 			...current,
 			[field]: value,
@@ -62,14 +84,23 @@ export function SshTargetManagerPanel({
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
-		const added = await onAddTarget({
+		const baseInput = {
 			name: form.name,
 			host: form.host,
 			port: Number(form.port),
 			username: form.username,
-			privateKeyPath: form.privateKeyPath,
 			enabled: true,
-		});
+		};
+		const added =
+			form.authMode === "password"
+				? await onBootstrapTarget({
+						...baseInput,
+						password: form.password,
+					})
+				: await onAddTarget({
+						...baseInput,
+						privateKeyPath: form.privateKeyPath,
+					});
 
 		if (added) {
 			setForm(defaultForm);
@@ -147,7 +178,7 @@ export function SshTargetManagerPanel({
 			{showManagement && (
 				<>
 					<form
-						className="grid grid-cols-[1.1fr_1.1fr_0.45fr_0.75fr_1.6fr_auto] gap-2.5 border-b border-slate-200 bg-slate-50 px-4.5 py-3.5 max-xl:grid-cols-2 max-md:grid-cols-1"
+						className="grid grid-cols-[1.1fr_1.1fr_0.45fr_0.75fr_1fr_1.35fr_auto] gap-2.5 border-b border-slate-200 bg-slate-50 px-4.5 py-3.5 max-2xl:grid-cols-3 max-xl:grid-cols-2 max-md:grid-cols-1"
 						onSubmit={handleSubmit}
 					>
 						<label className={labelClass}>
@@ -201,18 +232,80 @@ export function SshTargetManagerPanel({
 								required
 							/>
 						</label>
+						<div className={labelClass}>
+							Auth
+							<div className="grid h-10 grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white p-0.5">
+								<button
+									type="button"
+									className={`cursor-pointer rounded-md px-2 text-xs font-extrabold ${
+										form.authMode === "password"
+											? "bg-blue-600 text-white"
+											: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+									}`}
+									onClick={() =>
+										updateField("authMode", "password")
+									}
+								>
+									Password
+								</button>
+								<button
+									type="button"
+									className={`cursor-pointer rounded-md px-2 text-xs font-extrabold ${
+										form.authMode === "key"
+											? "bg-blue-600 text-white"
+											: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+									}`}
+									onClick={() =>
+										updateField("authMode", "key")
+									}
+								>
+									Key path
+								</button>
+							</div>
+						</div>
 						<label className={labelClass}>
-							Private key path
+							<span className="flex items-center gap-1.5">
+								{credentialLabel}
+								<span
+									className="group relative inline-flex text-slate-400"
+									aria-label={credentialHelp}
+									tabIndex={0}
+								>
+									<CircleHelp size={13} />
+									<span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded-md bg-slate-950 px-2.5 py-2 text-xs leading-4 font-semibold text-white opacity-0 shadow-lg transition-opacity group-focus:opacity-100 group-hover:opacity-100">
+										{credentialHelp}
+									</span>
+								</span>
+							</span>
 							<input
 								className={inputClass}
-								value={form.privateKeyPath}
-								onChange={(event) =>
-									updateField(
-										"privateKeyPath",
-										event.target.value,
-									)
+								value={
+									form.authMode === "password"
+										? form.password
+										: form.privateKeyPath
 								}
-								placeholder="Local key file path"
+								onChange={(event) =>
+									form.authMode === "password"
+										? updateField(
+												"password",
+												event.target.value,
+											)
+										: updateField(
+												"privateKeyPath",
+												event.target.value,
+											)
+								}
+								placeholder={credentialPlaceholder}
+								type={
+									form.authMode === "password"
+										? "password"
+										: "text"
+								}
+								autoComplete={
+									form.authMode === "password"
+										? "current-password"
+										: "off"
+								}
 								required
 							/>
 						</label>
