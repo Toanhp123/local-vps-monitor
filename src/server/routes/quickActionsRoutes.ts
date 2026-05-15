@@ -6,7 +6,9 @@ export const createQuickActionsRouter = (
 	quickActionService: QuickActionService,
 ) => {
 	const router = Router();
-	const quickActionsController = new QuickActionsController(quickActionService);
+	const quickActionsController = new QuickActionsController(
+		quickActionService,
+	);
 
 	router.post("/quick-actions/run", quickActionsController.runQuickAction);
 

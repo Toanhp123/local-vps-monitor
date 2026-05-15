@@ -4,31 +4,42 @@ import { serverConfig } from "./config";
 import { OverviewWebSocketGateway } from "./realtime/overviewWebSocketGateway";
 import { AutoScanScheduler } from "./services/autoScanScheduler";
 
-const { app, localDockerScanService, monitorOverviewService, sshScanService } = createApp();
+const { app, localDockerScanService, monitorOverviewService, sshScanService } =
+	createApp();
 const httpServer = createServer(app);
 const autoScanScheduler = new AutoScanScheduler(
-  sshScanService,
-  localDockerScanService,
-  serverConfig.autoScanIntervalMs
+	sshScanService,
+	localDockerScanService,
+	serverConfig.autoScanIntervalMs,
 );
 
-new OverviewWebSocketGateway(httpServer, monitorOverviewService, serverConfig.realtimeBroadcastMs);
+new OverviewWebSocketGateway(
+	httpServer,
+	monitorOverviewService,
+	serverConfig.realtimeBroadcastMs,
+);
 
 httpServer.listen(serverConfig.port, serverConfig.host, () => {
-  console.log(`VPS Monitor API listening on http://${serverConfig.host}:${serverConfig.port}`);
-  console.log(`VPS Monitor WebSocket listening on ws://${serverConfig.host}:${serverConfig.port}/ws`);
+	console.log(
+		`VPS Monitor API listening on http://${serverConfig.host}:${serverConfig.port}`,
+	);
+	console.log(
+		`VPS Monitor WebSocket listening on ws://${serverConfig.host}:${serverConfig.port}/ws`,
+	);
 
-  if (serverConfig.autoScanIntervalMs > 0) {
-    console.log(`VPS Monitor auto scan interval: ${serverConfig.autoScanIntervalMs}ms`);
-    autoScanScheduler.start();
-  }
+	if (serverConfig.autoScanIntervalMs > 0) {
+		console.log(
+			`VPS Monitor auto scan interval: ${serverConfig.autoScanIntervalMs}ms`,
+		);
+		autoScanScheduler.start();
+	}
 });
 
 const shutdown = () => {
-  autoScanScheduler.stop();
-  httpServer.close(() => {
-    process.exit(0);
-  });
+	autoScanScheduler.stop();
+	httpServer.close(() => {
+		process.exit(0);
+	});
 };
 
 process.once("SIGINT", shutdown);
