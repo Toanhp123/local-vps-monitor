@@ -1,10 +1,4 @@
-import {
-	ArrowLeft,
-	Box,
-	Server,
-	SquareTerminal,
-	WifiOff,
-} from "lucide-react";
+import { ArrowLeft, Box, Server, SquareTerminal, WifiOff } from "lucide-react";
 import type { AppSnapshot, StoredServer } from "../../../../shared/types";
 import {
 	appGroupSourceLabels,
@@ -95,7 +89,8 @@ export function ServerDetailsView({
 									{pm2Apps} PM2
 								</span>
 								<span className="inline-flex min-h-7 items-center rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-500">
-									Last scan {relativeTime(server.lastSeenAt, now)}
+									Last scan{" "}
+									{relativeTime(server.lastSeenAt, now)}
 								</span>
 							</div>
 						</div>
@@ -200,13 +195,18 @@ export function ServerDetailsView({
 										<ApplicationTable
 											actions={(app) => {
 												const appQuickActions =
-													buildAppQuickActions(server, app);
+													buildAppQuickActions(
+														server,
+														app,
+													);
 
 												return (
 													<div className="flex justify-end gap-1.5">
 														<OpenAppLogsButton
 															onOpen={() =>
-																onOpenAppLogs(app)
+																onOpenAppLogs(
+																	app,
+																)
 															}
 														/>
 														<QuickActionMenu

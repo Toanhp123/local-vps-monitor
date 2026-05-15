@@ -38,7 +38,8 @@ export function QuickActionMenu({
 		const rect = buttonRef.current?.getBoundingClientRect();
 		if (!rect) return;
 		const menuWidth = menuRef.current?.offsetWidth || 184;
-		const menuHeight = menuRef.current?.offsetHeight || actions.length * 36 + 8;
+		const menuHeight =
+			menuRef.current?.offsetHeight || actions.length * 36 + 8;
 		const belowTop = rect.bottom + 6;
 		const aboveTop = rect.top - menuHeight - 6;
 		const hasRoomBelow =
@@ -118,7 +119,7 @@ export function QuickActionMenu({
 				createPortal(
 					<div
 						ref={menuRef}
-						className="fixed z-[60] w-46 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-950/15"
+						className="fixed z-60 w-46 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl shadow-slate-950/15"
 						style={{
 							left: position.left,
 							top: position.top,

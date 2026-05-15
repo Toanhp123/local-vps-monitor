@@ -11,15 +11,11 @@ import { useMonitorPageContext } from "../../monitor/model/useMonitorPageContext
 export function ServerDetailsPage() {
 	const navigate = useNavigate();
 	const { serverId } = useParams<{ serverId: string }>();
-	const {
-		activeScanId,
-		handleScanServer,
-		isAnyScanActive,
-		now,
-		overview,
-	} = useMonitorPageContext();
+	const { activeScanId, handleScanServer, isAnyScanActive, now, overview } =
+		useMonitorPageContext();
 	const selectedServer = serverId
-		? overview?.servers.find((server) => server.serverId === serverId) || null
+		? overview?.servers.find((server) => server.serverId === serverId) ||
+			null
 		: null;
 	const appLogs = useAppLogs(serverId || "");
 	const quickActions = useQuickActionRunner();

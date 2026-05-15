@@ -52,7 +52,10 @@ export function QuickActionPanel({
 	const [isCopied, setIsCopied] = useState(false);
 	const output = outputText(result);
 	const needsConfirmation =
-		Boolean(action?.requiresConfirmation) && !isRunning && !result && !error;
+		Boolean(action?.requiresConfirmation) &&
+		!isRunning &&
+		!result &&
+		!error;
 
 	useEffect(() => {
 		setIsCopied(false);
@@ -113,8 +116,8 @@ export function QuickActionPanel({
 
 					{needsConfirmation && (
 						<div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
-							This action runs on the selected target. Review the command before
-							continuing.
+							This action runs on the selected target. Review the
+							command before continuing.
 						</div>
 					)}
 
