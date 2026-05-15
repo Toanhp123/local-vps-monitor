@@ -19,6 +19,10 @@ const portItems = (ports?: string) => {
 		.filter(Boolean);
 };
 
+const displayStatusText = (status: string) => {
+	return status.replace(/\s+\((healthy|unhealthy)\)$/i, "").trim();
+};
+
 export function ApplicationTable({
 	actions,
 	apps,
@@ -48,6 +52,7 @@ export function ApplicationTable({
 				<tbody>
 					{apps.map((app) => {
 						const ports = portItems(app.ports);
+						const statusText = displayStatusText(app.status);
 
 						return (
 							<tr key={app.id}>
@@ -59,8 +64,11 @@ export function ApplicationTable({
 								</td>
 								<td className={bodyCellClass}>
 									<StatusBadge status={app.health} />
-									<span className="ml-2 inline-block max-w-45 overflow-hidden text-xs text-ellipsis align-middle text-slate-500">
-										{app.status}
+									<span
+										className="ml-2 inline-block max-w-45 overflow-hidden text-xs text-ellipsis align-middle text-slate-500"
+										title={app.status}
+									>
+										{statusText || app.status}
 									</span>
 								</td>
 								<td className={bodyCellClass}>
