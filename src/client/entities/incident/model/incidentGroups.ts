@@ -37,10 +37,10 @@ export const getIncidentIds = (incidents: IncidentEvent[]) => {
 export const getUnreadIncidentStats = (
 	incidents: IncidentEvent[],
 	readIncidentIds: Set<string>,
+	isUnreadIncident = (incident: IncidentEvent) =>
+		!readIncidentIds.has(incident.id),
 ): UnreadIncidentStats => {
-	const unreadIncidents = incidents.filter(
-		(incident) => !readIncidentIds.has(incident.id),
-	);
+	const unreadIncidents = incidents.filter(isUnreadIncident);
 
 	return {
 		activeCount: unreadIncidents.filter(isActiveIncident).length,
@@ -51,6 +51,8 @@ export const getUnreadIncidentStats = (
 export const groupIncidentsByServer = (
 	incidents: IncidentEvent[],
 	readIncidentIds: Set<string>,
+	isUnreadIncident = (incident: IncidentEvent) =>
+		!readIncidentIds.has(incident.id),
 ) => {
 	const groups = new Map<string, IncidentGroup>();
 
@@ -75,9 +77,7 @@ export const groupIncidentsByServer = (
 	const incidentGroups = Array.from(groups.values());
 
 	for (const group of incidentGroups) {
-		const unreadIncidents = group.incidents.filter(
-			(incident) => !readIncidentIds.has(incident.id),
-		);
+		const unreadIncidents = group.incidents.filter(isUnreadIncident);
 
 		group.unreadCount = unreadIncidents.length;
 		group.unreadActiveCount = unreadIncidents.filter(isActiveIncident).length;

@@ -6,32 +6,72 @@ import {
 	Server,
 	X,
 } from "lucide-react";
+import {
+	getIncidentSnoozedUntil,
+	isIncidentAcknowledged,
+	type IncidentActionState,
+	type IncidentDrawerFilter,
+	type IncidentFilterCounts,
+	type SnoozePreset,
+} from "../model/incidentActions";
 import type { IncidentGroup } from "../model/incidentGroups";
 import { relativeTime } from "../../../shared/lib/format";
 import { IncidentListItem } from "./IncidentListItem";
 
+const filterOptions: Array<{
+	countKey: keyof IncidentFilterCounts;
+	label: string;
+	value: IncidentDrawerFilter;
+}> = [
+	{ countKey: "open", label: "Open", value: "open" },
+	{ countKey: "new", label: "New", value: "new" },
+	{ countKey: "muted", label: "Muted", value: "muted" },
+	{ countKey: "all", label: "All", value: "all" },
+];
+
+const emptyMessages: Record<IncidentDrawerFilter, string> = {
+	all: "No incidents recorded",
+	muted: "No acknowledged or snoozed incidents",
+	new: "No unread incidents",
+	open: "No open incidents",
+};
+
 export function IncidentDrawer({
+	actionState,
 	badgeCount,
 	expandedServerId,
+	filterCounts,
 	groups,
 	incidentsCount,
 	isClosing,
 	now,
+	onAcknowledgeIncident,
+	onClearIncidentAction,
 	onClose,
+	onFilterChange,
 	onMarkAllRead,
+	onSnoozeIncident,
 	onToggleGroup,
 	readIncidentIds,
+	selectedFilter,
 }: {
+	actionState: IncidentActionState;
 	badgeCount: number;
 	expandedServerId: string | null;
+	filterCounts: IncidentFilterCounts;
 	groups: IncidentGroup[];
 	incidentsCount: number;
 	isClosing: boolean;
 	now: number;
+	onAcknowledgeIncident: (incidentId: string) => void;
+	onClearIncidentAction: (incidentId: string) => void;
 	onClose: () => void;
+	onFilterChange: (filter: IncidentDrawerFilter) => void;
 	onMarkAllRead: () => void;
+	onSnoozeIncident: (incidentId: string, preset: SnoozePreset) => void;
 	onToggleGroup: (group: IncidentGroup) => void;
 	readIncidentIds: Set<string>;
+	selectedFilter: IncidentDrawerFilter;
 }) {
 	return (
 		<div className="fixed inset-0 z-50">
@@ -88,11 +128,41 @@ export function IncidentDrawer({
 					</div>
 				</div>
 
+				<div className="flex flex-wrap gap-2 border-b border-slate-200 bg-white px-4.5 py-3">
+					{filterOptions.map((option) => {
+						const isSelected = selectedFilter === option.value;
+
+						return (
+							<button
+								key={option.value}
+								type="button"
+								className={`inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-extrabold ${
+									isSelected
+										? "border-slate-900 bg-slate-900 text-white"
+										: "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+								}`}
+								onClick={() => onFilterChange(option.value)}
+							>
+								{option.label}
+								<span
+									className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+										isSelected
+											? "bg-white/15 text-white"
+											: "bg-slate-100 text-slate-500"
+									}`}
+								>
+									{filterCounts[option.countKey]}
+								</span>
+							</button>
+						);
+					})}
+				</div>
+
 				<div className="min-h-0 flex-1 overflow-y-auto">
 					{groups.length === 0 ? (
 						<div className="flex min-h-44 flex-col items-center justify-center gap-2 px-6 text-center text-sm font-semibold text-slate-500">
 							<Clock size={20} />
-							No incidents recorded
+							{emptyMessages[selectedFilter]}
 						</div>
 					) : (
 						<div className="divide-y divide-slate-200">
@@ -144,14 +214,48 @@ export function IncidentDrawer({
 										</button>
 										{isExpanded && (
 											<ol className="divide-y divide-slate-100">
-												{group.incidents.map((incident) => (
-													<IncidentListItem
-														key={incident.id}
-														incident={incident}
-														isUnread={!readIncidentIds.has(incident.id)}
-														now={now}
-													/>
-												))}
+												{group.incidents.map((incident) => {
+													const snoozedUntil =
+														getIncidentSnoozedUntil(
+															incident,
+															actionState,
+															now,
+														);
+
+													return (
+														<IncidentListItem
+															key={incident.id}
+															incident={incident}
+															isAcknowledged={isIncidentAcknowledged(
+																incident,
+																actionState,
+															)}
+															isUnread={
+																!readIncidentIds.has(
+																	incident.id,
+																)
+															}
+															now={now}
+															onAcknowledge={() =>
+																onAcknowledgeIncident(
+																	incident.id,
+																)
+															}
+															onClearAction={() =>
+																onClearIncidentAction(
+																	incident.id,
+																)
+															}
+															onSnooze={(preset) =>
+																onSnoozeIncident(
+																	incident.id,
+																	preset,
+																)
+															}
+															snoozedUntil={snoozedUntil}
+														/>
+													);
+												})}
 											</ol>
 										)}
 									</section>

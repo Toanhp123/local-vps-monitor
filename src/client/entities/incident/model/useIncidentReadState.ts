@@ -59,6 +59,23 @@ export const useIncidentReadState = (incidents: IncidentEvent[]) => {
 		});
 	}, []);
 
+	const markIncidentsUnread = useCallback((incidentIds: string[]) => {
+		if (incidentIds.length === 0) return;
+
+		setReadIncidentIds((current) => {
+			let changed = false;
+			const next = new Set(current);
+
+			for (const incidentId of incidentIds) {
+				if (next.delete(incidentId)) {
+					changed = true;
+				}
+			}
+
+			return changed ? next : current;
+		});
+	}, []);
+
 	const markAllRead = useCallback(() => {
 		markIncidentsRead(getIncidentIds(incidents));
 	}, [incidents, markIncidentsRead]);
@@ -68,6 +85,8 @@ export const useIncidentReadState = (incidents: IncidentEvent[]) => {
 	}, [readIncidentIds]);
 
 	useEffect(() => {
+		if (incidents.length === 0) return;
+
 		setReadIncidentIds((current) => {
 			if (current.size === 0) return current;
 
@@ -83,6 +102,7 @@ export const useIncidentReadState = (incidents: IncidentEvent[]) => {
 	return {
 		markAllRead,
 		markIncidentsRead,
+		markIncidentsUnread,
 		readIncidentIds,
 	};
 };

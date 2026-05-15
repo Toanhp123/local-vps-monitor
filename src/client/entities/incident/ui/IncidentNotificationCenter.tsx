@@ -2,12 +2,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import type { IncidentEvent } from "../../../../shared/types";
 import {
+	filterIncidents,
+	getIncidentFilterCounts,
+	isIncidentNew,
+	type IncidentDrawerFilter,
+	type SnoozePreset,
+} from "../model/incidentActions";
+import {
 	getIncidentIds,
 	getUnreadIncidentStats,
 	groupIncidentsByServer,
 	type IncidentGroup,
 	visibleBadgeCount,
 } from "../model/incidentGroups";
+import { useIncidentActionState } from "../model/useIncidentActionState";
 import { useIncidentReadState } from "../model/useIncidentReadState";
 import { IncidentDrawer } from "./IncidentDrawer";
 
@@ -25,16 +33,55 @@ export function IncidentNotificationCenter({
 	const [expandedServerId, setExpandedServerId] = useState<string | null>(
 		null,
 	);
+	const [drawerFilter, setDrawerFilter] =
+		useState<IncidentDrawerFilter>("all");
 	const closeTimerRef = useRef<number | null>(null);
-	const { markAllRead, markIncidentsRead, readIncidentIds } =
-		useIncidentReadState(incidents);
+	const {
+		markAllRead,
+		markIncidentsRead,
+		markIncidentsUnread,
+		readIncidentIds,
+	} = useIncidentReadState(incidents);
+	const {
+		acknowledgeIncident,
+		actionState,
+		clearIncidentAction,
+		snoozeIncident,
+	} = useIncidentActionState(incidents, now);
+	const isUnreadIncident = useCallback(
+		(incident: IncidentEvent) =>
+			isIncidentNew(incident, readIncidentIds, actionState, now),
+		[actionState, now, readIncidentIds],
+	);
+	const visibleIncidents = useMemo(
+		() =>
+			filterIncidents(
+				incidents,
+				drawerFilter,
+				readIncidentIds,
+				actionState,
+				now,
+			),
+		[actionState, drawerFilter, incidents, now, readIncidentIds],
+	);
 	const incidentGroups = useMemo(
-		() => groupIncidentsByServer(incidents, readIncidentIds),
-		[incidents, readIncidentIds],
+		() =>
+			groupIncidentsByServer(
+				visibleIncidents,
+				readIncidentIds,
+				isUnreadIncident,
+			),
+		[isUnreadIncident, readIncidentIds, visibleIncidents],
 	);
 	const unreadStats = useMemo(
-		() => getUnreadIncidentStats(incidents, readIncidentIds),
-		[incidents, readIncidentIds],
+		() =>
+			getUnreadIncidentStats(incidents, readIncidentIds, isUnreadIncident),
+		[incidents, isUnreadIncident, readIncidentIds],
+	);
+	const filterCounts = useMemo(
+		() =>
+			getIncidentFilterCounts(incidents, readIncidentIds, actionState, now),
+		[actionState, incidents, now, readIncidentIds],
 	);
 
 	const openGroup = useCallback(
@@ -90,6 +137,22 @@ export function IncidentNotificationCenter({
 		[expandedServerId, openGroup],
 	);
 
+	const handleAcknowledgeIncident = useCallback(
+		(incidentId: string) => {
+			markIncidentsRead([incidentId]);
+			acknowledgeIncident(incidentId);
+		},
+		[acknowledgeIncident, markIncidentsRead],
+	);
+
+	const handleSnoozeIncident = useCallback(
+		(incidentId: string, preset: SnoozePreset) => {
+			markIncidentsRead([incidentId]);
+			snoozeIncident(incidentId, preset);
+		},
+		[markIncidentsRead, snoozeIncident],
+	);
+
 	useEffect(() => {
 		if (!isOpen) return undefined;
 
@@ -108,6 +171,31 @@ export function IncidentNotificationCenter({
 			}
 		};
 	}, []);
+
+	useEffect(() => {
+		const expiredSnoozedIncidentIds = incidents
+			.filter((incident) => {
+				const snoozedUntil =
+					actionState.snoozedUntilByIncidentId.get(incident.id);
+
+				return snoozedUntil !== undefined && snoozedUntil <= now;
+			})
+			.map((incident) => incident.id);
+
+		if (expiredSnoozedIncidentIds.length === 0) return;
+
+		markIncidentsUnread(expiredSnoozedIncidentIds);
+
+		for (const incidentId of expiredSnoozedIncidentIds) {
+			clearIncidentAction(incidentId);
+		}
+	}, [
+		actionState,
+		clearIncidentAction,
+		incidents,
+		markIncidentsUnread,
+		now,
+	]);
 
 	useEffect(() => {
 		if (!expandedServerId) return;
@@ -143,16 +231,23 @@ export function IncidentNotificationCenter({
 
 			{isOpen && (
 				<IncidentDrawer
+					actionState={actionState}
 					badgeCount={unreadStats.count}
 					expandedServerId={expandedServerId}
+					filterCounts={filterCounts}
 					groups={incidentGroups}
 					incidentsCount={incidents.length}
 					isClosing={isClosing}
 					now={now}
+					onAcknowledgeIncident={handleAcknowledgeIncident}
+					onClearIncidentAction={clearIncidentAction}
 					onClose={closeDrawer}
+					onFilterChange={setDrawerFilter}
 					onMarkAllRead={markAllRead}
+					onSnoozeIncident={handleSnoozeIncident}
 					onToggleGroup={handleToggleGroup}
 					readIncidentIds={readIncidentIds}
+					selectedFilter={drawerFilter}
 				/>
 			)}
 		</>
