@@ -10,7 +10,6 @@ import {
 	Undo2,
 	type LucideIcon,
 } from "lucide-react";
-import type { ChangeEvent } from "react";
 import type {
 	IncidentEvent,
 	IncidentKind,
@@ -21,6 +20,7 @@ import {
 	type SnoozePreset,
 } from "../model/incidentActions";
 import { relativeTime } from "../../../shared/lib/format";
+import { SelectField } from "../../../shared/ui/SelectField";
 
 const severityLabels: Record<IncidentSeverity, string> = {
 	critical: "Critical",
@@ -66,6 +66,10 @@ const formatSnoozedUntil = (snoozedUntil: number) => {
 		month: "short",
 	}).format(new Date(snoozedUntil));
 };
+const snoozeOptions = snoozePresets.map((preset) => ({
+	label: preset.label,
+	value: preset.value,
+}));
 
 export function IncidentListItem({
 	incident,
@@ -91,13 +95,6 @@ export function IncidentListItem({
 			? resolvedIcons[incident.kind] || CheckCircle2
 			: kindIcons[incident.kind];
 	const isMuted = isAcknowledged || snoozedUntil !== undefined;
-	const handleSnoozeChange = (event: ChangeEvent<HTMLSelectElement>) => {
-		const preset = event.currentTarget.value as SnoozePreset | "";
-		if (!preset) return;
-
-		onSnooze(preset);
-		event.currentTarget.value = "";
-	};
 
 	return (
 		<li className="grid grid-cols-[auto_1fr] gap-3 px-4.5 py-4">
@@ -165,27 +162,15 @@ export function IncidentListItem({
 								<CheckCircle2 size={14} />
 								Acknowledge
 							</button>
-							<label className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-extrabold text-slate-600 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700">
-								<BellOff size={14} />
-								<select
-									className="cursor-pointer bg-transparent font-extrabold outline-none"
-									defaultValue=""
-									onChange={handleSnoozeChange}
-									aria-label={`Snooze ${incident.title}`}
-								>
-									<option value="" disabled>
-										Snooze
-									</option>
-									{snoozePresets.map((preset) => (
-										<option
-											key={preset.value}
-											value={preset.value}
-										>
-											{preset.label}
-										</option>
-									))}
-								</select>
-							</label>
+							<SelectField
+								ariaLabel={`Snooze ${incident.title}`}
+								buttonClassName="inline-flex min-h-8 cursor-pointer items-center justify-between gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-extrabold text-slate-600 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700"
+								leadingIcon={<BellOff size={14} />}
+								onChange={(value) => onSnooze(value as SnoozePreset)}
+								options={snoozeOptions}
+								placeholder="Snooze"
+								value=""
+							/>
 						</>
 					)}
 				</div>

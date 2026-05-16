@@ -7,6 +7,7 @@ import type {
 	StoredServer,
 } from "../../../../shared/types";
 import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
+import { SelectField } from "../../../shared/ui/SelectField";
 
 const defaultForm = {
 	appId: "",
@@ -23,6 +24,10 @@ const defaultForm = {
 const inputClass =
 	"min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-800 outline-none focus:border-blue-300";
 const labelClass = "grid gap-1.5 text-xs font-bold text-slate-500";
+const methodOptions = [
+	{ label: "GET", value: "GET" },
+	{ label: "HEAD", value: "HEAD" },
+];
 
 const formFromCheck = (check: HttpCheck) => ({
 	appId: check.appId ?? "",
@@ -68,6 +73,20 @@ export function HttpCheckForm({
 		(server) => server.serverId === form.serverId,
 	);
 	const apps = selectedServer?.apps ?? [];
+	const serverOptions = [
+		{ label: "None", value: "" },
+		...servers.map((server) => ({
+			label: server.serverName,
+			value: server.serverId,
+		})),
+	];
+	const appOptions = [
+		{ label: "None", value: "" },
+		...apps.map((app) => ({
+			label: appDisplayName(app),
+			value: app.id,
+		})),
+	];
 
 	useEffect(() => {
 		setForm(editingCheck ? formFromCheck(editingCheck) : defaultForm);
@@ -124,17 +143,15 @@ export function HttpCheckForm({
 					value={form.url}
 				/>
 			</label>
-			<label className={labelClass}>
-				Method
-				<select
-					className={inputClass}
-					onChange={(event) => updateField("method", event.target.value)}
+			<div className={labelClass}>
+				<span>Method</span>
+				<SelectField
+					ariaLabel="HTTP check method"
+					onChange={(value) => updateField("method", value)}
+					options={methodOptions}
 					value={form.method}
-				>
-					<option value="GET">GET</option>
-					<option value="HEAD">HEAD</option>
-				</select>
-			</label>
+				/>
+			</div>
 			<label className={labelClass}>
 				Min
 				<input
@@ -176,37 +193,26 @@ export function HttpCheckForm({
 					value={form.timeoutMs}
 				/>
 			</label>
-			<label className={labelClass}>
-				Server
-				<select
-					className={inputClass}
-					onChange={(event) => updateField("serverId", event.target.value)}
+			<div className={labelClass}>
+				<span>Server</span>
+				<SelectField
+					ariaLabel="Linked server"
+					onChange={(value) => updateField("serverId", value)}
+					options={serverOptions}
 					value={form.serverId}
-				>
-					<option value="">None</option>
-					{servers.map((server) => (
-						<option key={server.serverId} value={server.serverId}>
-							{server.serverName}
-						</option>
-					))}
-				</select>
-			</label>
-			<label className={labelClass}>
-				App
-				<select
-					className={inputClass}
+				/>
+			</div>
+			<div className={labelClass}>
+				<span>App</span>
+				<SelectField
+					ariaLabel="Linked app"
 					disabled={!selectedServer}
-					onChange={(event) => updateField("appId", event.target.value)}
+					onChange={(value) => updateField("appId", value)}
+					options={appOptions}
+					placeholder="None"
 					value={form.appId}
-				>
-					<option value="">None</option>
-					{apps.map((app) => (
-						<option key={app.id} value={app.id}>
-							{appDisplayName(app)}
-						</option>
-					))}
-				</select>
-			</label>
+				/>
+			</div>
 			<label className="col-span-1 flex min-h-10 items-end gap-2 text-xs font-bold text-slate-500">
 				<input
 					checked={form.enabled}

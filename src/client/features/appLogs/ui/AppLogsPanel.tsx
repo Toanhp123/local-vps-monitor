@@ -12,6 +12,7 @@ import {
 import type { AppLogsResponse, AppSnapshot } from "../../../../shared/types";
 import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
 import { RuntimeBadge } from "../../../entities/application/ui/RuntimeBadge";
+import { SelectField } from "../../../shared/ui/SelectField";
 
 const fetchedAtLabel = (value?: string) => {
 	if (!value) return "";
@@ -33,6 +34,10 @@ const warningPattern = /\b(warn|warning|deprecated|retry|timeout)\b/i;
 const dockerTimestampPattern =
 	/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?Z\s+(.*)$/;
 const duplicateTimePattern = /^\d{2}:\d{2}:\d{2}(?:\.\d+)?\s+/;
+const lineCountOptions = [100, 200, 300, 500, 1000].map((value) => ({
+	label: `${value} lines`,
+	value: String(value),
+}));
 
 const formatLogTimestamp = (value: string) => {
 	const date = new Date(value);
@@ -240,20 +245,14 @@ export function AppLogsPanel({
 								</button>
 							)}
 						</label>
-						<select
-							className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm font-bold text-slate-700 outline-0"
-							value={lineCount}
-							onChange={(event) =>
-								onLineCountChange(Number(event.target.value))
-							}
+						<SelectField
+							ariaLabel="Log line count"
+							buttonClassName="inline-flex min-h-9 min-w-28 cursor-pointer items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2.5 text-left text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
 							disabled={isLoading}
-						>
-							<option value={100}>100 lines</option>
-							<option value={200}>200 lines</option>
-							<option value={300}>300 lines</option>
-							<option value={500}>500 lines</option>
-							<option value={1000}>1000 lines</option>
-						</select>
+							onChange={(value) => onLineCountChange(Number(value))}
+							options={lineCountOptions}
+							value={String(lineCount)}
+						/>
 						<button
 							type="button"
 							className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
