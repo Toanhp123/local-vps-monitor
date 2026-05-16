@@ -18,6 +18,7 @@ export function ServerDetailsPage() {
 		isAnyScanActive,
 		now,
 		overview,
+		pinnedItems,
 	} = useMonitorShellContext();
 	const selectedServer = serverId
 		? overview?.servers.find((server) => server.serverId === serverId) ||
@@ -64,6 +65,7 @@ export function ServerDetailsPage() {
 				onRunQuickAction={quickActions.requestAction}
 				onUpdateAppPolicy={appMonitoringRules.upsertAppOverride}
 				onScan={() => handleScanServer(selectedServer.serverId)}
+				pinnedItems={pinnedItems}
 				server={selectedServer}
 			/>
 			<AppLogsPanel

@@ -13,11 +13,13 @@ export function ServerTableRow({
 	actions,
 	now,
 	onOpen,
+	pinControl,
 	server,
 }: {
 	actions: ReactNode;
 	now: number;
 	onOpen: () => void;
+	pinControl?: ReactNode;
 	server: StoredServer;
 }) {
 	const memory = serverMemory(server);
@@ -28,6 +30,7 @@ export function ServerTableRow({
 		<tr className="cursor-pointer hover:bg-blue-50/50" onClick={onOpen}>
 			<td className={`${bodyCellClass} min-w-68`}>
 				<div className="flex items-center gap-2.5">
+					{pinControl}
 					<span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
 						{server.online ? <Server size={17} /> : <WifiOff size={17} />}
 					</span>

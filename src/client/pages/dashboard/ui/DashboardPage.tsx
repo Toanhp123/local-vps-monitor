@@ -18,6 +18,7 @@ export function DashboardPage() {
 		localDockerScanner,
 		now,
 		overview,
+		pinnedItems,
 		query,
 		setQuery,
 	} = useMonitorShellContext();
@@ -54,11 +55,13 @@ export function DashboardPage() {
 				activeScanId={activeScanId}
 				hasActiveFilter={false}
 				isScanDisabled={isAnyScanActive}
+				isServerPinned={pinnedItems.isServerPinned}
 				now={now}
 				onOpenServer={openServerDetail}
 				onScanServer={handleScanServer}
+				onToggleServerPin={pinnedItems.toggleServerPin}
 				query={query}
-				servers={filteredServers}
+				servers={pinnedItems.sortServers(filteredServers)}
 			/>
 		</>
 	);

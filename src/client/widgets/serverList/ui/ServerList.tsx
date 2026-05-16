@@ -1,5 +1,6 @@
 import type { StoredServer } from "../../../../shared/types";
 import { ServerTableRow } from "../../../entities/server/ui/ServerTableRow";
+import { PinToggleButton } from "../../../features/pinnedItems/ui/PinToggleButton";
 import { ScanServerButton } from "../../../features/serverScan/ui/ScanServerButton";
 import { ServerListEmptyState } from "./ServerListEmptyState";
 import { ServerTableHeader } from "./ServerTableHeader";
@@ -8,18 +9,22 @@ export function ServerList({
 	activeScanId,
 	hasActiveFilter,
 	isScanDisabled,
+	isServerPinned,
 	now,
 	onOpenServer,
 	onScanServer,
+	onToggleServerPin,
 	query,
 	servers,
 }: {
 	activeScanId: string | null;
 	hasActiveFilter: boolean;
 	isScanDisabled: boolean;
+	isServerPinned: (serverId: string) => boolean;
 	now: number;
 	onOpenServer: (serverId: string) => void;
 	onScanServer: (serverId: string) => void;
+	onToggleServerPin: (serverId: string) => void;
 	query: string;
 	servers: StoredServer[];
 }) {
@@ -73,6 +78,19 @@ export function ServerList({
 										}
 										now={now}
 										onOpen={() => onOpenServer(server.serverId)}
+										pinControl={
+											<PinToggleButton
+												ariaLabel={
+													isServerPinned(server.serverId)
+														? `Unpin ${server.serverName}`
+														: `Pin ${server.serverName}`
+												}
+												isPinned={isServerPinned(server.serverId)}
+												onToggle={() =>
+													onToggleServerPin(server.serverId)
+												}
+											/>
+										}
 										server={server}
 									/>
 								);

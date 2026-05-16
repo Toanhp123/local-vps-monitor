@@ -17,6 +17,8 @@ import { ServerMetricCharts } from "../../../entities/server/ui/ServerMetricChar
 import { ServerMetricsGrid } from "../../../entities/server/ui/ServerMetricsGrid";
 import { AppPolicyDialog } from "../../../features/appMonitoringRules/ui/AppPolicyDialog";
 import { OpenAppLogsButton } from "../../../features/appLogs/ui/OpenAppLogsButton";
+import type { usePinnedItems } from "../../../features/pinnedItems/model/usePinnedItems";
+import { PinToggleButton } from "../../../features/pinnedItems/ui/PinToggleButton";
 import {
 	buildAppQuickActions,
 	buildServerQuickActions,
@@ -39,6 +41,7 @@ export function ServerDetailsView({
 	onRunQuickAction,
 	onUpdateAppPolicy,
 	onScan,
+	pinnedItems,
 	server,
 }: {
 	activeAppPolicyKey: string | null;
@@ -51,13 +54,17 @@ export function ServerDetailsView({
 	onRunQuickAction: (action: QuickActionDefinition) => void;
 	onUpdateAppPolicy: (input: AppMonitorAppOverrideInput) => Promise<boolean>;
 	onScan: () => void;
+	pinnedItems: ReturnType<typeof usePinnedItems>;
 	server: StoredServer;
 }) {
 	const dockerApps = server.apps.filter(
 		(app) => app.kind === "docker",
 	).length;
 	const pm2Apps = server.apps.filter((app) => app.kind === "pm2").length;
-	const appGroups = groupApplications(server.apps);
+	const appGroups = pinnedItems.sortAppGroups(
+		server.serverId,
+		groupApplications(server.apps),
+	);
 	const serverQuickActions = buildServerQuickActions(server);
 	const appCounts = serverAppCounts(server);
 
@@ -172,6 +179,26 @@ export function ServerDetailsView({
 									>
 										<div className="flex items-center justify-between gap-3 border-b border-slate-200 px-3.5 py-3 max-md:flex-col max-md:items-stretch">
 											<div className="flex min-w-0 items-center gap-2.5">
+												<PinToggleButton
+													ariaLabel={
+														pinnedItems.isAppGroupPinned(
+															server.serverId,
+															group.id,
+														)
+															? `Unpin ${group.name}`
+															: `Pin ${group.name}`
+													}
+													isPinned={pinnedItems.isAppGroupPinned(
+														server.serverId,
+														group.id,
+													)}
+													onToggle={() =>
+														pinnedItems.toggleAppGroupPin(
+															server.serverId,
+															group.id,
+														)
+													}
+												/>
 												<span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
 													<GroupIcon size={17} />
 												</span>

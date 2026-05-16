@@ -5,6 +5,7 @@ import { useAppMonitoringRules } from "../../../features/appMonitoringRules/mode
 import { useHttpCheckManager } from "../../../features/httpChecks/model/useHttpCheckManager";
 import { useLocalDockerScanner } from "../../../features/localDockerScan/model/useLocalDockerScanner";
 import { useMonitorOverview } from "../../../features/monitorOverview/model/useMonitorOverview";
+import { usePinnedItems } from "../../../features/pinnedItems/model/usePinnedItems";
 import { useSshTargetManager } from "../../../features/sshTargetManagement/model/useSshTargetManager";
 import { routes } from "../../../shared/config/routes";
 import { useNow } from "../../../shared/lib/useNow";
@@ -28,6 +29,7 @@ export function MonitorLayoutPage() {
 	const appMonitoringRules = useAppMonitoringRules(loadOverview);
 	const httpCheckManager = useHttpCheckManager(loadOverview);
 	const localDockerScanner = useLocalDockerScanner(loadOverview);
+	const pinnedItems = usePinnedItems();
 	const sshTargetManager = useSshTargetManager(loadOverview);
 	const serverDetailMatch = useMatch("/servers/:serverId");
 	const httpChecksMatch = useMatch(routes.httpChecks);
@@ -104,6 +106,7 @@ export function MonitorLayoutPage() {
 		localDockerScanner,
 		now,
 		overview,
+		pinnedItems,
 		query,
 		setQuery,
 		sshTargetManager,

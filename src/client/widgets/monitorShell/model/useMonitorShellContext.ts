@@ -4,6 +4,7 @@ import type { useAppMonitoringRules } from "../../../features/appMonitoringRules
 import type { useLocalDockerScanner } from "../../../features/localDockerScan/model/useLocalDockerScanner";
 import type { useHttpCheckManager } from "../../../features/httpChecks/model/useHttpCheckManager";
 import type { useSshTargetManager } from "../../../features/sshTargetManagement/model/useSshTargetManager";
+import type { usePinnedItems } from "../../../features/pinnedItems/model/usePinnedItems";
 
 export interface MonitorShellContext {
 	activeScanId: string | null;
@@ -17,6 +18,7 @@ export interface MonitorShellContext {
 	localDockerScanner: ReturnType<typeof useLocalDockerScanner>;
 	now: number;
 	overview: OverviewResponse | null;
+	pinnedItems: ReturnType<typeof usePinnedItems>;
 	query: string;
 	setQuery: (query: string) => void;
 	sshTargetManager: ReturnType<typeof useSshTargetManager>;
