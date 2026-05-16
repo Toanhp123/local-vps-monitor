@@ -1,4 +1,5 @@
 import { AppLogsNotFoundError, AppLogsUnsupportedError } from "../services/appLogsService";
+import { HttpCheckNotFoundError } from "../services/httpCheckService";
 import {
   QuickActionNotFoundError,
   QuickActionUnsupportedError
@@ -39,6 +40,7 @@ export const isKnownApiError = (error: unknown) => {
     error instanceof ApiError ||
     error instanceof AppLogsNotFoundError ||
     error instanceof AppLogsUnsupportedError ||
+    error instanceof HttpCheckNotFoundError ||
     error instanceof QuickActionNotFoundError ||
     error instanceof QuickActionUnsupportedError ||
     error instanceof SshTargetNotFoundError ||
@@ -86,6 +88,13 @@ export const apiErrorResponse = (error: unknown): ApiErrorResponse => {
   if (error instanceof QuickActionNotFoundError) {
     return {
       body: { error: error.message },
+      statusCode: 404
+    };
+  }
+
+  if (error instanceof HttpCheckNotFoundError) {
+    return {
+      body: { error: "HTTP check not found" },
       statusCode: 404
     };
   }

@@ -74,7 +74,8 @@ export type IncidentKind =
   | "app-health"
   | "app-removed"
   | "app-restart"
-  | "disk-usage";
+  | "disk-usage"
+  | "http-check";
 
 export interface IncidentEvent {
   id: string;
@@ -185,6 +186,73 @@ export interface SshTargetTestResponse {
   message: string;
   ok: boolean;
   targetId: string;
+}
+
+export type HttpCheckMethod = "GET" | "HEAD";
+export type HttpCheckStatus = "healthy" | "warning" | "down" | "unknown";
+
+export interface HttpCheckResult {
+  checkedAt: string;
+  error?: string;
+  latencyMs?: number;
+  status: HttpCheckStatus;
+  statusCode?: number;
+}
+
+export interface HttpCheck {
+  id: string;
+  appId?: string;
+  createdAt: string;
+  enabled: boolean;
+  expectedStatusMax: number;
+  expectedStatusMin: number;
+  lastResult?: HttpCheckResult;
+  method: HttpCheckMethod;
+  name: string;
+  serverId?: string;
+  timeoutMs: number;
+  updatedAt: string;
+  url: string;
+}
+
+export interface HttpCheckCreateInput {
+  appId?: string;
+  enabled?: boolean;
+  expectedStatusMax?: number;
+  expectedStatusMin?: number;
+  method?: HttpCheckMethod;
+  name: string;
+  serverId?: string;
+  timeoutMs?: number;
+  url: string;
+}
+
+export interface HttpCheckUpdateInput {
+  appId?: string;
+  enabled?: boolean;
+  expectedStatusMax?: number;
+  expectedStatusMin?: number;
+  method?: HttpCheckMethod;
+  name?: string;
+  serverId?: string;
+  timeoutMs?: number;
+  url?: string;
+}
+
+export interface HttpCheckListResponse {
+  checks: HttpCheck[];
+}
+
+export interface HttpCheckRunResponse {
+  check: HttpCheck;
+}
+
+export interface HttpCheckRunAllResponse {
+  results: HttpCheck[];
+  errors: Array<{
+    checkId: string;
+    message: string;
+  }>;
 }
 
 export interface ScanResult {

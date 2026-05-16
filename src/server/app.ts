@@ -8,6 +8,7 @@ import { createApiRouter } from "./routes/apiRoutes";
 import type { LocalDockerScanService } from "./services/localDockerScanService";
 import type { MonitorOverviewService } from "./services/monitorOverviewService";
 import type { SshScanService } from "./services/sshScanService";
+import type { HttpCheckService } from "./services/httpCheckService";
 
 const mountClientApp = (app: Express) => {
 	const clientDist = path.resolve(process.cwd(), "dist/client");
@@ -28,6 +29,7 @@ const mountClientApp = (app: Express) => {
 
 export interface ServerAppContext {
 	app: Express;
+	httpCheckService: HttpCheckService;
 	localDockerScanService: LocalDockerScanService;
 	monitorOverviewService: MonitorOverviewService;
 	services: ServerServices;
@@ -44,6 +46,7 @@ export const createApp = (services = createServerServices()) => {
 		createApiRouter({
 			appLogsService: services.appLogsService,
 			healthService: services.healthService,
+			httpCheckService: services.httpCheckService,
 			localDockerScanService: services.localDockerScanService,
 			monitorOverviewService: services.monitorOverviewService,
 			quickActionService: services.quickActionService,
@@ -59,6 +62,7 @@ export const createApp = (services = createServerServices()) => {
 
 	return {
 		app,
+		httpCheckService: services.httpCheckService,
 		localDockerScanService: services.localDockerScanService,
 		monitorOverviewService: services.monitorOverviewService,
 		services,

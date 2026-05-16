@@ -1,7 +1,9 @@
 import type {
+	IncidentEvent,
 	OverviewResponse,
 	ServerSnapshotPayload,
 } from "../../shared/types";
+import { appendIncidentTimeline } from "../domain/monitoring/incidents/incidentTimeline";
 import {
 	buildOverview,
 	createStoredServerFromSnapshot,
@@ -45,6 +47,21 @@ export class MonitorOverviewService {
 		return this.getOverview().servers.find(
 			(server) => server.serverId === serverId,
 		);
+	}
+
+	appendServerIncident(serverId: string, incident: IncidentEvent) {
+		const server = this.monitorStateStore.getServer(serverId);
+		if (!server) return null;
+
+		const updatedServer = {
+			...server,
+			incidents: appendIncidentTimeline(server.incidents, [incident]),
+		};
+
+		this.monitorStateStore.upsertServer(updatedServer);
+		this.notifyOverviewUpdated();
+
+		return updatedServer;
 	}
 
 	onOverviewUpdated(listener: OverviewListener) {

@@ -13,6 +13,7 @@ It is built for developers who run apps with Docker or PM2 and want a quick way 
 - Shows lightweight CPU, RAM, and disk charts from local scan history.
 - Shows an incident notification drawer for app status changes and restarts.
 - Raises disk usage incidents when a server filesystem crosses warning or critical thresholds.
+- Runs HTTP health checks against app or server URLs and records latency, status codes, and failures.
 - Runs allowlisted quick actions such as app restarts and basic VPS checks.
 - Updates the dashboard through WebSocket after scans.
 - Runs automatic scans through `AUTO_SCAN_INTERVAL_MS`.
@@ -244,9 +245,11 @@ npm start
 - `DASHBOARD_PORT`: dashboard dev server port for `npm run dev`. Defaults to `5173`.
 - `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
 - `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.
+- `HTTP_CHECKS_FILE`: local HTTP health check config file. Defaults to `./data/http-checks.json`.
 - `SSH_COMMAND_TIMEOUT_MS`: SSH connect and command timeout. Defaults to `12000`.
 - `LOCAL_DOCKER_COMMAND_TIMEOUT_MS`: local Docker command timeout. Defaults to `12000`.
 - `OFFLINE_AFTER_MS`: timeout before a server is marked offline.
 - `REALTIME_BROADCAST_MS`: interval for periodic WebSocket overview broadcasts.
 - `AUTO_SCAN_INTERVAL_MS`: interval for automatic SSH and Local Docker scans. Set to `0` to disable.
 - `SSH_SCAN_CONCURRENCY`: maximum SSH scans running at the same time. Defaults to `4`.
+- `HTTP_CHECK_CONCURRENCY`: maximum HTTP checks running at the same time. Defaults to `8`.

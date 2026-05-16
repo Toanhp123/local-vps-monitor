@@ -1,6 +1,7 @@
 import { serverConfig } from "./config";
 import { AppLogsService } from "./services/appLogsService";
 import { HealthService } from "./services/healthService";
+import { HttpCheckService } from "./services/httpCheckService";
 import { LocalDockerScanService } from "./services/localDockerScanService";
 import { MonitorOverviewService } from "./services/monitorOverviewService";
 import { QuickActionService } from "./services/quickActionService";
@@ -9,11 +10,13 @@ import { SshTargetBootstrapService } from "./services/sshTargetBootstrapService"
 import { SshTargetConfigService } from "./services/sshTargetConfigService";
 import { SshTargetImportService } from "./services/sshTargetImportService";
 import { MonitorStateStore } from "./stores/monitorStateStore";
+import { HttpCheckConfigStore } from "./stores/httpCheckConfigStore";
 import { SshTargetConfigStore } from "./stores/sshTargetConfigStore";
 
 export interface ServerServices {
 	appLogsService: AppLogsService;
 	healthService: HealthService;
+	httpCheckService: HttpCheckService;
 	localDockerScanService: LocalDockerScanService;
 	monitorOverviewService: MonitorOverviewService;
 	quickActionService: QuickActionService;
@@ -27,6 +30,9 @@ export const createServerServices = (): ServerServices => {
 	const monitorStateStore = new MonitorStateStore(serverConfig.dataFile);
 	const sshTargetConfigStore = new SshTargetConfigStore(
 		serverConfig.sshTargetsFile,
+	);
+	const httpCheckConfigStore = new HttpCheckConfigStore(
+		serverConfig.httpChecksFile,
 	);
 	const monitorOverviewService = new MonitorOverviewService(
 		monitorStateStore,
@@ -71,10 +77,16 @@ export const createServerServices = (): ServerServices => {
 		serverConfig.localDockerCommandTimeoutMs,
 		serverConfig.sshCommandTimeoutMs,
 	);
+	const httpCheckService = new HttpCheckService(
+		httpCheckConfigStore,
+		monitorOverviewService,
+		serverConfig.httpCheckConcurrency,
+	);
 
 	return {
 		appLogsService,
 		healthService,
+		httpCheckService,
 		localDockerScanService,
 		monitorOverviewService,
 		quickActionService,
