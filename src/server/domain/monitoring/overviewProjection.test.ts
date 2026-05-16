@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { DiskMetrics, ServerSnapshotPayload } from "../../../shared/types";
+import type {
+	AppMonitorRule,
+	DiskMetrics,
+	ServerSnapshotPayload,
+} from "../../../shared/types";
 import { createStoredServerFromSnapshot } from "./overviewProjection";
 
 const diskForPercent = (usedPercent: number): DiskMetrics => {
@@ -34,6 +38,17 @@ const payloadWithDisk = (usedPercent: number): ServerSnapshotPayload => ({
 	observedAt: "2026-05-15T00:00:00.000Z",
 	serverId: "server-1",
 	serverName: "Production VPS",
+});
+
+const payloadWithApps = (
+	apps: ServerSnapshotPayload["apps"],
+): ServerSnapshotPayload => ({
+	...payloadWithDisk(50),
+	apps,
+	host: {
+		...payloadWithDisk(50).host,
+		disk: undefined,
+	},
 });
 
 test("creates disk warning incidents and stores disk metric history", () => {
@@ -76,4 +91,72 @@ test("creates disk critical and recovery incidents only when threshold state cha
 	assert.equal(criticalServer.incidents[0]?.severity, "critical");
 	assert.equal(recoveredServer.incidents[0]?.severity, "resolved");
 	assert.equal(recoveredServer.status, "healthy");
+});
+
+test("ignores matching apps when projecting server health and incidents", () => {
+	const rules: AppMonitorRule[] = [
+		{
+			createdAt: "2026-05-15T00:00:00.000Z",
+			enabled: true,
+			id: "rule-ignore-watchtower",
+			importance: "ignored",
+			match: "watchtower",
+			matchMode: "contains",
+			name: "Ignore Watchtower",
+			updatedAt: "2026-05-15T00:00:00.000Z",
+		},
+	];
+	const server = createStoredServerFromSnapshot(
+		payloadWithApps([
+			{
+				health: "down",
+				id: "docker-watchtower",
+				kind: "docker",
+				name: "watchtower",
+				status: "exited",
+			},
+		]),
+		undefined,
+		new Date("2026-05-15T00:00:00.000Z"),
+		rules,
+	);
+
+	assert.equal(server.status, "healthy");
+	assert.equal(server.incidents.length, 0);
+	assert.equal(server.apps[0]?.monitoring?.importance, "ignored");
+});
+
+test("uses critical rules to escalate app health incidents", () => {
+	const rules: AppMonitorRule[] = [
+		{
+			appId: "docker-api",
+			createdAt: "2026-05-15T00:00:00.000Z",
+			displayName: "Public API",
+			enabled: true,
+			id: "rule-critical-api",
+			importance: "critical",
+			name: "Public API override",
+			serverId: "server-1",
+			updatedAt: "2026-05-15T00:00:00.000Z",
+		},
+	];
+	const server = createStoredServerFromSnapshot(
+		payloadWithApps([
+			{
+				health: "down",
+				id: "docker-api",
+				kind: "docker",
+				name: "api-1",
+				status: "exited",
+			},
+		]),
+		undefined,
+		new Date("2026-05-15T00:00:00.000Z"),
+		rules,
+	);
+
+	assert.equal(server.status, "down");
+	assert.equal(server.incidents[0]?.severity, "critical");
+	assert.equal(server.incidents[0]?.appName, "Public API");
+	assert.equal(server.apps[0]?.monitoring?.importance, "critical");
 });

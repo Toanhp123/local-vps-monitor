@@ -10,6 +10,7 @@ import {
 	X,
 } from "lucide-react";
 import type { AppLogsResponse, AppSnapshot } from "../../../../shared/types";
+import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
 import { RuntimeBadge } from "../../../entities/application/ui/RuntimeBadge";
 
 const fetchedAtLabel = (value?: string) => {
@@ -200,7 +201,7 @@ export function AppLogsPanel({
 					<div className="min-w-0">
 						<div className="flex min-w-0 flex-wrap items-center gap-2">
 							<h2 className="max-w-150 overflow-hidden text-ellipsis text-lg leading-tight font-extrabold text-slate-900">
-								{app.name}
+								{appDisplayName(app)}
 							</h2>
 							<RuntimeBadge kind={app.kind} />
 						</div>

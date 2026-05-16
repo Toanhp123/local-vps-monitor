@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
+import { useAppMonitoringRules } from "../../../features/appMonitoringRules/model/useAppMonitoringRules";
 import { useHttpCheckManager } from "../../../features/httpChecks/model/useHttpCheckManager";
 import { useLocalDockerScanner } from "../../../features/localDockerScan/model/useLocalDockerScanner";
 import { useMonitorOverview } from "../../../features/monitorOverview/model/useMonitorOverview";
@@ -24,6 +25,7 @@ export function MonitorLayoutPage() {
 		requestStatus,
 		setQuery,
 	} = useMonitorOverview();
+	const appMonitoringRules = useAppMonitoringRules(loadOverview);
 	const httpCheckManager = useHttpCheckManager(loadOverview);
 	const localDockerScanner = useLocalDockerScanner(loadOverview);
 	const sshTargetManager = useSshTargetManager(loadOverview);
@@ -92,6 +94,7 @@ export function MonitorLayoutPage() {
 
 	const context: MonitorShellContext = {
 		activeScanId,
+		appMonitoringRules,
 		filteredServers,
 		handleScanAll,
 		handleScanServer,
@@ -136,6 +139,7 @@ export function MonitorLayoutPage() {
 				toast={
 					localDockerScanner.toast ||
 					sshTargetManager.toast ||
+					appMonitoringRules.toast ||
 					httpCheckManager.toast
 				}
 			/>

@@ -5,6 +5,11 @@ import type {
 	IncidentSeverity,
 	ServerSnapshotPayload,
 } from "../../../../shared/types";
+import {
+	appDisplayName,
+	appImportance,
+	isIgnoredApp,
+} from "../applications/appMonitoringPolicy";
 import { createIncidentId } from "./incidentIds";
 
 const healthLabels: Record<HealthStatus, string> = {
@@ -14,9 +19,14 @@ const healthLabels: Record<HealthStatus, string> = {
 	healthy: "Healthy",
 };
 
-const incidentSeverityForHealth = (health: HealthStatus): IncidentSeverity => {
+const incidentSeverityForHealth = (
+	health: HealthStatus,
+	importance = "normal",
+): IncidentSeverity => {
 	if (health === "healthy") return "resolved";
-	if (health === "down") return "critical";
+	if (health === "down") {
+		return importance === "critical" ? "critical" : "warning";
+	}
 	if (health === "warning") return "warning";
 
 	return "warning";
@@ -37,6 +47,8 @@ const createAppHealthIncident = (
 	const currentLabel = healthLabels[app.health];
 	const previousLabel = previousHealth ? healthLabels[previousHealth] : "new";
 	const isRecovered = app.health === "healthy";
+	const appName = appDisplayName(app);
+	const importance = appImportance(app);
 
 	return {
 		id: createIncidentId(
@@ -47,20 +59,20 @@ const createAppHealthIncident = (
 			app.health,
 		),
 		appId: app.id,
-		appName: app.name,
+		appName,
 		currentHealth: app.health,
 		kind: "app-health",
 		message: previousApp
-			? `${app.name} changed from ${previousLabel} to ${currentLabel}.`
-			: `${app.name} first reported with ${currentLabel} status.`,
+			? `${appName} changed from ${previousLabel} to ${currentLabel}.`
+			: `${appName} first reported with ${currentLabel} status.`,
 		occurredAt: observedAt.toISOString(),
 		previousHealth,
 		serverId: payload.serverId,
 		serverName: payload.serverName,
-		severity: incidentSeverityForHealth(app.health),
+		severity: incidentSeverityForHealth(app.health, importance),
 		title: isRecovered
-			? `${app.name} recovered`
-			: `${app.name} is ${currentLabel.toLowerCase()}`,
+			? `${appName} recovered`
+			: `${appName} is ${currentLabel.toLowerCase()}`,
 	};
 };
 
@@ -80,6 +92,7 @@ const createAppRestartIncident = (
 	) {
 		return null;
 	}
+	const appName = appDisplayName(app);
 
 	return {
 		id: createIncidentId(
@@ -90,16 +103,16 @@ const createAppRestartIncident = (
 			String(currentRestarts),
 		),
 		appId: app.id,
-		appName: app.name,
+		appName,
 		currentValue: currentRestarts,
 		kind: "app-restart",
-		message: `${app.name} restart count increased from ${previousRestarts} to ${currentRestarts}.`,
+		message: `${appName} restart count increased from ${previousRestarts} to ${currentRestarts}.`,
 		occurredAt: observedAt.toISOString(),
 		previousValue: previousRestarts,
 		serverId: payload.serverId,
 		serverName: payload.serverName,
 		severity: "warning",
-		title: `${app.name} restarted`,
+		title: `${appName} restarted`,
 	};
 };
 
@@ -110,6 +123,8 @@ const createAppAddedIncident = (
 ): IncidentEvent => {
 	const currentLabel = healthLabels[app.health];
 	const isHealthy = app.health === "healthy";
+	const appName = appDisplayName(app);
+	const importance = appImportance(app);
 
 	return {
 		id: createIncidentId(
@@ -120,17 +135,19 @@ const createAppAddedIncident = (
 			app.health,
 		),
 		appId: app.id,
-		appName: app.name,
+		appName,
 		currentHealth: app.health,
 		kind: "app-added",
-		message: `${app.name} now reports as a ${appKindLabel(app)} app on ${payload.serverName}.`,
+		message: `${appName} now reports as a ${appKindLabel(app)} app on ${payload.serverName}.`,
 		occurredAt: observedAt.toISOString(),
 		serverId: payload.serverId,
 		serverName: payload.serverName,
-		severity: isHealthy ? "info" : incidentSeverityForHealth(app.health),
+		severity: isHealthy
+			? "info"
+			: incidentSeverityForHealth(app.health, importance),
 		title: isHealthy
-			? `${app.name} added`
-			: `${app.name} added with ${currentLabel.toLowerCase()} status`,
+			? `${appName} added`
+			: `${appName} added with ${currentLabel.toLowerCase()} status`,
 	};
 };
 
@@ -139,6 +156,9 @@ const createAppRemovedIncident = (
 	payload: ServerSnapshotPayload,
 	observedAt: Date,
 ): IncidentEvent => {
+	const appName = appDisplayName(app);
+	const importance = appImportance(app);
+
 	return {
 		id: createIncidentId(
 			payload.serverId,
@@ -147,15 +167,15 @@ const createAppRemovedIncident = (
 			observedAt,
 		),
 		appId: app.id,
-		appName: app.name,
+		appName,
 		kind: "app-removed",
-		message: `${app.name} was present on the previous scan but is missing from the latest snapshot.`,
+		message: `${appName} was present on the previous scan but is missing from the latest snapshot.`,
 		occurredAt: observedAt.toISOString(),
 		previousHealth: app.health,
 		serverId: payload.serverId,
 		serverName: payload.serverName,
-		severity: "warning",
-		title: `${app.name} stopped reporting`,
+		severity: importance === "critical" ? "critical" : "warning",
+		title: `${appName} stopped reporting`,
 	};
 };
 
@@ -177,6 +197,8 @@ export const createAppIncidentEvents = ({
 	const incidents: IncidentEvent[] = [];
 
 	for (const app of apps) {
+		if (isIgnoredApp(app)) continue;
+
 		const previousApp = previousById.get(app.id);
 		const healthIncident =
 			previousApp || !previousServerExists
@@ -199,7 +221,7 @@ export const createAppIncidentEvents = ({
 
 	if (previousServerExists) {
 		for (const previousApp of previousApps) {
-			if (!currentById.has(previousApp.id)) {
+			if (!currentById.has(previousApp.id) && !isIgnoredApp(previousApp)) {
 				incidents.push(
 					createAppRemovedIncident(previousApp, payload, observedAt),
 				);

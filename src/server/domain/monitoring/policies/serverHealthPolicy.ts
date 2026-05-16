@@ -4,6 +4,7 @@ import type {
 	HealthStatus,
 	StoredServer,
 } from "../../../../shared/types";
+import { isMonitoredApp } from "../applications/appMonitoringPolicy";
 import { diskHealthStatus } from "./diskUsagePolicy";
 
 const statusRank: Record<HealthStatus, number> = {
@@ -25,8 +26,11 @@ export const serverHealthStatus = (
 	apps: AppSnapshot[],
 	disk: DiskMetrics | undefined,
 ) => {
-	const statuses = apps.map((app) => app.health);
+	const statuses = apps
+		.filter(isMonitoredApp)
+		.map((app) => app.health);
 	if (disk) statuses.push(diskHealthStatus(disk));
+	if (statuses.length === 0 && apps.length > 0) return "healthy";
 
 	return worstStatus(statuses);
 };

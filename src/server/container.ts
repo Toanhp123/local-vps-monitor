@@ -1,4 +1,5 @@
 import { serverConfig } from "./config";
+import { AppMonitorRuleService } from "./services/appMonitorRuleService";
 import { AppLogsService } from "./services/appLogsService";
 import { HealthService } from "./services/healthService";
 import { HttpCheckService } from "./services/httpCheckService";
@@ -9,11 +10,13 @@ import { SshScanService } from "./services/sshScanService";
 import { SshTargetBootstrapService } from "./services/sshTargetBootstrapService";
 import { SshTargetConfigService } from "./services/sshTargetConfigService";
 import { SshTargetImportService } from "./services/sshTargetImportService";
+import { AppMonitorRuleStore } from "./stores/appMonitorRuleStore";
 import { MonitorStateStore } from "./stores/monitorStateStore";
 import { HttpCheckConfigStore } from "./stores/httpCheckConfigStore";
 import { SshTargetConfigStore } from "./stores/sshTargetConfigStore";
 
 export interface ServerServices {
+	appMonitorRuleService: AppMonitorRuleService;
 	appLogsService: AppLogsService;
 	healthService: HealthService;
 	httpCheckService: HttpCheckService;
@@ -28,6 +31,9 @@ export interface ServerServices {
 
 export const createServerServices = (): ServerServices => {
 	const monitorStateStore = new MonitorStateStore(serverConfig.dataFile);
+	const appMonitorRuleStore = new AppMonitorRuleStore(
+		serverConfig.appMonitorRulesFile,
+	);
 	const sshTargetConfigStore = new SshTargetConfigStore(
 		serverConfig.sshTargetsFile,
 	);
@@ -37,6 +43,11 @@ export const createServerServices = (): ServerServices => {
 	const monitorOverviewService = new MonitorOverviewService(
 		monitorStateStore,
 		serverConfig.offlineAfterMs,
+		() => appMonitorRuleStore.list(),
+	);
+	const appMonitorRuleService = new AppMonitorRuleService(
+		appMonitorRuleStore,
+		monitorOverviewService,
 	);
 	const localDockerScanService = new LocalDockerScanService(
 		monitorOverviewService,
@@ -84,6 +95,7 @@ export const createServerServices = (): ServerServices => {
 	);
 
 	return {
+		appMonitorRuleService,
 		appLogsService,
 		healthService,
 		httpCheckService,

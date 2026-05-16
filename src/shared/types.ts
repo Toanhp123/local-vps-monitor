@@ -2,6 +2,16 @@ export type AppKind = "docker" | "pm2";
 
 export type HealthStatus = "healthy" | "warning" | "down" | "unknown";
 
+export type AppImportance = "critical" | "normal" | "ignored";
+
+export type AppMonitorRuleMatchMode = "contains" | "exact" | "regex";
+
+export interface AppMonitoringPolicy {
+  displayName?: string;
+  importance: AppImportance;
+  ruleId?: string;
+}
+
 export interface DiskMetrics {
   availableBytes: number;
   filesystem: string;
@@ -38,6 +48,7 @@ export interface AppSnapshot {
   status: string;
   health: HealthStatus;
   group?: AppGroup;
+  monitoring?: AppMonitoringPolicy;
   cpuPercent?: number;
   memoryBytes?: number;
   image?: string;
@@ -106,6 +117,9 @@ export interface OverviewSummary {
   totalServers: number;
   onlineServers: number;
   totalApps: number;
+  monitoredApps: number;
+  ignoredApps: number;
+  criticalApps: number;
   healthyApps: number;
   warningApps: number;
   downApps: number;
@@ -253,6 +267,60 @@ export interface HttpCheckRunAllResponse {
     checkId: string;
     message: string;
   }>;
+}
+
+export interface AppMonitorRule {
+  id: string;
+  appId?: string;
+  appKind?: AppKind;
+  createdAt: string;
+  displayName?: string;
+  enabled: boolean;
+  importance: AppImportance;
+  match?: string;
+  matchMode?: AppMonitorRuleMatchMode;
+  name: string;
+  serverId?: string;
+  updatedAt: string;
+}
+
+export interface AppMonitorRuleCreateInput {
+  appKind?: AppKind;
+  displayName?: string;
+  enabled?: boolean;
+  importance: AppImportance;
+  match: string;
+  matchMode?: AppMonitorRuleMatchMode;
+  name: string;
+  serverId?: string;
+}
+
+export interface AppMonitorRuleUpdateInput {
+  appKind?: AppKind;
+  displayName?: string;
+  enabled?: boolean;
+  importance?: AppImportance;
+  match?: string;
+  matchMode?: AppMonitorRuleMatchMode;
+  name?: string;
+  serverId?: string;
+}
+
+export interface AppMonitorAppOverrideInput {
+  appId: string;
+  appKind: AppKind;
+  appName: string;
+  displayName?: string;
+  importance: AppImportance;
+  serverId: string;
+}
+
+export interface AppMonitorRuleListResponse {
+  rules: AppMonitorRule[];
+}
+
+export interface AppMonitorRuleResponse {
+  rule: AppMonitorRule | null;
 }
 
 export interface ScanResult {

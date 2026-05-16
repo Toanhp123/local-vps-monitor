@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
 import type { AppSnapshot } from "../../../../shared/types";
+import {
+	appDisplayName,
+	appImportance,
+	isIgnoredApp,
+} from "../model/appMonitoringPolicy";
 import { formatBytes } from "../../../shared/lib/format";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 import { RuntimeBadge } from "./RuntimeBadge";
@@ -8,9 +13,23 @@ const headerCellClass =
 	"border-t border-slate-200 bg-slate-50 px-3.5 py-3 text-left align-middle text-xs font-bold uppercase text-slate-500 whitespace-nowrap";
 const bodyCellClass =
 	"border-t border-slate-200 px-3.5 py-3 text-left align-middle whitespace-nowrap";
-const actionHeaderCellClass = `${headerCellClass} sticky right-0 z-20 min-w-32 text-right shadow-[-12px_0_16px_-16px_rgba(15,23,42,0.55)]`;
+const actionDividerClass =
+	"before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-slate-300 before:content-['']";
+const actionHeaderCellClass = `${headerCellClass} ${actionDividerClass} sticky right-0 z-20 min-w-36 bg-slate-100 text-right`;
 const actionBodyCellClass =
-	"sticky right-0 z-10 min-w-32 border-t border-slate-200 bg-white px-3.5 py-3 text-right align-middle whitespace-nowrap shadow-[-12px_0_16px_-16px_rgba(15,23,42,0.55)]";
+	`sticky right-0 z-10 min-w-36 border-t border-slate-200 bg-slate-50 px-3.5 py-3 text-right align-middle whitespace-nowrap ${actionDividerClass}`;
+
+const importanceClasses = {
+	critical: "bg-red-100 text-red-800",
+	ignored: "bg-slate-200 text-slate-700",
+	normal: "bg-slate-100 text-slate-600",
+};
+
+const importanceLabels = {
+	critical: "Critical",
+	ignored: "Ignored",
+	normal: "Normal",
+};
 
 const portItems = (ports?: string) => {
 	return ports
@@ -31,6 +50,7 @@ export function ApplicationTable({
 	apps: AppSnapshot[];
 }) {
 	const hasActions = Boolean(actions);
+	const columnCount = 7 + (hasActions ? 1 : 0);
 
 	return (
 		<div className="overflow-x-auto">
@@ -53,11 +73,41 @@ export function ApplicationTable({
 					{apps.map((app) => {
 						const ports = portItems(app.ports);
 						const statusText = displayStatusText(app.status);
+						const importance = appImportance(app);
+						const displayName = appDisplayName(app);
+						const isIgnored = isIgnoredApp(app);
 
 						return (
-							<tr key={app.id}>
+							<tr
+								key={app.id}
+								className={isIgnored ? "bg-slate-50/70" : undefined}
+							>
 								<td className={`${bodyCellClass} min-w-47.5`}>
-									<strong>{app.name}</strong>
+									<div className="grid gap-1">
+										<div className="flex min-w-0 items-center gap-2">
+											<strong
+												className={
+													isIgnored
+														? "text-slate-500"
+														: "text-slate-900"
+												}
+											>
+												{displayName}
+											</strong>
+											{importance !== "normal" && (
+												<span
+													className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${importanceClasses[importance]}`}
+												>
+													{importanceLabels[importance]}
+												</span>
+											)}
+										</div>
+										{displayName !== app.name && (
+											<span className="text-xs font-semibold text-slate-400">
+												{app.name}
+											</span>
+										)}
+									</div>
 								</td>
 								<td className={bodyCellClass}>
 									<RuntimeBadge kind={app.kind} />
@@ -115,7 +165,7 @@ export function ApplicationTable({
 					{apps.length === 0 && (
 						<tr>
 							<td
-								colSpan={hasActions ? 8 : 7}
+								colSpan={columnCount}
 								className="h-18 border-t border-slate-200 text-center text-slate-500"
 							>
 								No Docker or PM2 apps reported

@@ -54,6 +54,10 @@ export const serverConfig = {
 		process.cwd(),
 		process.env.HTTP_CHECKS_FILE || "./data/http-checks.json",
 	),
+	appMonitorRulesFile: path.resolve(
+		process.cwd(),
+		process.env.APP_MONITOR_RULES_FILE || "./data/app-monitor-rules.json",
+	),
 	offlineAfterMs: numberFromEnv("OFFLINE_AFTER_MS", 60_000),
 	realtimeBroadcastMs: numberFromEnv("REALTIME_BROADCAST_MS", 5_000),
 	autoScanIntervalMs: numberFromEnv("AUTO_SCAN_INTERVAL_MS", 60_000),

@@ -1,4 +1,5 @@
 import type {
+	AppMonitorRule,
 	IncidentEvent,
 	OverviewResponse,
 	ServerSnapshotPayload,
@@ -18,6 +19,7 @@ export class MonitorOverviewService {
 	constructor(
 		private readonly monitorStateStore: MonitorStateStore,
 		private readonly offlineAfterMs: number,
+		private readonly appMonitorRules: () => AppMonitorRule[] = () => [],
 	) {}
 
 	ingestSnapshot(payload: ServerSnapshotPayload) {
@@ -28,6 +30,7 @@ export class MonitorOverviewService {
 			payload,
 			previousServer,
 			new Date(),
+			this.appMonitorRules(),
 		);
 
 		this.monitorStateStore.upsertServer(server);
@@ -40,6 +43,8 @@ export class MonitorOverviewService {
 		return buildOverview(
 			this.monitorStateStore.listServers(),
 			this.offlineAfterMs,
+			new Date(),
+			this.appMonitorRules(),
 		);
 	}
 
@@ -70,6 +75,10 @@ export class MonitorOverviewService {
 		return () => {
 			this.overviewListeners.delete(listener);
 		};
+	}
+
+	refreshOverview() {
+		this.notifyOverviewUpdated();
 	}
 
 	private notifyOverviewUpdated() {

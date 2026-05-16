@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Server, WifiOff } from "lucide-react";
 import type { StoredServer } from "../../../../shared/types";
+import { serverAppCounts } from "../../application/model/appMonitoringPolicy";
 import { formatBytes, relativeTime } from "../../../shared/lib/format";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 import { serverDisk, serverMemory } from "../model/serverMetrics";
@@ -21,6 +22,7 @@ export function ServerTableRow({
 }) {
 	const memory = serverMemory(server);
 	const disk = serverDisk(server);
+	const appCounts = serverAppCounts(server);
 
 	return (
 		<tr className="cursor-pointer hover:bg-blue-50/50" onClick={onOpen}>
@@ -43,8 +45,10 @@ export function ServerTableRow({
 				<StatusBadge status={server.status} />
 			</td>
 			<td className={bodyCellClass}>
-				<strong className="text-slate-900">{server.apps.length}</strong>
-				<span className="ml-1 text-slate-500">apps</span>
+				<strong className="text-slate-900">{appCounts.monitored}</strong>
+				<span className="ml-1 text-slate-500">
+					/{appCounts.total} apps
+				</span>
 			</td>
 			<td className={bodyCellClass}>
 				<span className="font-semibold text-slate-700">

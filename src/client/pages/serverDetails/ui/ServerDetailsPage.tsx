@@ -11,8 +11,14 @@ import { useMonitorShellContext } from "../../../widgets/monitorShell/model/useM
 export function ServerDetailsPage() {
 	const navigate = useNavigate();
 	const { serverId } = useParams<{ serverId: string }>();
-	const { activeScanId, handleScanServer, isAnyScanActive, now, overview } =
-		useMonitorShellContext();
+	const {
+		activeScanId,
+		appMonitoringRules,
+		handleScanServer,
+		isAnyScanActive,
+		now,
+		overview,
+	} = useMonitorShellContext();
 	const selectedServer = serverId
 		? overview?.servers.find((server) => server.serverId === serverId) ||
 			null
@@ -45,7 +51,9 @@ export function ServerDetailsPage() {
 	return (
 		<>
 			<ServerDetailsView
+				activeAppPolicyKey={appMonitoringRules.activeAppKey}
 				isScanDisabled={isAnyScanActive}
+				isSavingAppPolicy={appMonitoringRules.isSaving}
 				isScanning={activeScanId === selectedServer.serverId}
 				now={now}
 				onBack={() => {
@@ -54,6 +62,7 @@ export function ServerDetailsPage() {
 				}}
 				onOpenAppLogs={appLogs.loadLogs}
 				onRunQuickAction={quickActions.requestAction}
+				onUpdateAppPolicy={appMonitoringRules.upsertAppOverride}
 				onScan={() => handleScanServer(selectedServer.serverId)}
 				server={selectedServer}
 			/>

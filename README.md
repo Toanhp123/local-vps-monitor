@@ -14,6 +14,7 @@ It is built for developers who run apps with Docker or PM2 and want a quick way 
 - Shows an incident notification drawer for app status changes and restarts.
 - Raises disk usage incidents when a server filesystem crosses warning or critical thresholds.
 - Runs HTTP health checks against app or server URLs and records latency, status codes, and failures.
+- Lets you mark apps as critical, normal, or ignored so low-value processes do not pollute health.
 - Runs allowlisted quick actions such as app restarts and basic VPS checks.
 - Updates the dashboard through WebSocket after scans.
 - Runs automatic scans through `AUTO_SCAN_INTERVAL_MS`.
@@ -246,6 +247,7 @@ npm start
 - `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
 - `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.
 - `HTTP_CHECKS_FILE`: local HTTP health check config file. Defaults to `./data/http-checks.json`.
+- `APP_MONITOR_RULES_FILE`: app monitoring rule config file. Defaults to `./data/app-monitor-rules.json`.
 - `SSH_COMMAND_TIMEOUT_MS`: SSH connect and command timeout. Defaults to `12000`.
 - `LOCAL_DOCKER_COMMAND_TIMEOUT_MS`: local Docker command timeout. Defaults to `12000`.
 - `OFFLINE_AFTER_MS`: timeout before a server is marked offline.

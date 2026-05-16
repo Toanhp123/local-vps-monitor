@@ -1,12 +1,21 @@
 import { ArrowLeft, Box, Server, SquareTerminal, WifiOff } from "lucide-react";
-import type { AppSnapshot, StoredServer } from "../../../../shared/types";
+import type {
+	AppMonitorAppOverrideInput,
+	AppSnapshot,
+	StoredServer,
+} from "../../../../shared/types";
 import {
 	appGroupSourceLabels,
 	groupApplications,
 } from "../../../entities/application/model/groupApplications";
+import {
+	monitoredApps,
+	serverAppCounts,
+} from "../../../entities/application/model/appMonitoringPolicy";
 import { ApplicationTable } from "../../../entities/application/ui/ApplicationTable";
 import { ServerMetricCharts } from "../../../entities/server/ui/ServerMetricCharts";
 import { ServerMetricsGrid } from "../../../entities/server/ui/ServerMetricsGrid";
+import { AppPolicyDialog } from "../../../features/appMonitoringRules/ui/AppPolicyDialog";
 import { OpenAppLogsButton } from "../../../features/appLogs/ui/OpenAppLogsButton";
 import {
 	buildAppQuickActions,
@@ -20,21 +29,27 @@ import { relativeTime } from "../../../shared/lib/format";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 
 export function ServerDetailsView({
+	activeAppPolicyKey,
 	isScanDisabled,
+	isSavingAppPolicy,
 	isScanning,
 	now,
 	onBack,
 	onOpenAppLogs,
 	onRunQuickAction,
+	onUpdateAppPolicy,
 	onScan,
 	server,
 }: {
+	activeAppPolicyKey: string | null;
 	isScanDisabled: boolean;
+	isSavingAppPolicy: boolean;
 	isScanning: boolean;
 	now: number;
 	onBack: () => void;
 	onOpenAppLogs: (app: AppSnapshot) => void;
 	onRunQuickAction: (action: QuickActionDefinition) => void;
+	onUpdateAppPolicy: (input: AppMonitorAppOverrideInput) => Promise<boolean>;
 	onScan: () => void;
 	server: StoredServer;
 }) {
@@ -44,6 +59,7 @@ export function ServerDetailsView({
 	const pm2Apps = server.apps.filter((app) => app.kind === "pm2").length;
 	const appGroups = groupApplications(server.apps);
 	const serverQuickActions = buildServerQuickActions(server);
+	const appCounts = serverAppCounts(server);
 
 	return (
 		<section className="grid gap-4">
@@ -78,8 +94,13 @@ export function ServerDetailsView({
 							</p>
 							<div className="mt-3 flex flex-wrap items-center gap-1.5">
 								<span className="inline-flex min-h-7 items-center rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-700">
-									{server.apps.length} apps
+									{appCounts.monitored}/{appCounts.total} monitored
 								</span>
+								{appCounts.ignored > 0 && (
+									<span className="inline-flex min-h-7 items-center rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-500">
+										{appCounts.ignored} ignored
+									</span>
+								)}
 								<span className="inline-flex min-h-7 items-center gap-1.5 rounded-full bg-blue-50 px-2.5 text-xs font-extrabold text-blue-700">
 									<Box size={13} />
 									{dockerApps} Docker
@@ -173,6 +194,7 @@ export function ServerDetailsView({
 													status={group.status}
 												/>
 												<span className="inline-flex min-h-7 items-center rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-700">
+													{monitoredApps(group.apps).length}/
 													{group.apps.length} apps
 												</span>
 												{group.dockerCount > 0 && (
@@ -202,6 +224,16 @@ export function ServerDetailsView({
 
 												return (
 													<div className="flex justify-end gap-1.5">
+														<AppPolicyDialog
+															app={app}
+															isSaving={
+																isSavingAppPolicy &&
+																activeAppPolicyKey ===
+																	`${server.serverId}:${app.id}`
+															}
+															onSave={onUpdateAppPolicy}
+															serverId={server.serverId}
+														/>
 														<OpenAppLogsButton
 															onOpen={() =>
 																onOpenAppLogs(

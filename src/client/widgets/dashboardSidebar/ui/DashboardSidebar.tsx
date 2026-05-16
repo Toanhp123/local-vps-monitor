@@ -7,6 +7,10 @@ import {
 	Server,
 } from "lucide-react";
 import type { OverviewResponse, StoredServer } from "../../../../shared/types";
+import {
+	serverAppCounts,
+	summaryMonitoredApps,
+} from "../../../entities/application/model/appMonitoringPolicy";
 import type { RealtimeStatus } from "../../../shared/api/realtime";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 
@@ -67,6 +71,10 @@ export function DashboardSidebar({
 }) {
 	const summary = overview?.summary;
 	const issueCount = (summary?.warningApps ?? 0) + (summary?.downApps ?? 0);
+	const monitoredAppCount = summaryMonitoredApps(summary);
+	const selectedServerAppCounts = selectedServer
+		? serverAppCounts(selectedServer)
+		: null;
 	const navItems = [
 		{
 			count: summary?.totalServers ?? 0,
@@ -162,7 +170,8 @@ export function DashboardSidebar({
 								<div className="flex flex-wrap gap-1.5">
 									<StatusBadge status={selectedServer.status} />
 									<span className="inline-flex min-h-6 items-center rounded-full bg-white px-2 text-xs font-extrabold text-slate-600">
-										{selectedServer.apps.length} apps
+										{selectedServerAppCounts?.monitored}/
+										{selectedServerAppCounts?.total} apps
 									</span>
 								</div>
 							</div>
@@ -188,7 +197,7 @@ export function DashboardSidebar({
 							Apps
 						</span>
 						<strong className="mt-1 block text-lg font-extrabold text-slate-900">
-							{summary?.totalApps ?? 0}
+							{monitoredAppCount}/{summary?.totalApps ?? 0}
 						</strong>
 					</div>
 					<div className="rounded-lg bg-slate-50 px-3 py-2.5">

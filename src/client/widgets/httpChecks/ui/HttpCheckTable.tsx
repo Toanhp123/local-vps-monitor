@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Activity, Edit3, Play, Trash2 } from "lucide-react";
 import type { HttpCheck, StoredServer } from "../../../../shared/types";
+import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
 import { relativeTime } from "../../../shared/lib/format";
 
 const statusClasses: Record<string, string> = {
@@ -97,7 +98,7 @@ export function HttpCheckTable({
 										</span>
 										{linkedApp && (
 											<span className="ml-1 text-slate-500">
-												/ {linkedApp.name}
+												/ {appDisplayName(linkedApp)}
 											</span>
 										)}
 									</td>

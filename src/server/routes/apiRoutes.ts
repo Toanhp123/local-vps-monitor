@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { AppMonitorRuleService } from "../services/appMonitorRuleService";
 import type { AppLogsService } from "../services/appLogsService";
 import type { HealthService } from "../services/healthService";
 import type { HttpCheckService } from "../services/httpCheckService";
@@ -9,6 +10,7 @@ import type { SshScanService } from "../services/sshScanService";
 import type { SshTargetBootstrapService } from "../services/sshTargetBootstrapService";
 import type { SshTargetConfigService } from "../services/sshTargetConfigService";
 import type { SshTargetImportService } from "../services/sshTargetImportService";
+import { createAppMonitorRuleRouter } from "./appMonitorRuleRoutes";
 import { createHealthRouter } from "./healthRoutes";
 import { createAppLogsRouter } from "./appLogsRoutes";
 import { createHttpCheckRouter } from "./httpCheckRoutes";
@@ -18,6 +20,7 @@ import { createQuickActionsRouter } from "./quickActionsRoutes";
 import { createSshTargetRouter } from "./sshTargetRoutes";
 
 interface ApiRouterDependencies {
+  appMonitorRuleService: AppMonitorRuleService;
   appLogsService: AppLogsService;
   healthService: HealthService;
   httpCheckService: HttpCheckService;
@@ -31,6 +34,7 @@ interface ApiRouterDependencies {
 }
 
 export const createApiRouter = ({
+  appMonitorRuleService,
   appLogsService,
   healthService,
   httpCheckService,
@@ -44,6 +48,7 @@ export const createApiRouter = ({
 }: ApiRouterDependencies) => {
   const router = Router();
 
+  router.use(createAppMonitorRuleRouter(appMonitorRuleService));
   router.use(createAppLogsRouter(appLogsService));
   router.use(createHealthRouter(healthService));
   router.use(createHttpCheckRouter(httpCheckService));

@@ -4,6 +4,7 @@ import type {
 	AppSnapshot,
 	HealthStatus,
 } from "../../../../shared/types";
+import { isIgnoredApp } from "./appMonitoringPolicy";
 
 export interface ApplicationGroupView {
 	apps: AppSnapshot[];
@@ -45,7 +46,10 @@ const runtimeGroup = (kind: AppKind) => {
 };
 
 const groupStatus = (apps: AppSnapshot[]) => {
-	return apps.reduce<HealthStatus>((current, app) => {
+	const monitoredApps = apps.filter((app) => !isIgnoredApp(app));
+	if (monitoredApps.length === 0) return "healthy";
+
+	return monitoredApps.reduce<HealthStatus>((current, app) => {
 		return statusRank[app.health] > statusRank[current]
 			? app.health
 			: current;

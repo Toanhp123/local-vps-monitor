@@ -6,6 +6,7 @@ import type {
 	HttpCheckUpdateInput,
 	StoredServer,
 } from "../../../../shared/types";
+import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
 
 const defaultForm = {
 	appId: "",
@@ -201,7 +202,7 @@ export function HttpCheckForm({
 					<option value="">None</option>
 					{apps.map((app) => (
 						<option key={app.id} value={app.id}>
-							{app.name}
+							{appDisplayName(app)}
 						</option>
 					))}
 				</select>

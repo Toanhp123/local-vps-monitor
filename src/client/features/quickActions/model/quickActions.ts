@@ -4,6 +4,7 @@ import type {
 	QuickActionRunInput,
 	StoredServer,
 } from "../../../../shared/types";
+import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
 
 const localDockerServerId = "local-docker";
 
@@ -106,6 +107,8 @@ export const buildAppQuickActions = (
 	server: StoredServer,
 	app: AppSnapshot,
 ): QuickActionDefinition[] => {
+	const appName = appDisplayName(app);
+
 	if (app.kind === "docker") {
 		const containerRef = dockerContainerRef(app);
 		const dockerAction = ({
@@ -137,18 +140,18 @@ export const buildAppQuickActions = (
 		return [
 			dockerAction({
 				actionId: "docker.restart",
-				description: `Restart ${app.name}.`,
+				description: `Restart ${appName}.`,
 				label: "Restart",
 			}),
 			dockerAction({
 				actionId: "docker.start",
-				description: `Start ${app.name}.`,
+				description: `Start ${appName}.`,
 				label: "Start",
 				tone: "default",
 			}),
 			dockerAction({
 				actionId: "docker.stop",
-				description: `Stop ${app.name}.`,
+				description: `Stop ${appName}.`,
 				label: "Stop",
 			}),
 		];
@@ -185,18 +188,18 @@ export const buildAppQuickActions = (
 		return [
 			pm2Action({
 				actionId: "pm2.restart",
-				description: `Restart ${app.name}.`,
+				description: `Restart ${appName}.`,
 				label: "Restart",
 			}),
 			pm2Action({
 				actionId: "pm2.start",
-				description: `Start ${app.name}.`,
+				description: `Start ${appName}.`,
 				label: "Start",
 				tone: "default",
 			}),
 			pm2Action({
 				actionId: "pm2.stop",
-				description: `Stop ${app.name}.`,
+				description: `Stop ${appName}.`,
 				label: "Stop",
 			}),
 		];

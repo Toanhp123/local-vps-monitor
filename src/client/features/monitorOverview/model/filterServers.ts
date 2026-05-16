@@ -1,4 +1,5 @@
 import type { StoredServer } from "../../../../shared/types";
+import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
 
 export const filterServers = (
 	servers: StoredServer[],
@@ -22,6 +23,7 @@ export const filterServers = (
 				apps: server.apps.filter((app) => {
 					return (
 						app.name.toLowerCase().includes(normalizedQuery) ||
+						appDisplayName(app).toLowerCase().includes(normalizedQuery) ||
 						app.group?.name.toLowerCase().includes(normalizedQuery) ||
 						app.kind.toLowerCase().includes(normalizedQuery) ||
 						app.status.toLowerCase().includes(normalizedQuery) ||

@@ -44,6 +44,7 @@ export const createApp = (services = createServerServices()) => {
 	app.use(
 		"/api",
 		createApiRouter({
+			appMonitorRuleService: services.appMonitorRuleService,
 			appLogsService: services.appLogsService,
 			healthService: services.healthService,
 			httpCheckService: services.httpCheckService,
