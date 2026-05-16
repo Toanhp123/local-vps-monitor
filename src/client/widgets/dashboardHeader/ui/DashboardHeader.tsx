@@ -1,4 +1,4 @@
-import { LoaderCircle, RefreshCw, Search } from "lucide-react";
+import { LoaderCircle, RefreshCw, Search, X } from "lucide-react";
 import type { IncidentEvent } from "../../../../shared/types";
 import { IncidentNotificationCenter } from "../../../entities/incident/ui/IncidentNotificationCenter";
 
@@ -38,11 +38,21 @@ export function DashboardHeader({
 						onChange={(event) => onQueryChange(event.target.value)}
 						placeholder="Search server, app, runtime"
 					/>
+					{query && (
+						<button
+							type="button"
+							className="cursor-pointer text-slate-400 hover:text-slate-700"
+							onClick={() => onQueryChange("")}
+							aria-label="Clear dashboard search"
+						>
+							<X size={15} />
+						</button>
+					)}
 				</label>
 				<IncidentNotificationCenter incidents={incidents} now={now} />
 				<button
 					type="button"
-					className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+					className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 max-md:flex-1 max-md:justify-center"
 					onClick={onScanAll}
 					disabled={isScanAllDisabled}
 					aria-label="Scan all servers"

@@ -1,18 +1,20 @@
 import {
 	Activity,
-	AlertTriangle,
-	Box,
-	CircleX,
-	LayoutDashboard,
 	DatabaseZap,
+	Globe2,
+	KeyRound,
+	LayoutDashboard,
 	Server,
-	SquareTerminal,
-	WifiOff,
 } from "lucide-react";
 import type { OverviewResponse, StoredServer } from "../../../../shared/types";
-import type { ServerViewFilter } from "../../../entities/server/model/serverViewFilter";
 import type { RealtimeStatus } from "../../../shared/api/realtime";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
+
+type DashboardSection =
+	| "dashboard"
+	| "http-checks"
+	| "server-detail"
+	| "ssh-targets";
 
 const realtimeText: Record<RealtimeStatus, string> = {
 	connecting: "Connecting",
@@ -28,201 +30,151 @@ const realtimeClasses: Record<RealtimeStatus, string> = {
 	fallback: "bg-amber-100 text-amber-800",
 };
 
+const navButtonClass = (isActive: boolean) => {
+	return `inline-flex min-h-10 cursor-pointer items-center justify-between gap-2 rounded-lg px-3 text-sm font-extrabold max-lg:shrink-0 ${
+		isActive
+			? "bg-blue-50 text-blue-700"
+			: "text-slate-700 hover:bg-slate-50"
+	}`;
+};
+
+const navCountClass = (isActive: boolean) => {
+	return `rounded-full px-2 py-0.5 text-xs ${
+		isActive ? "bg-white text-blue-700" : "bg-slate-100 text-slate-500"
+	}`;
+};
+
 export function DashboardSidebar({
-	activeFilter,
-	isServerDetail,
+	activeSection,
+	httpCheckCount,
 	onDashboardOpen,
-	onFilterChange,
+	onHttpChecksOpen,
+	onSshTargetsOpen,
 	overview,
 	realtimeStatus,
 	selectedServer,
+	sshTargetCount,
 }: {
-	activeFilter: ServerViewFilter;
-	isServerDetail: boolean;
+	activeSection: DashboardSection;
+	httpCheckCount: number;
 	onDashboardOpen: () => void;
-	onFilterChange: (filter: ServerViewFilter) => void;
+	onHttpChecksOpen: () => void;
+	onSshTargetsOpen: () => void;
 	overview: OverviewResponse | null;
 	realtimeStatus: RealtimeStatus;
 	selectedServer: StoredServer | null;
+	sshTargetCount: number;
 }) {
 	const summary = overview?.summary;
-	const servers = overview?.servers ?? [];
 	const issueCount = (summary?.warningApps ?? 0) + (summary?.downApps ?? 0);
-	const offlineServers = servers.filter((server) => !server.online).length;
-	const warningServers = servers.filter((server) =>
-		server.apps.some((app) => app.health === "warning"),
-	).length;
-	const downServers = servers.filter((server) =>
-		server.apps.some((app) => app.health === "down"),
-	).length;
-	const dockerServers = servers.filter((server) =>
-		server.apps.some((app) => app.kind === "docker"),
-	).length;
-	const pm2Servers = servers.filter((server) =>
-		server.apps.some((app) => app.kind === "pm2"),
-	).length;
-	const needsAttentionServers = servers.filter((server) => {
-		return (
-			!server.online ||
-			server.apps.some(
-				(app) => app.health === "warning" || app.health === "down",
-			)
-		);
-	}).length;
-	const filterItems: Array<{
-		count: number;
-		filter: ServerViewFilter;
-		icon: typeof Server;
-		label: string;
-		tone?: string;
-	}> = [
-		{ filter: "all", icon: Server, label: "All servers", count: servers.length },
+	const navItems = [
 		{
-			filter: "needs-attention",
-			icon: AlertTriangle,
-			label: "Needs attention",
-			count: needsAttentionServers,
-			tone: "warn",
+			count: summary?.totalServers ?? 0,
+			icon: LayoutDashboard,
+			label: "Dashboard",
+			onClick: onDashboardOpen,
+			section: "dashboard" as const,
 		},
 		{
-			filter: "offline",
-			icon: WifiOff,
-			label: "Offline servers",
-			count: offlineServers,
-			tone: "bad",
+			count: httpCheckCount,
+			icon: Globe2,
+			label: "HTTP Checks",
+			onClick: onHttpChecksOpen,
+			section: "http-checks" as const,
 		},
 		{
-			filter: "warnings",
-			icon: AlertTriangle,
-			label: "Warning apps",
-			count: warningServers,
-			tone: "warn",
-		},
-		{
-			filter: "down",
-			icon: CircleX,
-			label: "Down apps",
-			count: downServers,
-			tone: "bad",
-		},
-		{
-			filter: "docker",
-			icon: Box,
-			label: "Docker",
-			count: dockerServers,
-		},
-		{
-			filter: "pm2",
-			icon: SquareTerminal,
-			label: "PM2",
-			count: pm2Servers,
+			count: sshTargetCount,
+			icon: KeyRound,
+			label: "SSH Targets",
+			onClick: onSshTargetsOpen,
+			section: "ssh-targets" as const,
 		},
 	];
 
 	return (
-		<aside className="sticky top-0 h-screen w-66 shrink-0 border-r border-slate-200 bg-white px-4 py-5 max-lg:static max-lg:h-auto max-lg:w-full max-lg:border-r-0 max-lg:border-b">
-			<div className="flex h-full flex-col gap-5 max-lg:h-auto">
-				<div>
-					<div className="flex items-center gap-2 text-sm font-extrabold text-blue-600">
-						<Activity size={16} />
-						VPS Monitor
+		<aside className="sticky top-0 z-30 h-screen w-66 shrink-0 border-r border-slate-200 bg-white px-4 py-5 max-lg:h-auto max-lg:w-full max-lg:border-r-0 max-lg:border-b max-lg:py-3">
+			<div className="flex h-full flex-col gap-5 max-lg:h-auto max-lg:gap-3">
+				<div className="flex items-start justify-between gap-3">
+					<div className="min-w-0">
+						<div className="flex items-center gap-2 text-sm font-extrabold text-blue-600">
+							<Activity size={16} />
+							VPS Monitor
+						</div>
+						<h1 className="mt-2 text-2xl leading-tight font-extrabold text-slate-900 max-lg:mt-0 max-lg:text-lg">
+							Application Health
+						</h1>
 					</div>
-					<h1 className="mt-2 text-2xl leading-tight font-extrabold text-slate-900">
-						Application Health
-					</h1>
+					<span
+						className={`inline-flex min-h-9 shrink-0 items-center gap-2 rounded-lg px-3 text-[13px] font-extrabold ${realtimeClasses[realtimeStatus]}`}
+					>
+						<DatabaseZap size={14} />
+						{realtimeText[realtimeStatus]}
+					</span>
 				</div>
 
-				{isServerDetail ? (
-					<div className="grid gap-3">
-						<div className="grid gap-1.5">
-							<div className="mb-1 px-3 text-xs font-bold tracking-wide text-slate-400 uppercase">
-								Navigation
-							</div>
-							<button
-								type="button"
-								className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm font-extrabold text-slate-700 hover:bg-slate-50"
-								onClick={onDashboardOpen}
-							>
-								<LayoutDashboard size={16} />
-								Dashboard
-							</button>
-							<div className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-blue-50 px-3 text-sm font-extrabold text-blue-700">
-								<Server size={16} />
-								Server detail
-							</div>
-						</div>
-
-						<div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-							<span className="block text-xs font-bold tracking-wide text-slate-400 uppercase">
-								Current server
-							</span>
-							{selectedServer ? (
-								<div className="mt-2 grid gap-2">
-									<strong className="block overflow-hidden text-ellipsis text-slate-900">
-										{selectedServer.serverName}
-									</strong>
-									<span className="block overflow-hidden text-sm font-semibold text-ellipsis text-slate-500">
-										{selectedServer.host.hostname}
-									</span>
-									<div className="flex flex-wrap gap-1.5">
-										<StatusBadge status={selectedServer.status} />
-										<span className="inline-flex min-h-6 items-center rounded-full bg-white px-2 text-xs font-extrabold text-slate-600">
-											{selectedServer.apps.length} apps
-										</span>
-									</div>
-								</div>
-							) : (
-								<span className="mt-2 block text-sm font-semibold text-slate-500">
-									Loading
-								</span>
-							)}
-						</div>
+				<div className="grid gap-1.5 max-lg:-mx-1 max-lg:flex max-lg:overflow-x-auto max-lg:px-1 max-lg:pb-1">
+					<div className="mb-1 px-3 text-xs font-bold tracking-wide text-slate-400 uppercase max-lg:hidden">
+						Navigation
 					</div>
-				) : (
-					<div className="grid gap-1.5">
-						<div className="mb-1 px-3 text-xs font-bold tracking-wide text-slate-400 uppercase">
-							View
-						</div>
-						{filterItems.map((item) => {
-							const Icon = item.icon;
-							const isActive = activeFilter === item.filter;
-							const toneClass =
-								item.tone === "bad"
-									? "text-rose-700"
-									: item.tone === "warn"
-										? "text-amber-700"
-										: "text-slate-700";
+					{navItems.map((item) => {
+						const Icon = item.icon;
+						const isActive = activeSection === item.section;
 
-							return (
-								<button
-									key={item.filter}
-									type="button"
-									className={`inline-flex min-h-10 cursor-pointer items-center justify-between gap-2 rounded-lg px-3 text-sm font-extrabold ${
-										isActive
-											? "bg-blue-50 text-blue-700"
-											: "text-slate-700 hover:bg-slate-50"
-									}`}
-									onClick={() => onFilterChange(item.filter)}
-								>
-									<span className="inline-flex min-w-0 items-center gap-2">
-										<Icon
-											size={16}
-											className={isActive ? "" : toneClass}
-										/>
-										<span className="truncate">
-											{item.label}
-										</span>
+						return (
+							<button
+								key={item.section}
+								type="button"
+								className={navButtonClass(isActive)}
+								onClick={item.onClick}
+								aria-current={isActive ? "page" : undefined}
+							>
+								<span className="inline-flex min-w-0 items-center gap-2">
+									<Icon size={16} />
+									<span className="truncate">{item.label}</span>
+								</span>
+								<span className={navCountClass(isActive)}>
+									{item.count}
+								</span>
+							</button>
+						);
+					})}
+					{activeSection === "server-detail" && (
+						<div className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg bg-blue-50 px-3 text-sm font-extrabold text-blue-700">
+							<Server size={16} />
+							Server detail
+						</div>
+					)}
+				</div>
+
+				{activeSection === "server-detail" && (
+					<div className="rounded-lg border border-slate-200 bg-slate-50 p-3 max-lg:hidden">
+						<span className="block text-xs font-bold tracking-wide text-slate-400 uppercase">
+							Current server
+						</span>
+						{selectedServer ? (
+							<div className="mt-2 grid gap-2">
+								<strong className="block overflow-hidden text-ellipsis text-slate-900">
+									{selectedServer.serverName}
+								</strong>
+								<span className="block overflow-hidden text-sm font-semibold text-ellipsis text-slate-500">
+									{selectedServer.host.hostname}
+								</span>
+								<div className="flex flex-wrap gap-1.5">
+									<StatusBadge status={selectedServer.status} />
+									<span className="inline-flex min-h-6 items-center rounded-full bg-white px-2 text-xs font-extrabold text-slate-600">
+										{selectedServer.apps.length} apps
 									</span>
-									<span className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-500">
-										{item.count}
-									</span>
-								</button>
-							);
-						})}
+								</div>
+							</div>
+						) : (
+							<span className="mt-2 block text-sm font-semibold text-slate-500">
+								Loading
+							</span>
+						)}
 					</div>
 				)}
 
-				<div className="grid gap-2 border-t border-slate-200 pt-4 max-lg:grid-cols-3 max-sm:grid-cols-1">
+				<div className="grid gap-2 border-t border-slate-200 pt-4 max-lg:hidden">
 					<div className="rounded-lg bg-slate-50 px-3 py-2.5">
 						<span className="block text-xs font-bold text-slate-500">
 							Online servers
@@ -247,15 +199,6 @@ export function DashboardSidebar({
 							{issueCount}
 						</strong>
 					</div>
-				</div>
-
-				<div className="mt-auto max-lg:mt-0">
-					<span
-						className={`inline-flex min-h-9 items-center gap-2 rounded-lg px-3 text-[13px] font-extrabold ${realtimeClasses[realtimeStatus]}`}
-					>
-						<DatabaseZap size={14} />
-						{realtimeText[realtimeStatus]}
-					</span>
 				</div>
 			</div>
 		</aside>

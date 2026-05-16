@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { OverviewResponse } from "../../../../shared/types";
-import type { ServerViewFilter } from "../../../entities/server/model/serverViewFilter";
 import { fetchOverview } from "../../../shared/api/monitorApi";
 import {
 	parseRealtimeMessage,
@@ -41,7 +40,6 @@ const closeSocketSafely = (socket: WebSocket | null) => {
 export function useMonitorOverview() {
 	const [overview, setOverview] = useState<OverviewResponse | null>(null);
 	const [query, setQuery] = useState("");
-	const [viewFilter, setViewFilter] = useState<ServerViewFilter>("all");
 	const [requestStatus, setRequestStatus] = useState<RequestStatus>("idle");
 	const [realtimeStatus, setRealtimeStatus] =
 		useState<RealtimeStatus>("connecting");
@@ -167,8 +165,8 @@ export function useMonitorOverview() {
 	}, [applyOverview, loadOverview]);
 
 	const filteredServers = useMemo(() => {
-		return filterServers(overview?.servers || [], query, viewFilter);
-	}, [overview, query, viewFilter]);
+		return filterServers(overview?.servers || [], query);
+	}, [overview, query]);
 
 	return {
 		filteredServers,
@@ -178,7 +176,5 @@ export function useMonitorOverview() {
 		realtimeStatus,
 		requestStatus,
 		setQuery,
-		setViewFilter,
-		viewFilter,
 	};
 }

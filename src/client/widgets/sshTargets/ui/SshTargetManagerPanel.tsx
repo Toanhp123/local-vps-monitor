@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, KeyRound, ShieldCheck } from "lucide-react";
+import { KeyRound, ShieldCheck } from "lucide-react";
 import type {
 	SshTarget,
 	SshTargetBootstrapInput,
@@ -10,6 +10,8 @@ import type {
 import { SshTargetBulkImport } from "./SshTargetBulkImport";
 import { SshTargetForm } from "./SshTargetForm";
 import { SshTargetTable } from "./SshTargetTable";
+
+type SshTargetEntryMode = "single" | "bulk";
 
 export function SshTargetManagerPanel({
 	activeScanId,
@@ -42,9 +44,7 @@ export function SshTargetManagerPanel({
 	onTestTarget: (targetId: string) => void;
 	targets: SshTarget[];
 }) {
-	const [isManagingTargets, setIsManagingTargets] = useState(false);
-	const showManagement =
-		(!isLoading && targets.length === 0) || isManagingTargets;
+	const [entryMode, setEntryMode] = useState<SshTargetEntryMode>("single");
 
 	return (
 		<section
@@ -75,28 +75,9 @@ export function SshTargetManagerPanel({
 						</div>
 					</div>
 				</div>
-				<div className="flex flex-wrap items-center justify-end gap-2.5 max-lg:justify-start">
-					{targets.length > 0 && (
-						<button
-							type="button"
-							className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-							onClick={() =>
-								setIsManagingTargets((current) => !current)
-							}
-							aria-expanded={showManagement}
-						>
-							{showManagement ? (
-								<ChevronUp size={16} />
-							) : (
-								<ChevronDown size={16} />
-							)}
-							Manage
-						</button>
-					)}
-				</div>
 			</div>
 
-			{error && showManagement && (
+			{error && (
 				<div className="flex min-w-0 flex-wrap gap-2 border-b border-slate-200 px-4.5 py-3 text-sm font-bold">
 					<span className="min-w-0 wrap-break-word text-rose-700">
 						{error}
@@ -104,31 +85,58 @@ export function SshTargetManagerPanel({
 				</div>
 			)}
 
-			{showManagement && (
-				<>
-					<SshTargetForm
-						isSaving={isSaving}
-						onAddTarget={onAddTarget}
-						onBootstrapTarget={onBootstrapTarget}
-					/>
-					<SshTargetBulkImport
-						isSaving={isSaving}
-						onBulkImportTargets={onBulkImportTargets}
-					/>
-					<SshTargetTable
-						activeScanId={activeScanId}
-						activeTestId={activeTestId}
-						isLoading={isLoading}
-						isScanDisabled={isScanDisabled}
-						isSaving={isSaving}
-						onEditTarget={onEditTarget}
-						onRemoveTarget={onRemoveTarget}
-						onScanTarget={onScanTarget}
-						onTestTarget={onTestTarget}
-						targets={targets}
-					/>
-				</>
+			<div className="border-b border-slate-200 bg-slate-50 px-4.5 py-3">
+				<div className="inline-grid h-10 grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white p-0.5">
+					<button
+						type="button"
+						className={`cursor-pointer rounded-md px-4 text-sm font-extrabold ${
+							entryMode === "single"
+								? "bg-blue-600 text-white"
+								: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+						}`}
+						onClick={() => setEntryMode("single")}
+					>
+						Add one
+					</button>
+					<button
+						type="button"
+						className={`cursor-pointer rounded-md px-4 text-sm font-extrabold ${
+							entryMode === "bulk"
+								? "bg-blue-600 text-white"
+								: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+						}`}
+						onClick={() => setEntryMode("bulk")}
+					>
+						Bulk import
+					</button>
+				</div>
+			</div>
+
+			{entryMode === "single" ? (
+				<SshTargetForm
+					isSaving={isSaving}
+					onAddTarget={onAddTarget}
+					onBootstrapTarget={onBootstrapTarget}
+				/>
+			) : (
+				<SshTargetBulkImport
+					isSaving={isSaving}
+					onBulkImportTargets={onBulkImportTargets}
+				/>
 			)}
+
+			<SshTargetTable
+				activeScanId={activeScanId}
+				activeTestId={activeTestId}
+				isLoading={isLoading}
+				isScanDisabled={isScanDisabled}
+				isSaving={isSaving}
+				onEditTarget={onEditTarget}
+				onRemoveTarget={onRemoveTarget}
+				onScanTarget={onScanTarget}
+				onTestTarget={onTestTarget}
+				targets={targets}
+			/>
 		</section>
 	);
 }

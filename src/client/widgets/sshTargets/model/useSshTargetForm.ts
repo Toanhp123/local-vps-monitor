@@ -27,7 +27,7 @@ const defaultForm: SshTargetFormValues = {
 	host: "",
 	port: "22",
 	username: "",
-	authMode: "password",
+	authMode: "key",
 	password: "",
 	privateKeyPath: "",
 };

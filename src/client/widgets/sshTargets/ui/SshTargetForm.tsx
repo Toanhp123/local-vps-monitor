@@ -101,17 +101,6 @@ export function SshTargetForm({
 					<button
 						type="button"
 						className={`cursor-pointer rounded-md px-2 text-xs font-extrabold ${
-							form.authMode === "password"
-								? "bg-blue-600 text-white"
-								: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-						}`}
-						onClick={() => updateField("authMode", "password")}
-					>
-						Password
-					</button>
-					<button
-						type="button"
-						className={`cursor-pointer rounded-md px-2 text-xs font-extrabold ${
 							form.authMode === "key"
 								? "bg-blue-600 text-white"
 								: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
@@ -119,6 +108,17 @@ export function SshTargetForm({
 						onClick={() => updateField("authMode", "key")}
 					>
 						Key path
+					</button>
+					<button
+						type="button"
+						className={`cursor-pointer rounded-md px-2 text-xs font-extrabold ${
+							form.authMode === "password"
+								? "bg-blue-600 text-white"
+								: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+						}`}
+						onClick={() => updateField("authMode", "password")}
+					>
+						Password
 					</button>
 				</div>
 			</div>

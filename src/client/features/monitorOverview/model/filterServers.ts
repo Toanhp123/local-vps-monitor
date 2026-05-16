@@ -1,69 +1,13 @@
-import type { AppSnapshot, StoredServer } from "../../../../shared/types";
-import type { ServerViewFilter } from "../../../entities/server/model/serverViewFilter";
-
-const filterAppsByView = (
-	apps: AppSnapshot[],
-	viewFilter: ServerViewFilter,
-) => {
-	if (viewFilter === "warnings") {
-		return apps.filter((app) => app.health === "warning");
-	}
-
-	if (viewFilter === "down") {
-		return apps.filter((app) => app.health === "down");
-	}
-
-	if (viewFilter === "needs-attention") {
-		return apps.filter(
-			(app) => app.health === "warning" || app.health === "down",
-		);
-	}
-
-	if (viewFilter === "docker") {
-		return apps.filter((app) => app.kind === "docker");
-	}
-
-	if (viewFilter === "pm2") {
-		return apps.filter((app) => app.kind === "pm2");
-	}
-
-	return apps;
-};
-
-const applyViewFilter = (
-	server: StoredServer,
-	viewFilter: ServerViewFilter,
-) => {
-	if (viewFilter === "offline") {
-		return server.online ? null : server;
-	}
-
-	const apps = filterAppsByView(server.apps, viewFilter);
-
-	if (viewFilter === "all") return server;
-	if (viewFilter === "needs-attention" && !server.online) return server;
-	if (apps.length === 0) return null;
-
-	return {
-		...server,
-		apps,
-	};
-};
+import type { StoredServer } from "../../../../shared/types";
 
 export const filterServers = (
 	servers: StoredServer[],
 	query: string,
-	viewFilter: ServerViewFilter,
 ) => {
 	const normalizedQuery = query.trim().toLowerCase();
-	const viewFilteredServers = servers.flatMap((server) => {
-		const nextServer = applyViewFilter(server, viewFilter);
-		return nextServer ? [nextServer] : [];
-	});
+	if (!normalizedQuery) return servers;
 
-	if (!normalizedQuery) return viewFilteredServers;
-
-	return viewFilteredServers
+	return servers
 		.map((server) => {
 			const serverMatches =
 				server.serverName.toLowerCase().includes(normalizedQuery) ||

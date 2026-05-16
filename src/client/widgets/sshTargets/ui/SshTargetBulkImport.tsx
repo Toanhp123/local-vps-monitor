@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, LoaderCircle, Upload } from "lucide-react";
+import { LoaderCircle, Upload } from "lucide-react";
 import type { SshTargetBulkImportInput } from "../../../../shared/types";
 import type { SshAuthMode } from "../model/useSshTargetForm";
 
@@ -104,7 +104,6 @@ export function SshTargetBulkImport({
 	const [authMode, setAuthMode] = useState<SshAuthMode>("key");
 	const [importText, setImportText] = useState("");
 	const [error, setError] = useState("");
-	const [isOpen, setIsOpen] = useState(false);
 
 	const handleImport = async () => {
 		setError("");
@@ -116,7 +115,6 @@ export function SshTargetBulkImport({
 
 			if (imported) {
 				setImportText("");
-				setIsOpen(false);
 			}
 		} catch (parseError) {
 			setError(parseError instanceof Error ? parseError.message : String(parseError));
@@ -124,77 +122,69 @@ export function SshTargetBulkImport({
 	};
 
 	return (
-		<div className="border-b border-slate-200 bg-slate-50 px-4.5 py-3">
-			<button
-				type="button"
-				className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-				onClick={() => setIsOpen((current) => !current)}
-				aria-expanded={isOpen}
-			>
-				{isOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-				Bulk import
-			</button>
-
-			{isOpen && (
-				<div className="mt-3 grid gap-2.5">
-					<div className="flex flex-wrap items-center gap-2">
-						<span className="text-xs font-bold text-slate-500 uppercase">
-							Auth
-						</span>
-						<div className="grid h-9 grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white p-0.5">
-							<button
-								type="button"
-								className={`cursor-pointer rounded-md px-3 text-xs font-extrabold ${
-									authMode === "key"
-										? "bg-blue-600 text-white"
-										: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-								}`}
-								onClick={() => setAuthMode("key")}
-							>
-								Key path
-							</button>
-							<button
-								type="button"
-								className={`cursor-pointer rounded-md px-3 text-xs font-extrabold ${
-									authMode === "password"
-										? "bg-blue-600 text-white"
-										: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-								}`}
-								onClick={() => setAuthMode("password")}
-							>
-								Password
-							</button>
-						</div>
-					</div>
-					<textarea
-						className="min-h-34 rounded-lg border border-slate-200 bg-white p-3 font-mono text-xs leading-5 text-slate-900 outline-0 focus:border-blue-400"
-						value={importText}
-						onChange={(event) => setImportText(event.target.value)}
-						placeholder={[
-							"One target per line:",
-							"name,host,port,user," +
-								(authMode === "password" ? "password" : "privateKeyPath"),
-							sampleRows[authMode],
-						].join("\n")}
-					/>
-					{error && <div className="text-sm font-bold text-rose-700">{error}</div>}
-					<div className="flex justify-end">
+		<div className="grid gap-3 border-b border-slate-200 bg-slate-50 px-4.5 py-3.5">
+			<div className="flex flex-wrap items-center justify-between gap-3">
+				<div className="flex flex-wrap items-center gap-2">
+					<span className="text-xs font-bold text-slate-500 uppercase">
+						Auth
+					</span>
+					<div className="grid h-9 grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white p-0.5">
 						<button
 							type="button"
-							className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-blue-600 bg-blue-600 px-3.5 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-							onClick={handleImport}
-							disabled={isSaving}
+							className={`cursor-pointer rounded-md px-3 text-xs font-extrabold ${
+								authMode === "key"
+									? "bg-blue-600 text-white"
+									: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+							}`}
+							onClick={() => setAuthMode("key")}
 						>
-							{isSaving ? (
-								<LoaderCircle size={15} className="animate-spin" />
-							) : (
-								<Upload size={15} />
-							)}
-							Import targets
+							Key path
+						</button>
+						<button
+							type="button"
+							className={`cursor-pointer rounded-md px-3 text-xs font-extrabold ${
+								authMode === "password"
+									? "bg-blue-600 text-white"
+									: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+							}`}
+							onClick={() => setAuthMode("password")}
+						>
+							Password
 						</button>
 					</div>
 				</div>
-			)}
+				<span className="text-xs font-semibold text-slate-500">
+					name,host,port,user,
+					{authMode === "password" ? "password" : "privateKeyPath"}
+				</span>
+			</div>
+			<textarea
+				className="min-h-40 rounded-lg border border-slate-200 bg-white p-3 font-mono text-xs leading-5 text-slate-900 outline-0 focus:border-blue-400"
+				value={importText}
+				onChange={(event) => setImportText(event.target.value)}
+				placeholder={[
+					"One target per line:",
+					"name,host,port,user," +
+						(authMode === "password" ? "password" : "privateKeyPath"),
+					sampleRows[authMode],
+				].join("\n")}
+			/>
+			{error && <div className="text-sm font-bold text-rose-700">{error}</div>}
+			<div className="flex justify-end">
+				<button
+					type="button"
+					className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-blue-600 bg-blue-600 px-3.5 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+					onClick={handleImport}
+					disabled={isSaving}
+				>
+					{isSaving ? (
+						<LoaderCircle size={15} className="animate-spin" />
+					) : (
+						<Upload size={15} />
+					)}
+					Import targets
+				</button>
+			</div>
 		</div>
 	);
 }

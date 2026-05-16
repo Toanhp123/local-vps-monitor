@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { routes } from "../../../shared/config/routes";
 import { LocalDockerPanel } from "../../../widgets/localDocker/ui/LocalDockerPanel";
 import { ServerList } from "../../../widgets/serverList/ui/ServerList";
-import { SshTargetManagerPanel } from "../../../widgets/sshTargets/ui/SshTargetManagerPanel";
 import { SummaryStats } from "../../../widgets/summaryStats/ui/SummaryStats";
 import { DashboardHeader } from "../../../widgets/dashboardHeader/ui/DashboardHeader";
 import { useMonitorShellContext } from "../../../widgets/monitorShell/model/useMonitorShellContext";
@@ -21,18 +20,12 @@ export function DashboardPage() {
 		overview,
 		query,
 		setQuery,
-		sshTargetManager,
-		viewFilter,
 	} = useMonitorShellContext();
 
 	const openServerDetail = (serverId: string) => {
 		navigate(routes.serverDetail(serverId));
 		window.scrollTo({ top: 0 });
 	};
-	const activeSshTargetScanId =
-		sshTargetManager.activeScanSource === "targets-panel"
-			? sshTargetManager.activeScanId
-			: null;
 	const incidents =
 		overview?.servers.flatMap((server) => server.incidents ?? []) ?? [];
 
@@ -57,25 +50,9 @@ export function DashboardPage() {
 					void localDockerScanner.scanFrom("panel");
 				}}
 			/>
-			<SshTargetManagerPanel
-				activeScanId={activeSshTargetScanId}
-				activeTestId={sshTargetManager.activeTestId}
-				error={sshTargetManager.error}
-				isScanDisabled={isAnyScanActive}
-				isLoading={sshTargetManager.isLoading}
-				isSaving={sshTargetManager.isSaving}
-				onAddTarget={sshTargetManager.addTarget}
-				onBootstrapTarget={sshTargetManager.bootstrapTarget}
-				onBulkImportTargets={sshTargetManager.bulkImportTargets}
-				onEditTarget={sshTargetManager.editTarget}
-				onRemoveTarget={sshTargetManager.removeTarget}
-				onScanTarget={sshTargetManager.scanTarget}
-				onTestTarget={sshTargetManager.testTarget}
-				targets={sshTargetManager.targets}
-			/>
 			<ServerList
 				activeScanId={activeScanId}
-				hasActiveFilter={viewFilter !== "all"}
+				hasActiveFilter={false}
 				isScanDisabled={isAnyScanActive}
 				now={now}
 				onOpenServer={openServerDetail}

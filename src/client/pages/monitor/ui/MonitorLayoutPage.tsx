@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
+import { useHttpCheckManager } from "../../../features/httpChecks/model/useHttpCheckManager";
 import { useLocalDockerScanner } from "../../../features/localDockerScan/model/useLocalDockerScanner";
 import { useMonitorOverview } from "../../../features/monitorOverview/model/useMonitorOverview";
 import { useSshTargetManager } from "../../../features/sshTargetManagement/model/useSshTargetManager";
@@ -22,12 +23,13 @@ export function MonitorLayoutPage() {
 		realtimeStatus,
 		requestStatus,
 		setQuery,
-		setViewFilter,
-		viewFilter,
 	} = useMonitorOverview();
+	const httpCheckManager = useHttpCheckManager(loadOverview);
 	const localDockerScanner = useLocalDockerScanner(loadOverview);
 	const sshTargetManager = useSshTargetManager(loadOverview);
 	const serverDetailMatch = useMatch("/servers/:serverId");
+	const httpChecksMatch = useMatch(routes.httpChecks);
+	const sshTargetsMatch = useMatch(routes.sshTargets);
 	const selectedServerId = serverDetailMatch?.params.serverId;
 	const selectedServer = selectedServerId
 		? overview?.servers.find((server) => server.serverId === selectedServerId) ||
@@ -43,13 +45,23 @@ export function MonitorLayoutPage() {
 		localDockerScanner.isScanning ||
 		Boolean(sshTargetManager.activeScanId);
 
-	const handleFilterChange = (nextFilter: typeof viewFilter) => {
-		setViewFilter(nextFilter);
+	const activeSection = serverDetailMatch
+		? "server-detail"
+		: httpChecksMatch
+			? "http-checks"
+			: sshTargetsMatch
+				? "ssh-targets"
+				: "dashboard";
+	const openDashboard = () => {
 		navigate(routes.dashboard);
 		window.scrollTo({ top: 0 });
 	};
-	const openDashboard = () => {
-		navigate(routes.dashboard);
+	const openHttpChecks = () => {
+		navigate(routes.httpChecks);
+		window.scrollTo({ top: 0 });
+	};
+	const openSshTargets = () => {
+		navigate(routes.sshTargets);
 		window.scrollTo({ top: 0 });
 	};
 
@@ -83,6 +95,7 @@ export function MonitorLayoutPage() {
 		filteredServers,
 		handleScanAll,
 		handleScanServer,
+		httpCheckManager,
 		isAnyScanActive,
 		isScanAllActive,
 		localDockerScanner,
@@ -91,19 +104,20 @@ export function MonitorLayoutPage() {
 		query,
 		setQuery,
 		sshTargetManager,
-		viewFilter,
 	};
 
 	return (
 		<div className="flex min-h-screen bg-[#eef1f5] text-slate-900 antialiased max-lg:flex-col">
 			<DashboardSidebar
-				activeFilter={viewFilter}
-				isServerDetail={Boolean(serverDetailMatch)}
+				activeSection={activeSection}
+				httpCheckCount={httpCheckManager.checks.length}
 				onDashboardOpen={openDashboard}
-				onFilterChange={handleFilterChange}
+				onHttpChecksOpen={openHttpChecks}
+				onSshTargetsOpen={openSshTargets}
 				overview={overview}
 				realtimeStatus={realtimeStatus}
 				selectedServer={selectedServer}
+				sshTargetCount={sshTargetManager.targets.length}
 			/>
 
 			<main className="min-w-0 flex-1">
@@ -118,7 +132,13 @@ export function MonitorLayoutPage() {
 					<Outlet context={context} />
 				</div>
 			</main>
-			<Toast toast={localDockerScanner.toast || sshTargetManager.toast} />
+			<Toast
+				toast={
+					localDockerScanner.toast ||
+					sshTargetManager.toast ||
+					httpCheckManager.toast
+				}
+			/>
 		</div>
 	);
 }
