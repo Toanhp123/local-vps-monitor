@@ -31,8 +31,9 @@ export function ServerAlertThresholdGroup({
 				<Icon size={14} />
 				{resource.label}
 			</div>
-			<div className="grid grid-cols-2 gap-2">
+			<div className="grid grid-cols-[minmax(6.5rem,1fr)_minmax(6.5rem,1fr)] gap-2 max-sm:grid-cols-1">
 				<NumberInputField
+					className="min-w-0"
 					disabled={disabled}
 					label="Warning"
 					max={resource.max}
@@ -44,6 +45,7 @@ export function ServerAlertThresholdGroup({
 					value={form[resource.warningKey]}
 				/>
 				<NumberInputField
+					className="min-w-0"
 					disabled={disabled}
 					label="Critical"
 					max={resource.max}

@@ -9,7 +9,12 @@ const columns = [
 	{ key: "memory", label: "Memory" },
 	{ key: "disk", label: "Disk" },
 	{ key: "last-scan", label: "Last scan" },
-	{ align: "right" as const, key: "actions", label: "Actions" },
+	{
+		align: "right" as const,
+		key: "actions",
+		label: "Actions",
+		stickyRight: true,
+	},
 ];
 
 export function ServerTableHeader() {

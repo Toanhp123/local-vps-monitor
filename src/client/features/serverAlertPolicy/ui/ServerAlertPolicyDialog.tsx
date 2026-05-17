@@ -214,7 +214,7 @@ export function ServerAlertPolicyDialog({
 									</button>
 								</div>
 
-								<div className="grid grid-cols-3 gap-3 max-xl:grid-cols-1">
+								<div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
 									{serverAlertResources.map((resource) => (
 										<ServerAlertThresholdGroup
 											key={resource.id}
