@@ -123,6 +123,7 @@ export function MonitorRuntimePanel({
 				</>
 			}
 			canSave={canSave}
+			description="Default scan cadence, timeouts, concurrency, retention, and log limits."
 			error={error}
 			icon={<Settings2 size={18} />}
 			iconClassName="bg-blue-50 text-blue-700"

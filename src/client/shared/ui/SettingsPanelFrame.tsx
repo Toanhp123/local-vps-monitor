@@ -6,6 +6,8 @@ export function SettingsPanelFrame({
 	badges,
 	canSave,
 	children,
+	className = "",
+	description,
 	error,
 	icon,
 	iconClassName,
@@ -19,6 +21,8 @@ export function SettingsPanelFrame({
 	badges?: ReactNode;
 	canSave: boolean;
 	children: ReactNode;
+	className?: string;
+	description?: ReactNode;
 	error: string;
 	icon: ReactNode;
 	iconClassName: string;
@@ -30,7 +34,9 @@ export function SettingsPanelFrame({
 	title: string;
 }) {
 	return (
-		<section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+		<section
+			className={`overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm ${className}`}
+		>
 			<div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4.5 py-3.5 max-md:flex-col max-md:items-stretch">
 				<div className="flex min-w-0 items-center gap-2.5">
 					<div
@@ -42,6 +48,11 @@ export function SettingsPanelFrame({
 						<h2 className="text-lg leading-tight font-extrabold text-slate-900">
 							{title}
 						</h2>
+						{description && (
+							<p className="mt-0.5 max-w-155 text-xs leading-5 font-semibold text-slate-500">
+								{description}
+							</p>
+						)}
 						{badges && (
 							<div className="mt-1 flex flex-wrap gap-1.5">
 								{badges}
