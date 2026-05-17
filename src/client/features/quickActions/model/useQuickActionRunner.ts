@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import type { QuickActionRunResponse } from "../../../../shared/types";
-import { runQuickAction } from "../../../shared/api/quickActionsApi";
+import type { QuickActionRunResponse } from "@shared/types";
+import { runQuickAction } from "@/shared/api/quickActionsApi";
 import type { QuickActionDefinition } from "./quickActions";
 
 const errorMessage = (error: unknown) => {

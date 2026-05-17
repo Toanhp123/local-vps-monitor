@@ -1,5 +1,5 @@
-import type { StoredServer } from "../../../../shared/types";
-import { appDisplayName } from "../../../entities/application/model/appPolicy";
+import type { StoredServer } from "@shared/types";
+import { appDisplayName } from "@/entities/application";
 
 export const filterServers = (
 	servers: StoredServer[],

@@ -1,8 +1,10 @@
-import type { StoredServer } from "../../../../shared/types";
-import { ServerTableRow } from "../../../entities/server/ui/ServerTableRow";
-import { PinToggleButton } from "../../../features/pinnedItems/ui/PinToggleButton";
-import { ScanServerButton } from "../../../features/serverScan/ui/ScanServerButton";
-import { DataTable, DataTableBody } from "../../../shared/ui/DataTable";
+import type { StoredServer } from "@shared/types";
+import { ServerTableRow } from "@/entities/server";
+import { PinToggleButton } from "@/features/pinnedItems";
+import { ScanServerButton } from "@/features/serverScan";
+import { Badge } from "@/shared/ui/Badge";
+import { DataTable, DataTableBody } from "@/shared/ui/DataTable";
+import { Panel, PanelHeader } from "@/shared/ui/Panel";
 import { ServerListEmptyState } from "./ServerListEmptyState";
 import { ServerTableHeader } from "./ServerTableHeader";
 
@@ -36,23 +38,15 @@ export function ServerList({
 			: "No servers yet";
 
 	return (
-		<section
+		<Panel
 			id="vps"
-			className="scroll-mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white"
+			className="scroll-mt-6"
 		>
-			<div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4.5 py-3.5 max-md:flex-col max-md:items-stretch">
-				<div>
-					<h2 className="text-lg leading-tight font-extrabold text-slate-900">
-						Server Overview
-					</h2>
-					<p className="mt-1 text-sm font-semibold text-slate-500">
-						Click a server to open its detail view
-					</p>
-				</div>
-				<span className="inline-flex min-h-8 items-center rounded-full bg-slate-100 px-3 text-sm font-extrabold text-slate-700">
-					{servers.length} servers
-				</span>
-			</div>
+			<PanelHeader
+				description="Click a server to open its detail view"
+				title="Server Overview"
+				actions={<Badge size="lg">{servers.length} servers</Badge>}
+			/>
 
 			{servers.length === 0 ? (
 				<ServerListEmptyState title={emptyTitle} />
@@ -98,6 +92,6 @@ export function ServerList({
 					</DataTableBody>
 				</DataTable>
 			)}
-		</section>
+		</Panel>
 	);
 }

@@ -8,7 +8,7 @@ import {
 	Terminal,
 	type LucideIcon,
 } from "lucide-react";
-import { IconButton } from "../../../shared/ui/IconButton";
+import { IconButton } from "@/shared/ui/IconButton";
 import type { QuickActionDefinition } from "../model/quickActions";
 
 const actionIcons: Partial<Record<string, LucideIcon>> = {

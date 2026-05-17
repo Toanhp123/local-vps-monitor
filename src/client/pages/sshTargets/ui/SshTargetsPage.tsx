@@ -1,5 +1,5 @@
-import { useMonitorShellContext } from "../../../widgets/monitorShell/model/useMonitorShellContext";
-import { SshTargetManagerPanel } from "../../../widgets/sshTargets/ui/SshTargetManagerPanel";
+import { useMonitorShellContext } from "@/widgets/monitorShell";
+import { SshTargetManagerPanel } from "@/widgets/sshTargets";
 
 export function SshTargetsPage() {
 	const { isAnyScanActive, sshTargetManager } = useMonitorShellContext();

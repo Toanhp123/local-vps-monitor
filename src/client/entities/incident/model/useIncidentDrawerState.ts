@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
 	IncidentStateSnapshot,
 	IncidentEvent,
-} from "../../../../shared/types";
+} from "@shared/types";
 import {
 	fetchIncidentState,
 	saveIncidentState,
-} from "../../../shared/api/incidentStateApi";
+} from "@/shared/api/incidentStateApi";
 import {
 	getSnoozeUntil,
 	type IncidentDrawerState,

@@ -1,7 +1,7 @@
 import type {
 	IncidentStateResponse,
 	IncidentStateSnapshot,
-} from "../../../shared/types";
+} from "@shared/types";
 
 const parseErrorMessage = async (response: Response) => {
 	try {

@@ -5,12 +5,12 @@ import type {
 	HttpCheckCreateInput,
 	HttpCheckUpdateInput,
 	StoredServer,
-} from "../../../../shared/types";
-import { appDisplayName } from "../../../entities/application/model/appPolicy";
-import { Button } from "../../../shared/ui/Button";
-import { NumberInputField } from "../../../shared/ui/NumberInputField";
-import { SelectField } from "../../../shared/ui/SelectField";
-import { TextInputField } from "../../../shared/ui/TextInputField";
+} from "@shared/types";
+import { appDisplayName } from "@/entities/application";
+import { Button } from "@/shared/ui/Button";
+import { NumberInputField } from "@/shared/ui/NumberInputField";
+import { SelectField } from "@/shared/ui/SelectField";
+import { TextInputField } from "@/shared/ui/TextInputField";
 
 const defaultForm = {
 	appId: "",

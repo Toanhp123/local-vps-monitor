@@ -13,16 +13,16 @@ import type {
 	AppImportance,
 	AppPolicyOverrideInput,
 	AppSnapshot,
-} from "../../../../shared/types";
+} from "@shared/types";
 import {
 	appDisplayName,
 	appImportance,
-} from "../../../entities/application/model/appPolicy";
-import { RuntimeBadge } from "../../../entities/application/ui/RuntimeBadge";
-import { Button } from "../../../shared/ui/Button";
-import { IconButton } from "../../../shared/ui/IconButton";
-import { StatusBadge } from "../../../shared/ui/StatusBadge";
-import { TextInputField } from "../../../shared/ui/TextInputField";
+} from "@/entities/application";
+import { RuntimeBadge } from "@/entities/application";
+import { Button } from "@/shared/ui/Button";
+import { IconButton } from "@/shared/ui/IconButton";
+import { StatusBadge } from "@/shared/ui/StatusBadge";
+import { TextInputField } from "@/shared/ui/TextInputField";
 
 const importanceOptions: Array<{
 	description: string;

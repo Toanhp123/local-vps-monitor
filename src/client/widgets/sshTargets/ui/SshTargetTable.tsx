@@ -8,18 +8,19 @@ import {
 	Wifi,
 	X,
 } from "lucide-react";
-import type { SshTarget, SshTargetUpdateInput } from "../../../../shared/types";
-import { Button } from "../../../shared/ui/Button";
+import type { SshTarget, SshTargetUpdateInput } from "@shared/types";
+import { Button } from "@/shared/ui/Button";
 import {
 	DataTable,
+	DataTableActionsCell,
 	DataTableBody,
 	DataTableCell,
-	DataTableHeader,
-	DataTableHeaderCell,
+	DataTableHeaderRow,
 	DataTableMessageRow,
 	DataTableRow,
-} from "../../../shared/ui/DataTable";
-import { IconButton } from "../../../shared/ui/IconButton";
+	DataTableTitle,
+} from "@/shared/ui/DataTable";
+import { IconButton } from "@/shared/ui/IconButton";
 
 interface EditFormState {
 	host: string;
@@ -31,6 +32,13 @@ interface EditFormState {
 
 const editInputClass =
 	"h-9 min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 text-sm font-semibold text-slate-900 outline-0 focus:border-blue-400";
+
+const columns = [
+	{ key: "target", label: "Target" },
+	{ key: "ssh", label: "SSH" },
+	{ key: "key-path", label: "Key path" },
+	{ align: "right" as const, key: "actions", label: "Actions" },
+];
 
 const editFormFromTarget = (target: SshTarget): EditFormState => ({
 	name: target.name,
@@ -123,9 +131,9 @@ function SshTargetRow({
 	return (
 		<DataTableRow>
 			<DataTableCell noWrap={false}>
-				<div className="flex items-center gap-2.5">
-					<Server size={16} className="text-blue-600" />
-					{isEditing ? (
+				{isEditing ? (
+					<div className="flex items-center gap-2.5">
+						<Server size={16} className="text-blue-600" />
 						<input
 							className={editInputClass}
 							value={editForm.name}
@@ -134,10 +142,13 @@ function SshTargetRow({
 							}
 							aria-label="Target name"
 						/>
-					) : (
-						<strong className="text-slate-900">{target.name}</strong>
-					)}
-				</div>
+					</div>
+				) : (
+					<DataTableTitle
+						leading={<Server size={16} className="text-blue-600" />}
+						title={target.name}
+					/>
+				)}
 			</DataTableCell>
 			<DataTableCell className="font-semibold text-slate-600">
 				{isEditing ? (
@@ -189,8 +200,7 @@ function SshTargetRow({
 					target.privateKeyPath
 				)}
 			</DataTableCell>
-			<DataTableCell align="right">
-				<div className="flex justify-end gap-2">
+			<DataTableActionsCell>
 					{isEditing ? (
 						<>
 							<Button
@@ -253,8 +263,7 @@ function SshTargetRow({
 							)}
 						</>
 					)}
-				</div>
-			</DataTableCell>
+			</DataTableActionsCell>
 		</DataTableRow>
 	);
 }
@@ -290,12 +299,7 @@ export function SshTargetTable({
 
 	return (
 		<DataTable minWidth="min-w-220">
-			<DataTableHeader>
-				<DataTableHeaderCell>Target</DataTableHeaderCell>
-				<DataTableHeaderCell>SSH</DataTableHeaderCell>
-				<DataTableHeaderCell>Key path</DataTableHeaderCell>
-				<DataTableHeaderCell align="right">Actions</DataTableHeaderCell>
-			</DataTableHeader>
+			<DataTableHeaderRow columns={columns} />
 			<DataTableBody>
 					{targets.map((target) => (
 						<SshTargetRow

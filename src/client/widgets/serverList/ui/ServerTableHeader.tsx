@@ -1,20 +1,17 @@
-import {
-	DataTableHeader,
-	DataTableHeaderCell,
-} from "../../../shared/ui/DataTable";
+import { DataTableHeaderRow } from "@/shared/ui/DataTable";
+
+const columns = [
+	{ key: "server", label: "Server" },
+	{ key: "status", label: "Status" },
+	{ key: "apps", label: "Apps" },
+	{ key: "system", label: "System" },
+	{ key: "cpu", label: "CPU" },
+	{ key: "memory", label: "Memory" },
+	{ key: "disk", label: "Disk" },
+	{ key: "last-scan", label: "Last scan" },
+	{ align: "right" as const, key: "actions", label: "Actions" },
+];
 
 export function ServerTableHeader() {
-	return (
-		<DataTableHeader>
-			<DataTableHeaderCell>Server</DataTableHeaderCell>
-			<DataTableHeaderCell>Status</DataTableHeaderCell>
-			<DataTableHeaderCell>Apps</DataTableHeaderCell>
-			<DataTableHeaderCell>System</DataTableHeaderCell>
-			<DataTableHeaderCell>CPU</DataTableHeaderCell>
-			<DataTableHeaderCell>Memory</DataTableHeaderCell>
-			<DataTableHeaderCell>Disk</DataTableHeaderCell>
-			<DataTableHeaderCell>Last scan</DataTableHeaderCell>
-			<DataTableHeaderCell align="right">Actions</DataTableHeaderCell>
-		</DataTableHeader>
-	);
+	return <DataTableHeaderRow columns={columns} />;
 }

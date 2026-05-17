@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { ServerMetricPoint, StoredServer } from "../../../../shared/types";
-import { formatBytes } from "../../../shared/lib/format";
+import type { ServerMetricPoint, StoredServer } from "@shared/types";
+import { formatBytes } from "@/shared/lib/format";
 
 const chartWindow = 24;
 

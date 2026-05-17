@@ -1,4 +1,4 @@
-import type { MonitorRuntimeSettings } from "../../../../shared/types";
+import type { MonitorRuntimeSettings } from "@shared/types";
 
 export type MonitorRuntimeFormState = Record<keyof MonitorRuntimeSettings, string>;
 

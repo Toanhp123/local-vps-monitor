@@ -1,4 +1,4 @@
-import type { StoredServer } from "../../../../shared/types";
+import type { StoredServer } from "@shared/types";
 import {
 	serverAlertResources,
 	type ThresholdFormState,

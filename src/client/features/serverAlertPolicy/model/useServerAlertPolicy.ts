@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import type {
 	ServerAlertPolicy,
 	ServerAlertPolicyUpdateInput,
-} from "../../../../shared/types";
+} from "@shared/types";
 import {
 	fetchServerAlertPolicy,
 	updateServerAlertPolicy,
-} from "../../../shared/api/serverAlertPolicyApi";
-import type { ToastState } from "../../../shared/ui/Toast";
+} from "@/shared/api/serverAlertPolicyApi";
+import type { ToastState } from "@/shared/ui/Toast";
 
 const errorMessage = (error: unknown) => {
 	return error instanceof Error ? error.message : String(error);

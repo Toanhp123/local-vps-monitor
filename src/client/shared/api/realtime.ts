@@ -1,4 +1,4 @@
-import type { RealtimeMessage } from "../../../shared/types";
+import type { RealtimeMessage } from "@shared/types";
 
 export type RealtimeStatus =
 	| "connecting"

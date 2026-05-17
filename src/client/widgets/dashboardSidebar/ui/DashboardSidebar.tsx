@@ -7,13 +7,14 @@ import {
 	Server,
 	Settings,
 } from "lucide-react";
-import type { OverviewResponse, StoredServer } from "../../../../shared/types";
+import type { OverviewResponse, StoredServer } from "@shared/types";
 import {
 	serverAppCounts,
 	summaryMonitoredApps,
-} from "../../../entities/application/model/appPolicy";
-import type { RealtimeStatus } from "../../../shared/api/realtime";
-import { StatusBadge } from "../../../shared/ui/StatusBadge";
+} from "@/entities/application";
+import type { RealtimeStatus } from "@/shared/api/realtime";
+import { Badge } from "@/shared/ui/Badge";
+import { StatusBadge } from "@/shared/ui/StatusBadge";
 
 type DashboardSection =
 	| "dashboard"
@@ -182,10 +183,10 @@ export function DashboardSidebar({
 								</span>
 								<div className="flex flex-wrap gap-1.5">
 									<StatusBadge status={selectedServer.status} />
-									<span className="inline-flex min-h-6 items-center rounded-full bg-white px-2 text-xs font-extrabold text-slate-600">
+									<Badge size="sm" tone="white">
 										{selectedServerAppCounts?.monitored}/
 										{selectedServerAppCounts?.total} apps
-									</span>
+									</Badge>
 								</div>
 							</div>
 						) : (

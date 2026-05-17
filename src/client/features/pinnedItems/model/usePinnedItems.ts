@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { StoredServer } from "../../../../shared/types";
+import type { StoredServer } from "@shared/types";
 
 const pinnedItemsStorageKey = "vps-monitor.pinnedItems.v1";
 

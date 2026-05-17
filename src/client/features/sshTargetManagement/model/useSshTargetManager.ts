@@ -5,8 +5,8 @@ import type {
 	SshTargetBulkImportInput,
 	SshTargetCreateInput,
 	SshTargetUpdateInput,
-} from "../../../../shared/types";
-import type { ToastState } from "../../../shared/ui/Toast";
+} from "@shared/types";
+import type { ToastState } from "@/shared/ui/Toast";
 import {
 	bootstrapSshTarget,
 	bulkImportSshTargets,
@@ -17,7 +17,7 @@ import {
 	scanSshTarget,
 	testSshTarget,
 	updateSshTarget,
-} from "../../../shared/api/sshTargetsApi";
+} from "@/shared/api/sshTargetsApi";
 
 const scanAllId = "__all__";
 

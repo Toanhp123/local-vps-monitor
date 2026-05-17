@@ -2,7 +2,7 @@ import type {
 	MonitorRuntimeSettings,
 	MonitorRuntimeSettingsResponse,
 	MonitorRuntimeSettingsUpdateInput,
-} from "../../../shared/types";
+} from "@shared/types";
 
 const parseErrorMessage = async (response: Response) => {
 	try {

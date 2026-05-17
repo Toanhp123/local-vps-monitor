@@ -1,4 +1,4 @@
-import type { IncidentEvent } from "../../../../shared/types";
+import type { IncidentEvent } from "@shared/types";
 
 export interface IncidentGroup {
 	incidents: IncidentEvent[];

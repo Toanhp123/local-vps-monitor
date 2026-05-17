@@ -1,25 +1,38 @@
 import { useState } from "react";
 import { Activity, Edit3, Play, Trash2 } from "lucide-react";
-import type { HttpCheck, StoredServer } from "../../../../shared/types";
-import { appDisplayName } from "../../../entities/application/model/appPolicy";
-import { relativeTime } from "../../../shared/lib/format";
-import { Button } from "../../../shared/ui/Button";
+import type { HttpCheck, StoredServer } from "@shared/types";
+import { appDisplayName } from "@/entities/application";
+import { relativeTime } from "@/shared/lib/format";
+import { Badge } from "@/shared/ui/Badge";
+import { Button } from "@/shared/ui/Button";
 import {
 	DataTable,
+	DataTableActionsCell,
 	DataTableBody,
 	DataTableCell,
-	DataTableHeader,
-	DataTableHeaderCell,
+	DataTableHeaderRow,
 	DataTableMessageRow,
 	DataTableRow,
-} from "../../../shared/ui/DataTable";
+	DataTableTitle,
+} from "@/shared/ui/DataTable";
 
-const statusClasses: Record<string, string> = {
-	down: "bg-red-100 text-red-800",
-	healthy: "bg-green-100 text-green-800",
-	unknown: "bg-slate-100 text-slate-600",
-	warning: "bg-amber-100 text-amber-800",
+const statusTones: Record<
+	string,
+	"amber" | "green" | "red" | "slate"
+> = {
+	down: "red",
+	healthy: "green",
+	unknown: "slate",
+	warning: "amber",
 };
+
+const columns = [
+	{ key: "check", label: "Check" },
+	{ key: "target", label: "Target" },
+	{ key: "status", label: "Status" },
+	{ key: "last-run", label: "Last run" },
+	{ align: "right" as const, key: "actions", label: "Actions" },
+];
 
 export function HttpCheckTable({
 	activeCheckId,
@@ -44,18 +57,7 @@ export function HttpCheckTable({
 
 	return (
 		<DataTable>
-			<DataTableHeader>
-				{["Check", "Target", "Status", "Last run", "Actions"].map(
-					(header) => (
-						<DataTableHeaderCell
-							key={header}
-							align={header === "Actions" ? "right" : "left"}
-						>
-							{header}
-						</DataTableHeaderCell>
-					),
-				)}
-			</DataTableHeader>
+			<DataTableHeaderRow columns={columns} />
 			<DataTableBody>
 					{isLoading ? (
 						<DataTableMessageRow
@@ -91,14 +93,12 @@ export function HttpCheckTable({
 									className="hover:bg-blue-50/50"
 								>
 									<DataTableCell noWrap={false}>
-										<div className="min-w-0">
-											<strong className="block max-w-72 overflow-hidden text-ellipsis text-slate-900">
-												{check.name}
-											</strong>
-											<span className="block max-w-96 overflow-hidden text-ellipsis text-xs font-semibold text-slate-500">
-												{check.method} {check.url}
-											</span>
-										</div>
+										<DataTableTitle
+											subtitle={`${check.method} ${check.url}`}
+											subtitleClassName="max-w-96"
+											title={check.name}
+											titleClassName="max-w-72"
+										/>
 									</DataTableCell>
 									<DataTableCell>
 										<span className="font-semibold text-slate-700">
@@ -111,12 +111,9 @@ export function HttpCheckTable({
 										)}
 									</DataTableCell>
 									<DataTableCell>
-										<span
-											className={`inline-flex min-h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-extrabold ${statusClasses[status]}`}
-										>
-											<Activity size={14} />
+										<Badge icon={Activity} tone={statusTones[status]}>
 											{status}
-										</span>
+										</Badge>
 										{result?.statusCode !== undefined && (
 											<span className="ml-2 text-xs font-bold text-slate-500">
 												{result.statusCode}
@@ -146,8 +143,7 @@ export function HttpCheckTable({
 											</span>
 										)}
 									</DataTableCell>
-									<DataTableCell align="right">
-										<div className="flex justify-end gap-2">
+									<DataTableActionsCell>
 											<Button
 												disabled={isRunning}
 												icon={Play}
@@ -191,8 +187,7 @@ export function HttpCheckTable({
 													? "Confirm"
 													: "Delete"}
 											</Button>
-										</div>
-									</DataTableCell>
+									</DataTableActionsCell>
 								</DataTableRow>
 							);
 						})

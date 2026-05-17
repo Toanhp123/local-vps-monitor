@@ -3,7 +3,7 @@ import type {
 	AppKind,
 	AppSnapshot,
 	HealthStatus,
-} from "../../../../shared/types";
+} from "@shared/types";
 import { isIgnoredApp } from "./appPolicy";
 
 export interface ApplicationGroupView {

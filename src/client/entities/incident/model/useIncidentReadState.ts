@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { IncidentEvent } from "../../../../shared/types";
+import type { IncidentEvent } from "@shared/types";
 import { getIncidentIds } from "./incidentGroups";
 
 const maxStoredReadIncidentIds = 500;

@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { useAppLogs } from "../../../features/appLogs/model/useAppLogs";
-import { AppLogsPanel } from "../../../features/appLogs/ui/AppLogsPanel";
-import { useQuickActionRunner } from "../../../features/quickActions/model/useQuickActionRunner";
-import { QuickActionPanel } from "../../../features/quickActions/ui/QuickActionPanel";
-import { routes } from "../../../shared/config/routes";
-import { ServerDetailsView } from "../../../widgets/serverDetails/ui/ServerDetailsView";
-import { useMonitorShellContext } from "../../../widgets/monitorShell/model/useMonitorShellContext";
+import { useAppLogs } from "@/features/appLogs";
+import { AppLogsPanel } from "@/features/appLogs";
+import { useQuickActionRunner } from "@/features/quickActions";
+import { QuickActionPanel } from "@/features/quickActions";
+import { routes } from "@/shared/config/routes";
+import { ServerDetailsView } from "@/widgets/serverDetails";
+import { useMonitorShellContext } from "@/widgets/monitorShell";
 
 export function ServerDetailsPage() {
 	const navigate = useNavigate();

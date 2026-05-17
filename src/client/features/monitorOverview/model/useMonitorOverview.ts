@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { OverviewResponse } from "../../../../shared/types";
-import { fetchOverview } from "../../../shared/api/monitorApi";
+import type { OverviewResponse } from "@shared/types";
+import { fetchOverview } from "@/shared/api/monitorApi";
 import {
 	parseRealtimeMessage,
 	reconnectDelay,
 	realtimeUrl,
 	type RealtimeStatus,
-} from "../../../shared/api/realtime";
+} from "@/shared/api/realtime";
 import { filterServers } from "./filterServers";
 
 type RequestStatus = "idle" | "loading" | "error";

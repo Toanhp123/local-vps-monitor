@@ -1,10 +1,15 @@
 import type { ReactNode } from "react";
 import { Server, WifiOff } from "lucide-react";
-import type { StoredServer } from "../../../../shared/types";
-import { serverAppCounts } from "../../application/model/appPolicy";
-import { formatBytes, relativeTime } from "../../../shared/lib/format";
-import { DataTableCell, DataTableRow } from "../../../shared/ui/DataTable";
-import { StatusBadge } from "../../../shared/ui/StatusBadge";
+import type { StoredServer } from "@shared/types";
+import { serverAppCounts } from "@/entities/application/@x/server";
+import { formatBytes, relativeTime } from "@/shared/lib/format";
+import {
+	DataTableActionsCell,
+	DataTableCell,
+	DataTableRow,
+	DataTableTitle,
+} from "@/shared/ui/DataTable";
+import { StatusBadge } from "@/shared/ui/StatusBadge";
 import { serverDisk, serverMemory } from "../model/serverMetrics";
 
 export function ServerTableRow({
@@ -27,20 +32,24 @@ export function ServerTableRow({
 	return (
 		<DataTableRow className="cursor-pointer hover:bg-blue-50/50" onClick={onOpen}>
 			<DataTableCell className="min-w-68">
-				<div className="flex items-center gap-2.5">
-					{pinControl}
-					<span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-						{server.online ? <Server size={17} /> : <WifiOff size={17} />}
-					</span>
-					<span className="min-w-0">
-						<strong className="block max-w-52 overflow-hidden text-ellipsis text-slate-900">
-							{server.serverName}
-						</strong>
-						<span className="block max-w-52 overflow-hidden text-ellipsis text-xs font-semibold text-slate-500">
-							{server.host.hostname}
-						</span>
-					</span>
-				</div>
+				<DataTableTitle
+					leading={
+						<>
+							{pinControl}
+							<span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+								{server.online ? (
+									<Server size={17} />
+								) : (
+									<WifiOff size={17} />
+								)}
+							</span>
+						</>
+					}
+					subtitle={server.host.hostname}
+					subtitleClassName="max-w-52"
+					title={server.serverName}
+					titleClassName="max-w-52"
+				/>
 			</DataTableCell>
 			<DataTableCell>
 				<StatusBadge status={server.status} />
@@ -89,9 +98,7 @@ export function ServerTableRow({
 					{relativeTime(server.lastSeenAt, now)}
 				</span>
 			</DataTableCell>
-			<DataTableCell align="right">
-				<div className="flex items-center justify-end gap-2">{actions}</div>
-			</DataTableCell>
+			<DataTableActionsCell>{actions}</DataTableActionsCell>
 		</DataTableRow>
 	);
 }

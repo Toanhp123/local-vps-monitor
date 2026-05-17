@@ -7,9 +7,10 @@ import {
 	Terminal,
 	X,
 } from "lucide-react";
-import type { QuickActionRunResponse } from "../../../../shared/types";
-import { Button } from "../../../shared/ui/Button";
-import { IconButton } from "../../../shared/ui/IconButton";
+import type { QuickActionRunResponse } from "@shared/types";
+import { Badge } from "@/shared/ui/Badge";
+import { Button } from "@/shared/ui/Button";
+import { IconButton } from "@/shared/ui/IconButton";
 import type { QuickActionDefinition } from "../model/quickActions";
 
 const outputText = (result: QuickActionRunResponse | null) => {
@@ -137,15 +138,9 @@ export function QuickActionPanel({
 						<div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
 							<div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2.5">
 								<div className="flex flex-wrap items-center gap-2">
-									<span
-										className={`inline-flex min-h-6 items-center rounded-full px-2.5 text-xs font-extrabold ${
-											result.ok
-												? "bg-emerald-100 text-emerald-700"
-												: "bg-rose-100 text-rose-700"
-										}`}
-									>
+									<Badge tone={result.ok ? "green" : "rose"}>
 										{result.ok ? "Succeeded" : "Failed"}
-									</span>
+									</Badge>
 									{result.exitCode !== undefined && (
 										<span className="text-xs font-bold text-slate-500">
 											Exit {result.exitCode}

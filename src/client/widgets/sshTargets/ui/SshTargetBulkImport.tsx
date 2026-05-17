@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Upload } from "lucide-react";
-import type { SshTargetBulkImportInput } from "../../../../shared/types";
-import { Button } from "../../../shared/ui/Button";
-import { SegmentedControl } from "../../../shared/ui/SegmentedControl";
+import type { SshTargetBulkImportInput } from "@shared/types";
+import { Button } from "@/shared/ui/Button";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import type { SshAuthMode } from "../model/useSshTargetForm";
 
 const authModeOptions: Array<{ label: string; value: SshAuthMode }> = [

@@ -6,9 +6,9 @@ import {
 	Server,
 	WifiOff,
 } from "lucide-react";
-import type { OverviewResponse } from "../../../../shared/types";
-import { summaryMonitoredApps } from "../../../entities/application/model/appPolicy";
-import { StatCard } from "../../../shared/ui/StatCard";
+import type { OverviewResponse } from "@shared/types";
+import { summaryMonitoredApps } from "@/entities/application";
+import { StatCard } from "@/shared/ui/StatCard";
 
 export function SummaryStats({
 	overview,

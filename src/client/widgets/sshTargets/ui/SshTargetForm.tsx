@@ -2,11 +2,11 @@ import { CircleHelp, Plus } from "lucide-react";
 import type {
 	SshTargetBootstrapInput,
 	SshTargetCreateInput,
-} from "../../../../shared/types";
-import { Button } from "../../../shared/ui/Button";
-import { NumberInputField } from "../../../shared/ui/NumberInputField";
-import { SegmentedControl } from "../../../shared/ui/SegmentedControl";
-import { TextInputField } from "../../../shared/ui/TextInputField";
+} from "@shared/types";
+import { Button } from "@/shared/ui/Button";
+import { NumberInputField } from "@/shared/ui/NumberInputField";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
+import { TextInputField } from "@/shared/ui/TextInputField";
 import { useSshTargetForm, type SshAuthMode } from "../model/useSshTargetForm";
 
 const labelClass = "grid gap-1.5 text-[13px] font-bold text-slate-500";

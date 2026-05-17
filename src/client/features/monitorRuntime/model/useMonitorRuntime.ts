@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import type {
 	MonitorRuntimeSettings,
 	MonitorRuntimeSettingsUpdateInput,
-} from "../../../../shared/types";
+} from "@shared/types";
 import {
 	fetchMonitorRuntime,
 	updateMonitorRuntime,
-} from "../../../shared/api/monitorRuntimeApi";
-import type { ToastState } from "../../../shared/ui/Toast";
+} from "@/shared/api/monitorRuntimeApi";
+import type { ToastState } from "@/shared/ui/Toast";
 
 const errorMessage = (error: unknown) => {
 	return error instanceof Error ? error.message : String(error);

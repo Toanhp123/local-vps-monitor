@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import type {
 	SshTargetBootstrapInput,
 	SshTargetCreateInput,
-} from "../../../../shared/types";
+} from "@shared/types";
 
 export type SshAuthMode = "password" | "key";
 

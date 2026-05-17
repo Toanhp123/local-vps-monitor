@@ -3,7 +3,7 @@ import type {
 	HttpCheck,
 	HttpCheckCreateInput,
 	HttpCheckUpdateInput,
-} from "../../../../shared/types";
+} from "@shared/types";
 import {
 	createHttpCheck,
 	deleteHttpCheck,
@@ -11,8 +11,8 @@ import {
 	runAllHttpChecks,
 	runHttpCheck,
 	updateHttpCheck,
-} from "../../../shared/api/httpChecksApi";
-import type { ToastState } from "../../../shared/ui/Toast";
+} from "@/shared/api/httpChecksApi";
+import type { ToastState } from "@/shared/ui/Toast";
 
 const errorMessage = (error: unknown) => {
 	return error instanceof Error ? error.message : String(error);

@@ -1,4 +1,4 @@
-import type { StoredServer } from "../../../../shared/types";
+import type { StoredServer } from "@shared/types";
 
 export const serverMemory = (server: StoredServer) => {
 	const used = Math.max(

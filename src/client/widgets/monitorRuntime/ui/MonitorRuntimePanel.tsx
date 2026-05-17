@@ -13,9 +13,10 @@ import {
 import type {
 	MonitorRuntimeSettings,
 	MonitorRuntimeSettingsUpdateInput,
-} from "../../../../shared/types";
-import { NumberInputField } from "../../../shared/ui/NumberInputField";
-import { SettingsPanelFrame } from "../../../shared/ui/SettingsPanelFrame";
+} from "@shared/types";
+import { Badge } from "@/shared/ui/Badge";
+import { NumberInputField } from "@/shared/ui/NumberInputField";
+import { SettingsPanelFrame } from "@/shared/ui/SettingsPanelFrame";
 import {
 	emptyMonitorRuntimeForm,
 	monitorRuntimeFieldSections,
@@ -86,18 +87,15 @@ export function MonitorRuntimePanel({
 		<SettingsPanelFrame
 			badges={
 				<>
-					<span className="inline-flex min-h-6 items-center gap-1.5 rounded-full bg-blue-50 px-2.5 text-xs font-extrabold text-blue-700">
-						<RadioTower size={13} />
+					<Badge icon={RadioTower} tone="blue">
 						Auto {msSummary(settings?.autoScanIntervalMs)}
-					</span>
-					<span className="inline-flex min-h-6 items-center gap-1.5 rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-700">
-						<Clock size={13} />
+					</Badge>
+					<Badge icon={Clock}>
 						Offline {msSummary(settings?.offlineAfterMs)}
-					</span>
-					<span className="inline-flex min-h-6 items-center gap-1.5 rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-700">
-						<History size={13} />
+					</Badge>
+					<Badge icon={History}>
 						History {settings?.metricHistoryLimit ?? "--"}
-					</span>
+					</Badge>
 				</>
 			}
 			canSave={canSave}

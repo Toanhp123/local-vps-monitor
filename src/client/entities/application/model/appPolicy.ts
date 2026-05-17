@@ -3,7 +3,7 @@ import type {
 	AppSnapshot,
 	OverviewSummary,
 	StoredServer,
-} from "../../../../shared/types";
+} from "@shared/types";
 
 export const appImportance = (app: AppSnapshot): AppImportance => {
 	return app.monitoring?.importance ?? "normal";

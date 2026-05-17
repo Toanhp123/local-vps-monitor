@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { scanLocalDocker } from "../../../shared/api/localDockerApi";
-import type { ToastState } from "../../../shared/ui/Toast";
+import { scanLocalDocker } from "@/shared/api/localDockerApi";
+import type { ToastState } from "@/shared/ui/Toast";
 
 export const localDockerServerId = "local-docker";
 

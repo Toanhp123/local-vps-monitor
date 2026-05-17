@@ -1,4 +1,4 @@
-import type { IncidentEvent } from "../../../../shared/types";
+import type { IncidentEvent } from "@shared/types";
 import { isActiveIncident } from "./incidentGroups";
 
 export type IncidentDrawerFilter = "open" | "new" | "muted" | "all";

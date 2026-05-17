@@ -1,7 +1,7 @@
 import type {
 	QuickActionRunInput,
 	QuickActionRunResponse,
-} from "../../../shared/types";
+} from "@shared/types";
 
 const parseErrorMessage = async (response: Response) => {
 	try {

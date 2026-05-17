@@ -1,12 +1,12 @@
 import { useOutletContext } from "react-router-dom";
-import type { OverviewResponse, StoredServer } from "../../../../shared/types";
-import type { useServerAlertPolicy } from "../../../features/serverAlertPolicy/model/useServerAlertPolicy";
-import type { useAppPolicies } from "../../../features/appPolicies/model/useAppPolicies";
-import type { useLocalDockerScanner } from "../../../features/localDockerScan/model/useLocalDockerScanner";
-import type { useHttpCheckManager } from "../../../features/httpChecks/model/useHttpCheckManager";
-import type { useSshTargetManager } from "../../../features/sshTargetManagement/model/useSshTargetManager";
-import type { usePinnedItems } from "../../../features/pinnedItems/model/usePinnedItems";
-import type { useMonitorRuntime } from "../../../features/monitorRuntime/model/useMonitorRuntime";
+import type { OverviewResponse, StoredServer } from "@shared/types";
+import type { useServerAlertPolicy } from "@/features/serverAlertPolicy";
+import type { useAppPolicies } from "@/features/appPolicies";
+import type { useLocalDockerScanner } from "@/features/localDockerScan";
+import type { useHttpCheckManager } from "@/features/httpChecks";
+import type { useSshTargetManager } from "@/features/sshTargetManagement";
+import type { usePinnedItems } from "@/features/pinnedItems";
+import type { useMonitorRuntime } from "@/features/monitorRuntime";
 
 export interface MonitorShellContext {
 	activeScanId: string | null;

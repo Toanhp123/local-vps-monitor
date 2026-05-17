@@ -1,5 +1,5 @@
 import { Cpu, HardDrive, MemoryStick, type LucideIcon } from "lucide-react";
-import { NumberInputField } from "../../../shared/ui/NumberInputField";
+import { NumberInputField } from "@/shared/ui/NumberInputField";
 import type {
 	ServerAlertResourceId,
 	ServerAlertResourceConfig,

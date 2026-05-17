@@ -16,14 +16,15 @@ import type {
 	IncidentEvent,
 	IncidentKind,
 	IncidentSeverity,
-} from "../../../../shared/types";
+} from "@shared/types";
 import {
 	snoozePresets,
 	type SnoozePreset,
 } from "../model/incidentState";
-import { relativeTime } from "../../../shared/lib/format";
-import { Button } from "../../../shared/ui/Button";
-import { SelectField } from "../../../shared/ui/SelectField";
+import { relativeTime } from "@/shared/lib/format";
+import { Badge } from "@/shared/ui/Badge";
+import { Button } from "@/shared/ui/Button";
+import { SelectField } from "@/shared/ui/SelectField";
 
 const severityLabels: Record<IncidentSeverity, string> = {
 	critical: "Critical",
@@ -32,11 +33,14 @@ const severityLabels: Record<IncidentSeverity, string> = {
 	warning: "Warning",
 };
 
-const severityClasses: Record<IncidentSeverity, string> = {
-	critical: "bg-red-100 text-red-800",
-	info: "bg-blue-50 text-blue-700",
-	resolved: "bg-green-100 text-green-800",
-	warning: "bg-amber-100 text-amber-800",
+const severityTones: Record<
+	IncidentSeverity,
+	"amber" | "blue" | "green" | "red"
+> = {
+	critical: "red",
+	info: "blue",
+	resolved: "green",
+	warning: "amber",
 };
 
 const iconClasses: Record<IncidentSeverity, string> = {
@@ -118,30 +122,30 @@ export function IncidentListItem({
 						{incident.title}
 					</strong>
 					{isUnread && !isMuted && (
-						<span className="inline-flex min-h-5 items-center rounded-full bg-blue-600 px-2 text-[10px] font-extrabold text-white">
+						<Badge
+							className="bg-blue-600 text-white"
+							size="xs"
+						>
 							New
-						</span>
+						</Badge>
 					)}
 					{isAcknowledged && (
-						<span className="inline-flex min-h-5 items-center rounded-full bg-slate-100 px-2 text-[10px] font-extrabold text-slate-600">
+						<Badge className="text-slate-600" size="xs">
 							Acknowledged
-						</span>
+						</Badge>
 					)}
 					{snoozedUntil !== undefined && (
-						<span
-							className="inline-flex min-h-5 items-center rounded-full bg-violet-50 px-2 text-[10px] font-extrabold text-violet-700"
+						<Badge
+							size="xs"
 							title={new Date(snoozedUntil).toLocaleString()}
+							tone="violet"
 						>
 							Snoozed until {formatSnoozedUntil(snoozedUntil)}
-						</span>
+						</Badge>
 					)}
-					<span
-						className={`inline-flex min-h-6 items-center rounded-full px-2.5 text-xs font-extrabold ${
-							severityClasses[incident.severity]
-						}`}
-					>
+					<Badge tone={severityTones[incident.severity]}>
 						{severityLabels[incident.severity]}
-					</span>
+					</Badge>
 				</div>
 				<div className="mt-1 text-xs font-bold text-slate-400">
 					{relativeTime(incident.occurredAt, now)}

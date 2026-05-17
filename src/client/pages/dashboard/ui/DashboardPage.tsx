@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { routes } from "../../../shared/config/routes";
-import { LocalDockerPanel } from "../../../widgets/localDocker/ui/LocalDockerPanel";
-import { ServerList } from "../../../widgets/serverList/ui/ServerList";
-import { SummaryStats } from "../../../widgets/summaryStats/ui/SummaryStats";
-import { DashboardHeader } from "../../../widgets/dashboardHeader/ui/DashboardHeader";
-import { useMonitorShellContext } from "../../../widgets/monitorShell/model/useMonitorShellContext";
+import { routes } from "@/shared/config/routes";
+import { LocalDockerPanel } from "@/widgets/localDocker";
+import { ServerList } from "@/widgets/serverList";
+import { SummaryStats } from "@/widgets/summaryStats";
+import { DashboardHeader } from "@/widgets/dashboardHeader";
+import { useMonitorShellContext } from "@/widgets/monitorShell";
 
 export function DashboardPage() {
 	const navigate = useNavigate();

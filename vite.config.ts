@@ -1,5 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import path from "node:path";
 import { defineConfig, loadEnv } from "vite";
 
 const defaultApiPort = 3101;
@@ -27,6 +28,12 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "../../dist/client",
       emptyOutDir: true
+    },
+    resolve: {
+      alias: {
+        "@": path.resolve(process.cwd(), "src/client"),
+        "@shared": path.resolve(process.cwd(), "src/shared")
+      }
     },
     server: {
       host: "127.0.0.1",

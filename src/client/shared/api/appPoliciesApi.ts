@@ -5,7 +5,7 @@ import type {
 	AppPolicyListResponse,
 	AppPolicyResponse,
 	AppPolicyUpdateInput,
-} from "../../../shared/types";
+} from "@shared/types";
 
 const parseError = async (response: Response) => {
 	try {

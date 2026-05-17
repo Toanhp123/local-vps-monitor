@@ -1,8 +1,8 @@
 import { RefreshCw } from "lucide-react";
-import type { IncidentEvent } from "../../../../shared/types";
-import { IncidentNotificationCenter } from "../../../entities/incident/ui/IncidentNotificationCenter";
-import { Button } from "../../../shared/ui/Button";
-import { SearchInput } from "../../../shared/ui/SearchInput";
+import type { IncidentEvent } from "@shared/types";
+import { IncidentNotificationCenter } from "@/entities/incident";
+import { Button } from "@/shared/ui/Button";
+import { SearchInput } from "@/shared/ui/SearchInput";
 
 export function DashboardHeader({
 	incidents,

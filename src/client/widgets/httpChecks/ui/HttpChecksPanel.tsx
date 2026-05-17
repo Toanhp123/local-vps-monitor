@@ -5,8 +5,10 @@ import type {
 	HttpCheckCreateInput,
 	HttpCheckUpdateInput,
 	OverviewResponse,
-} from "../../../../shared/types";
-import { Button } from "../../../shared/ui/Button";
+} from "@shared/types";
+import { Badge } from "@/shared/ui/Badge";
+import { Button } from "@/shared/ui/Button";
+import { Panel, PanelError, PanelHeader } from "@/shared/ui/Panel";
 import { HttpCheckForm } from "./HttpCheckForm";
 import { HttpCheckTable } from "./HttpCheckTable";
 
@@ -53,51 +55,40 @@ export function HttpChecksPanel({
 	}, [checks]);
 
 	return (
-		<section
+		<Panel
 			id="http-checks"
-			className="mb-4.5 scroll-mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white"
+			className="mb-4.5 scroll-mt-6"
 		>
-			<div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4.5 py-3.5 max-lg:flex-col max-lg:items-stretch">
-				<div className="flex min-w-0 items-center gap-2.5">
-					<div className="flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-700">
-						<Globe2 size={18} />
-					</div>
-					<div className="min-w-0">
-						<h2 className="text-lg leading-tight font-extrabold text-slate-900">
-							HTTP Checks
-						</h2>
-						<div className="mt-1 flex flex-wrap gap-1.5">
-							<span className="inline-flex min-h-6 items-center rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-700">
-								{checks.length} checks
-							</span>
-							<span className="inline-flex min-h-6 items-center gap-1.5 rounded-full bg-green-100 px-2.5 text-xs font-extrabold text-green-800">
-								<CheckCircle2 size={14} />
-								{statusCounts.healthy} healthy
-							</span>
-							<span className="inline-flex min-h-6 items-center gap-1.5 rounded-full bg-red-100 px-2.5 text-xs font-extrabold text-red-800">
-								<XCircle size={14} />
-								{statusCounts.down + statusCounts.warning} issues
-							</span>
-						</div>
-					</div>
-				</div>
-				<Button
-					disabled={isRunningAll || checks.length === 0}
-					onClick={onRunAllChecks}
-					icon={Play}
-					isLoading={isRunningAll}
-					size="lg"
-					variant="accent"
-				>
-					{isRunningAll ? "Checking" : "Run all"}
-				</Button>
-			</div>
+			<PanelHeader
+				badges={
+					<>
+						<Badge>{checks.length} checks</Badge>
+						<Badge icon={CheckCircle2} tone="green">
+							{statusCounts.healthy} healthy
+						</Badge>
+						<Badge icon={XCircle} tone="red">
+							{statusCounts.down + statusCounts.warning} issues
+						</Badge>
+					</>
+				}
+				icon={Globe2}
+				iconClassName="bg-cyan-50 text-cyan-700"
+				title="HTTP Checks"
+				actions={
+					<Button
+						disabled={isRunningAll || checks.length === 0}
+						onClick={onRunAllChecks}
+						icon={Play}
+						isLoading={isRunningAll}
+						size="lg"
+						variant="accent"
+					>
+						{isRunningAll ? "Checking" : "Run all"}
+					</Button>
+				}
+			/>
 
-			{error && (
-				<div className="border-b border-slate-200 px-4.5 py-3 text-sm font-bold text-rose-700">
-					{error}
-				</div>
-			)}
+			{error && <PanelError>{error}</PanelError>}
 
 			<HttpCheckForm
 				editingCheck={editingCheck}
@@ -117,6 +108,6 @@ export function HttpChecksPanel({
 				onRunCheck={onRunCheck}
 				servers={servers}
 			/>
-		</section>
+		</Panel>
 	);
 }

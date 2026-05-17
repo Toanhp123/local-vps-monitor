@@ -5,8 +5,9 @@ import type {
 	ServerAlertPolicyUpdateInput,
 	ServerAlertThresholds,
 	StoredServer,
-} from "../../../../shared/types";
-import { SettingsPanelFrame } from "../../../shared/ui/SettingsPanelFrame";
+} from "@shared/types";
+import { Badge } from "@/shared/ui/Badge";
+import { SettingsPanelFrame } from "@/shared/ui/SettingsPanelFrame";
 import {
 	emptyThresholdForm,
 	normalizeServerAlertPolicyForCompare,
@@ -160,18 +161,18 @@ export function ServerAlertPolicyPanel({
 		<SettingsPanelFrame
 			badges={
 				<>
-					<span className="inline-flex min-h-6 items-center rounded-full bg-amber-100 px-2.5 text-xs font-extrabold text-amber-800">
+					<Badge tone="amber">
 						Disk {policy?.defaults.diskWarningPercent ?? "--"}%
-					</span>
-					<span className="inline-flex min-h-6 items-center rounded-full bg-violet-50 px-2.5 text-xs font-extrabold text-violet-700">
+					</Badge>
+					<Badge tone="violet">
 						Memory {policy?.defaults.memoryWarningPercent ?? "--"}%
-					</span>
-					<span className="inline-flex min-h-6 items-center rounded-full bg-blue-50 px-2.5 text-xs font-extrabold text-blue-700">
+					</Badge>
+					<Badge tone="blue">
 						CPU {policy?.defaults.cpuLoadWarningPercent ?? "--"}%
-					</span>
-					<span className="inline-flex min-h-6 items-center rounded-full bg-slate-100 px-2.5 text-xs font-extrabold text-slate-700">
+					</Badge>
+					<Badge>
 						{customCount} custom
-					</span>
+					</Badge>
 				</>
 			}
 			canSave={canSave}

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Activity, Settings2 } from "lucide-react";
-import { ServerAlertPolicyPanel } from "../../../widgets/serverAlertPolicy/ui/ServerAlertPolicyPanel";
-import { useMonitorShellContext } from "../../../widgets/monitorShell/model/useMonitorShellContext";
-import { MonitorRuntimePanel } from "../../../widgets/monitorRuntime/ui/MonitorRuntimePanel";
-import { SegmentedControl } from "../../../shared/ui/SegmentedControl";
+import { ServerAlertPolicyPanel } from "@/widgets/serverAlertPolicy";
+import { useMonitorShellContext } from "@/widgets/monitorShell";
+import { MonitorRuntimePanel } from "@/widgets/monitorRuntime";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 
 type SettingsTab = "system" | "alerts";
 const settingsTabOptions = [

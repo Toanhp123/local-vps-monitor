@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
-import { useServerAlertPolicy } from "../../../features/serverAlertPolicy/model/useServerAlertPolicy";
-import { useAppPolicies } from "../../../features/appPolicies/model/useAppPolicies";
-import { useHttpCheckManager } from "../../../features/httpChecks/model/useHttpCheckManager";
-import { useLocalDockerScanner } from "../../../features/localDockerScan/model/useLocalDockerScanner";
-import { useMonitorOverview } from "../../../features/monitorOverview/model/useMonitorOverview";
-import { usePinnedItems } from "../../../features/pinnedItems/model/usePinnedItems";
-import { useSshTargetManager } from "../../../features/sshTargetManagement/model/useSshTargetManager";
-import { useMonitorRuntime } from "../../../features/monitorRuntime/model/useMonitorRuntime";
-import { routes } from "../../../shared/config/routes";
-import { useNow } from "../../../shared/lib/useNow";
-import { Toast } from "../../../shared/ui/Toast";
-import { DashboardSidebar } from "../../../widgets/dashboardSidebar/ui/DashboardSidebar";
-import type { MonitorShellContext } from "../../../widgets/monitorShell/model/useMonitorShellContext";
+import { useServerAlertPolicy } from "@/features/serverAlertPolicy";
+import { useAppPolicies } from "@/features/appPolicies";
+import { useHttpCheckManager } from "@/features/httpChecks";
+import { useLocalDockerScanner } from "@/features/localDockerScan";
+import { useMonitorOverview } from "@/features/monitorOverview";
+import { usePinnedItems } from "@/features/pinnedItems";
+import { useSshTargetManager } from "@/features/sshTargetManagement";
+import { useMonitorRuntime } from "@/features/monitorRuntime";
+import { routes } from "@/shared/config/routes";
+import { useNow } from "@/shared/lib/useNow";
+import { Toast } from "@/shared/ui/Toast";
+import { DashboardSidebar } from "@/widgets/dashboardSidebar";
+import type { MonitorShellContext } from "@/widgets/monitorShell";
 
 export function MonitorLayoutPage() {
 	const now = useNow();

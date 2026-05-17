@@ -1,5 +1,5 @@
 import { RotateCcw, Terminal } from "lucide-react";
-import { Button } from "../../../shared/ui/Button";
+import { Button } from "@/shared/ui/Button";
 import type { QuickActionDefinition } from "../model/quickActions";
 
 export function QuickActionButton({

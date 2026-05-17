@@ -5,7 +5,7 @@ import type {
 	HttpCheckRunAllResponse,
 	HttpCheckRunResponse,
 	HttpCheckUpdateInput,
-} from "../../../shared/types";
+} from "@shared/types";
 
 const parseErrorMessage = async (response: Response) => {
 	try {

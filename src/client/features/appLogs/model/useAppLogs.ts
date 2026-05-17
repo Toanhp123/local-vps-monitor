@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import type { AppLogsResponse, AppSnapshot } from "../../../../shared/types";
-import { fetchAppLogs } from "../../../shared/api/appLogsApi";
+import type { AppLogsResponse, AppSnapshot } from "@shared/types";
+import { fetchAppLogs } from "@/shared/api/appLogsApi";
 
 const errorMessage = (error: unknown) => {
 	return error instanceof Error ? error.message : String(error);

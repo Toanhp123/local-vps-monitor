@@ -3,8 +3,8 @@ import type {
 	QuickActionId,
 	QuickActionRunInput,
 	StoredServer,
-} from "../../../../shared/types";
-import { appDisplayName } from "../../../entities/application/model/appPolicy";
+} from "@shared/types";
+import { appDisplayName } from "@/entities/application";
 
 const localDockerServerId = "local-docker";
 

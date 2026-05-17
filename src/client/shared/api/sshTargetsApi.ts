@@ -9,7 +9,7 @@ import type {
 	SshTargetListResponse,
 	SshTargetTestResponse,
 	SshTargetUpdateInput,
-} from "../../../shared/types";
+} from "@shared/types";
 
 const parseErrorMessage = async (response: Response) => {
 	try {

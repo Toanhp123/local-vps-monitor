@@ -1,30 +1,35 @@
 import type { ReactNode } from "react";
-import type { AppSnapshot } from "../../../../shared/types";
+import type { AppSnapshot } from "@shared/types";
 import {
 	appDisplayName,
 	appImportance,
 	isIgnoredApp,
 } from "../model/appPolicy";
-import { formatBytes } from "../../../shared/lib/format";
+import { formatBytes } from "@/shared/lib/format";
 import {
 	DataTable,
+	DataTableActionsCell,
 	DataTableBody,
 	DataTableCell,
-	DataTableHeader,
-	DataTableHeaderCell,
+	DataTableHeaderRow,
 	DataTableMessageRow,
 	DataTableRow,
-} from "../../../shared/ui/DataTable";
-import { StatusBadge } from "../../../shared/ui/StatusBadge";
+	DataTableTitle,
+} from "@/shared/ui/DataTable";
+import { Badge } from "@/shared/ui/Badge";
+import { StatusBadge } from "@/shared/ui/StatusBadge";
 import { RuntimeBadge } from "./RuntimeBadge";
 
-const actionDividerClass =
-	"before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-slate-300 before:content-['']";
+const importanceTones = {
+	critical: "red",
+	ignored: "slate",
+	normal: "slate",
+} as const;
 
-const importanceClasses = {
-	critical: "bg-red-100 text-red-800",
-	ignored: "bg-slate-200 text-slate-700",
-	normal: "bg-slate-100 text-slate-600",
+const importanceBadgeClasses = {
+	critical: "",
+	ignored: "bg-slate-200",
+	normal: "",
 };
 
 const importanceLabels = {
@@ -53,42 +58,29 @@ export function ApplicationTable({
 }) {
 	const hasActions = Boolean(actions);
 	const columnCount = 7 + (hasActions ? 1 : 0);
+	const columns = [
+		{ key: "app", label: "App" },
+		{ key: "runtime", label: "Runtime" },
+		{ key: "status", label: "Status" },
+		{ key: "cpu", label: "CPU" },
+		{ key: "memory", label: "Memory" },
+		{ key: "image", label: "Image" },
+		{ key: "ports", label: "Ports" },
+		...(hasActions
+			? [
+					{
+						align: "right" as const,
+						key: "actions",
+						label: "Actions",
+						stickyRight: true,
+					},
+				]
+			: []),
+	];
 
 	return (
 		<DataTable>
-			<DataTableHeader>
-				<DataTableHeaderCell border="top" tone="subtle">
-					App
-				</DataTableHeaderCell>
-				<DataTableHeaderCell border="top" tone="subtle">
-					Runtime
-				</DataTableHeaderCell>
-				<DataTableHeaderCell border="top" tone="subtle">
-					Status
-				</DataTableHeaderCell>
-				<DataTableHeaderCell border="top" tone="subtle">
-					CPU
-				</DataTableHeaderCell>
-				<DataTableHeaderCell border="top" tone="subtle">
-					Memory
-				</DataTableHeaderCell>
-				<DataTableHeaderCell border="top" tone="subtle">
-					Image
-				</DataTableHeaderCell>
-				<DataTableHeaderCell border="top" tone="subtle">
-					Ports
-				</DataTableHeaderCell>
-				{hasActions && (
-					<DataTableHeaderCell
-						align="right"
-						border="top"
-						className={`${actionDividerClass} sticky right-0 z-20 min-w-36 bg-slate-100`}
-						tone="subtle"
-					>
-						Actions
-					</DataTableHeaderCell>
-				)}
-			</DataTableHeader>
+			<DataTableHeaderRow border="top" columns={columns} tone="subtle" />
 			<DataTableBody>
 					{apps.map((app) => {
 						const ports = portItems(app.ports);
@@ -103,31 +95,39 @@ export function ApplicationTable({
 								className={isIgnored ? "bg-slate-50/70" : undefined}
 							>
 								<DataTableCell border="top" className="min-w-47.5">
-									<div className="grid gap-1">
-										<div className="flex min-w-0 items-center gap-2">
-											<strong
-												className={
-													isIgnored
-														? "text-slate-500"
-														: "text-slate-900"
-												}
-											>
-												{displayName}
-											</strong>
-											{importance !== "normal" && (
-												<span
-													className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${importanceClasses[importance]}`}
+									<DataTableTitle
+										afterTitle={
+											importance !== "normal" ? (
+												<Badge
+													className={
+														importanceBadgeClasses[
+															importance
+														]
+													}
+													size="xs"
+													tone={
+														importanceTones[
+															importance
+														]
+													}
 												>
 													{importanceLabels[importance]}
-												</span>
-											)}
-										</div>
-										{displayName !== app.name && (
-											<span className="text-xs font-semibold text-slate-400">
-												{app.name}
-											</span>
-										)}
-									</div>
+												</Badge>
+											) : undefined
+										}
+										subtitle={
+											displayName !== app.name
+												? app.name
+												: undefined
+										}
+										subtitleClassName="text-slate-400"
+										title={displayName}
+										titleClassName={
+											isIgnored
+												? "text-slate-500"
+												: "text-slate-900"
+										}
+									/>
 								</DataTableCell>
 								<DataTableCell border="top">
 									<RuntimeBadge kind={app.kind} />
@@ -178,13 +178,9 @@ export function ApplicationTable({
 									)}
 								</DataTableCell>
 								{actions && (
-									<DataTableCell
-										align="right"
-										border="top"
-										className={`${actionDividerClass} sticky right-0 z-10 min-w-36 bg-slate-50`}
-									>
+									<DataTableActionsCell border="top" sticky>
 										{actions(app)}
-									</DataTableCell>
+									</DataTableActionsCell>
 								)}
 							</DataTableRow>
 						);

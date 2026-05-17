@@ -1,7 +1,7 @@
 import type {
 	ServerAlertPolicy,
 	ServerAlertThresholds,
-} from "../../../../shared/types";
+} from "@shared/types";
 
 export type ThresholdFormState = Record<keyof ServerAlertThresholds, string>;
 

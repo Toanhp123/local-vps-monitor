@@ -1,5 +1,5 @@
-import type { StoredServer } from "../../../../shared/types";
-import { formatBytes, formatDuration } from "../../../shared/lib/format";
+import type { StoredServer } from "@shared/types";
+import { formatBytes, formatDuration } from "@/shared/lib/format";
 import { serverDisk, serverMemory } from "../model/serverMetrics";
 
 const metricLabelClass = "block text-[13px] font-bold text-slate-500";

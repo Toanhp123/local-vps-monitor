@@ -1,5 +1,5 @@
-import { HttpChecksPanel } from "../../../widgets/httpChecks/ui/HttpChecksPanel";
-import { useMonitorShellContext } from "../../../widgets/monitorShell/model/useMonitorShellContext";
+import { HttpChecksPanel } from "@/widgets/httpChecks";
+import { useMonitorShellContext } from "@/widgets/monitorShell";
 
 export function HttpChecksPage() {
 	const { httpCheckManager, now, overview } = useMonitorShellContext();

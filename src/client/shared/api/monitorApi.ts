@@ -1,4 +1,4 @@
-import type { OverviewResponse } from "../../../shared/types";
+import type { OverviewResponse } from "@shared/types";
 
 export const fetchOverview = async (): Promise<OverviewResponse> => {
 	const response = await fetch("/api/overview");

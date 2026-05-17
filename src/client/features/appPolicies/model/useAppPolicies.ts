@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import type {
 	AppPolicyOverrideInput,
 	AppPolicy,
-} from "../../../../shared/types";
+} from "@shared/types";
 import {
 	fetchAppPolicies,
 	upsertAppPolicyOverride,
-} from "../../../shared/api/appPoliciesApi";
-import type { ToastState } from "../../../shared/ui/Toast";
+} from "@/shared/api/appPoliciesApi";
+import type { ToastState } from "@/shared/ui/Toast";
 
 const errorMessage = (error: unknown) => {
 	return error instanceof Error ? error.message : String(error);

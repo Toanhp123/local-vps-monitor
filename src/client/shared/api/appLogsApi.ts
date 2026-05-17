@@ -1,4 +1,4 @@
-import type { AppLogsResponse } from "../../../shared/types";
+import type { AppLogsResponse } from "@shared/types";
 
 const parseErrorMessage = async (response: Response) => {
 	try {

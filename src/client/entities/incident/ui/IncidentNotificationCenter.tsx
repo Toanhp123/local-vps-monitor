@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Bell } from "lucide-react";
-import type { IncidentEvent } from "../../../../shared/types";
+import type { IncidentEvent } from "@shared/types";
 import {
 	filterIncidents,
 	getIncidentFilterCounts,

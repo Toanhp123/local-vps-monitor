@@ -15,9 +15,10 @@ import {
 	type SnoozePreset,
 } from "../model/incidentState";
 import type { IncidentGroup } from "../model/incidentGroups";
-import { relativeTime } from "../../../shared/lib/format";
-import { Button } from "../../../shared/ui/Button";
-import { IconButton } from "../../../shared/ui/IconButton";
+import { relativeTime } from "@/shared/lib/format";
+import { Badge } from "@/shared/ui/Badge";
+import { Button } from "@/shared/ui/Button";
+import { IconButton } from "@/shared/ui/IconButton";
 import { IncidentListItem } from "./IncidentListItem";
 
 const filterOptions: Array<{
@@ -190,19 +191,19 @@ export function IncidentDrawer({
 											</div>
 											<div className="flex shrink-0 items-center gap-2">
 												{group.unreadCount > 0 && (
-													<span
-														className={`inline-flex min-h-6 items-center rounded-full px-2.5 text-xs font-extrabold ${
+													<Badge
+														tone={
 															group.unreadActiveCount > 0
-																? "bg-red-100 text-red-700"
-																: "bg-blue-50 text-blue-700"
-														}`}
+																? "red"
+																: "blue"
+														}
 													>
 														{group.unreadCount} new
-													</span>
+													</Badge>
 												)}
-												<span className="inline-flex min-h-6 items-center rounded-full bg-white px-2.5 text-xs font-extrabold text-slate-600">
+												<Badge tone="white">
 													{group.incidents.length}
-												</span>
+												</Badge>
 												{isExpanded ? (
 													<ChevronUp size={16} className="text-slate-500" />
 												) : (

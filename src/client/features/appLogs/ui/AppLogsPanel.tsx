@@ -8,13 +8,13 @@ import {
 	RefreshCw,
 	X,
 } from "lucide-react";
-import type { AppLogsResponse, AppSnapshot } from "../../../../shared/types";
-import { appDisplayName } from "../../../entities/application/model/appPolicy";
-import { RuntimeBadge } from "../../../entities/application/ui/RuntimeBadge";
-import { Button } from "../../../shared/ui/Button";
-import { IconButton } from "../../../shared/ui/IconButton";
-import { SearchInput } from "../../../shared/ui/SearchInput";
-import { SelectField } from "../../../shared/ui/SelectField";
+import type { AppLogsResponse, AppSnapshot } from "@shared/types";
+import { appDisplayName } from "@/entities/application";
+import { RuntimeBadge } from "@/entities/application";
+import { Button } from "@/shared/ui/Button";
+import { IconButton } from "@/shared/ui/IconButton";
+import { SearchInput } from "@/shared/ui/SearchInput";
+import { SelectField } from "@/shared/ui/SelectField";
 
 const fetchedAtLabel = (value?: string) => {
 	if (!value) return "";

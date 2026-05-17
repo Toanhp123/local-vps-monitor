@@ -1,4 +1,4 @@
-import type { ScanResult } from "../../../shared/types";
+import type { ScanResult } from "@shared/types";
 
 const parseErrorMessage = async (response: Response) => {
 	try {
