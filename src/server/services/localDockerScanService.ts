@@ -7,12 +7,12 @@ import type { MonitorOverviewService } from "./monitorOverviewService";
 export class LocalDockerScanService {
 	constructor(
 		private readonly monitorOverviewService: MonitorOverviewService,
-		private readonly commandTimeoutMs: () => number,
+		private readonly commandTimeoutMs: (serverId: string) => number,
 		private readonly version: string,
 	) {}
 
 	async scanLocalDocker(): Promise<ScanResult> {
-		const commandTimeoutMs = this.commandTimeoutMs();
+		const commandTimeoutMs = this.commandTimeoutMs(localDockerServerId);
 		const [host, apps] = await Promise.all([
 			collectLocalHostMetrics(commandTimeoutMs),
 			collectLocalDockerApps(commandTimeoutMs),

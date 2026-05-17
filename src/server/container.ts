@@ -49,6 +49,7 @@ export const createServerServices = (): ServerServices => {
 		metricHistoryLimit: serverConfig.metricHistoryLimit,
 		offlineAfterMs: serverConfig.offlineAfterMs,
 		realtimeBroadcastMs: serverConfig.realtimeBroadcastMs,
+		serverOverrides: {},
 		sshCommandTimeoutMs: serverConfig.sshCommandTimeoutMs,
 		sshScanConcurrency: serverConfig.sshScanConcurrency,
 	};
@@ -74,7 +75,7 @@ export const createServerServices = (): ServerServices => {
 	);
 	const monitorOverviewService = new MonitorOverviewService(
 		monitorStateStore,
-		() => monitorRuntimeStore.get().offlineAfterMs,
+		(serverId) => monitorRuntimeStore.getServerSettings(serverId).offlineAfterMs,
 		() => appPolicyStore.list(),
 		() => serverAlertPolicyStore.get(),
 		() => monitorRuntimeStore.get().metricHistoryLimit,
@@ -97,7 +98,9 @@ export const createServerServices = (): ServerServices => {
 	);
 	const localDockerScanService = new LocalDockerScanService(
 		monitorOverviewService,
-		() => monitorRuntimeStore.get().localDockerCommandTimeoutMs,
+		(serverId) =>
+			monitorRuntimeStore.getServerSettings(serverId)
+				.localDockerCommandTimeoutMs,
 		serverConfig.version,
 	);
 	const sshTargetConfigService = new SshTargetConfigService(
@@ -114,7 +117,8 @@ export const createServerServices = (): ServerServices => {
 	const sshScanService = new SshScanService(
 		sshTargetConfigStore,
 		monitorOverviewService,
-		() => monitorRuntimeStore.get().sshCommandTimeoutMs,
+		(serverId) =>
+			monitorRuntimeStore.getServerSettings(serverId).sshCommandTimeoutMs,
 		() => monitorRuntimeStore.get().sshScanConcurrency,
 		serverConfig.version,
 	);
@@ -125,15 +129,22 @@ export const createServerServices = (): ServerServices => {
 	const appLogsService = new AppLogsService(
 		monitorOverviewService,
 		sshTargetConfigStore,
-		() => monitorRuntimeStore.get().localDockerCommandTimeoutMs,
-		() => monitorRuntimeStore.get().sshCommandTimeoutMs,
-		() => monitorRuntimeStore.get().defaultAppLogLines,
+		(serverId) =>
+			monitorRuntimeStore.getServerSettings(serverId)
+				.localDockerCommandTimeoutMs,
+		(serverId) =>
+			monitorRuntimeStore.getServerSettings(serverId).sshCommandTimeoutMs,
+		(serverId) =>
+			monitorRuntimeStore.getServerSettings(serverId).defaultAppLogLines,
 	);
 	const quickActionService = new QuickActionService(
 		monitorOverviewService,
 		sshTargetConfigStore,
-		() => monitorRuntimeStore.get().localDockerCommandTimeoutMs,
-		() => monitorRuntimeStore.get().sshCommandTimeoutMs,
+		(serverId) =>
+			monitorRuntimeStore.getServerSettings(serverId)
+				.localDockerCommandTimeoutMs,
+		(serverId) =>
+			monitorRuntimeStore.getServerSettings(serverId).sshCommandTimeoutMs,
 	);
 	const httpCheckService = new HttpCheckService(
 		httpCheckConfigStore,

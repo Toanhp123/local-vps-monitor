@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAppLogs } from "@/features/appLogs";
 import { AppLogsPanel } from "@/features/appLogs";
+import { resolveServerMonitorRuntimeSettings } from "@/features/monitorRuntime";
 import { useQuickActionRunner } from "@/features/quickActions";
 import { QuickActionPanel } from "@/features/quickActions";
 import { routes } from "@/shared/config/routes";
@@ -20,14 +21,22 @@ export function ServerDetailsPage() {
 		overview,
 		pinnedItems,
 		monitorRuntime,
+		serverAlertPolicy,
 	} = useMonitorShellContext();
 	const selectedServer = serverId
 		? overview?.servers.find((server) => server.serverId === serverId) ||
 			null
 		: null;
+	const serverRuntimeSettings =
+		selectedServer && monitorRuntime.settings
+			? resolveServerMonitorRuntimeSettings(
+					monitorRuntime.settings,
+					selectedServer.serverId,
+				)
+			: null;
 	const appLogs = useAppLogs(
 		serverId || "",
-		monitorRuntime.settings?.defaultAppLogLines ?? 200,
+		serverRuntimeSettings?.defaultAppLogLines ?? 200,
 	);
 	const quickActions = useQuickActionRunner();
 
@@ -58,8 +67,16 @@ export function ServerDetailsPage() {
 			<ServerDetailsView
 				activeAppPolicyKey={appPolicies.activeAppKey}
 				isScanDisabled={isAnyScanActive}
+				alertPolicy={serverAlertPolicy.policy}
+				alertPolicyError={serverAlertPolicy.error}
+				isAlertPolicyLoading={serverAlertPolicy.isLoading}
+				isMonitorRuntimeLoading={monitorRuntime.isLoading}
 				isSavingAppPolicy={appPolicies.isSaving}
+				isSavingAlertPolicy={serverAlertPolicy.isSaving}
+				isSavingMonitorRuntime={monitorRuntime.isSaving}
 				isScanning={activeScanId === selectedServer.serverId}
+				monitorRuntimeError={monitorRuntime.error}
+				monitorRuntimeSettings={monitorRuntime.settings}
 				now={now}
 				onBack={() => {
 					navigate(routes.dashboard);
@@ -67,6 +84,8 @@ export function ServerDetailsPage() {
 				}}
 				onOpenAppLogs={appLogs.loadLogs}
 				onRunQuickAction={quickActions.requestAction}
+				onSaveAlertPolicy={serverAlertPolicy.savePolicy}
+				onSaveMonitorRuntime={monitorRuntime.saveSettings}
 				onUpdateAppPolicy={appPolicies.upsertAppOverride}
 				onScan={() => handleScanServer(selectedServer.serverId)}
 				pinnedItems={pinnedItems}

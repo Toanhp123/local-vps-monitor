@@ -1,10 +1,18 @@
 import { ArrowLeft, Box, Server, SquareTerminal, WifiOff } from "lucide-react";
-import type { StoredServer } from "@shared/types";
+import type {
+	MonitorRuntimeSettings,
+	MonitorRuntimeSettingsUpdateInput,
+	ServerAlertPolicy,
+	ServerAlertPolicyUpdateInput,
+	StoredServer,
+} from "@shared/types";
 import { serverAppCounts } from "@/entities/application";
 import {
 	buildServerQuickActions,
 	type QuickActionDefinition,
 } from "@/features/quickActions";
+import { ServerMonitorRuntimeDialog } from "@/features/monitorRuntime";
+import { ServerAlertPolicyDialog } from "@/features/serverAlertPolicy";
 import { ScanServerButton } from "@/features/serverScan";
 import { relativeTime } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui/Badge";
@@ -13,19 +21,41 @@ import { StatusBadge } from "@/shared/ui/StatusBadge";
 import { ServerQuickActions } from "./ServerQuickActions";
 
 export function ServerDetailsHeader({
+	alertPolicy,
+	alertPolicyError,
+	isAlertPolicyLoading,
+	isMonitorRuntimeLoading,
 	isScanDisabled,
+	isSavingAlertPolicy,
+	isSavingMonitorRuntime,
 	isScanning,
+	monitorRuntimeError,
+	monitorRuntimeSettings,
 	now,
 	onBack,
 	onRunQuickAction,
+	onSaveAlertPolicy,
+	onSaveMonitorRuntime,
 	onScan,
 	server,
 }: {
+	alertPolicy: ServerAlertPolicy | null;
+	alertPolicyError: string;
+	isAlertPolicyLoading: boolean;
+	isMonitorRuntimeLoading: boolean;
 	isScanDisabled: boolean;
+	isSavingAlertPolicy: boolean;
+	isSavingMonitorRuntime: boolean;
 	isScanning: boolean;
+	monitorRuntimeError: string;
+	monitorRuntimeSettings: MonitorRuntimeSettings | null;
 	now: number;
 	onBack: () => void;
 	onRunQuickAction: (action: QuickActionDefinition) => void;
+	onSaveAlertPolicy: (input: ServerAlertPolicyUpdateInput) => Promise<boolean>;
+	onSaveMonitorRuntime: (
+		input: MonitorRuntimeSettingsUpdateInput,
+	) => Promise<boolean>;
 	onScan: () => void;
 	server: StoredServer;
 }) {
@@ -77,7 +107,25 @@ export function ServerDetailsHeader({
 					</div>
 				</div>
 
-				<div className="max-md:w-full [&>button]:min-h-10 [&>button]:w-full [&>button]:px-3.5">
+				<div className="flex shrink-0 gap-2 max-md:w-full max-md:flex-col [&>button]:min-h-10 [&>button]:px-3.5 max-md:[&>button]:w-full">
+					<ServerAlertPolicyDialog
+						error={alertPolicyError}
+						isLoading={isAlertPolicyLoading}
+						isSaving={isSavingAlertPolicy}
+						onSavePolicy={onSaveAlertPolicy}
+						policy={alertPolicy}
+						server={server}
+						trigger="button"
+					/>
+					<ServerMonitorRuntimeDialog
+						error={monitorRuntimeError}
+						isLoading={isMonitorRuntimeLoading}
+						isSaving={isSavingMonitorRuntime}
+						onSaveSettings={onSaveMonitorRuntime}
+						server={server}
+						settings={monitorRuntimeSettings}
+						trigger="button"
+					/>
 					<ScanServerButton
 						ariaLabel={`Scan ${server.serverName}`}
 						isDisabled={isScanDisabled}

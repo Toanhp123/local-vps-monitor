@@ -20,7 +20,7 @@ export class MonitorOverviewService {
 
 	constructor(
 		private readonly monitorStateStore: MonitorStateStore,
-		private readonly offlineAfterMs: () => number,
+		private readonly offlineAfterMs: (serverId: string) => number,
 		private readonly appPolicies: () => AppPolicy[] = () => [],
 		private readonly serverAlertPolicy: () => ServerAlertPolicy = () =>
 			defaultServerAlertPolicy,
@@ -53,7 +53,7 @@ export class MonitorOverviewService {
 	getOverview() {
 		return buildOverview(
 			this.monitorStateStore.listServers(),
-			this.offlineAfterMs(),
+			(serverId) => this.offlineAfterMs(serverId),
 			new Date(),
 			this.appPolicies(),
 			this.serverAlertPolicy(),

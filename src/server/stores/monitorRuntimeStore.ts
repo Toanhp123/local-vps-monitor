@@ -3,12 +3,87 @@ import path from "node:path";
 import type {
 	MonitorRuntimeSettings,
 	MonitorRuntimeSettingsUpdateInput,
+	ServerMonitorRuntimeOverrides,
+	ServerMonitorRuntimeSettings,
 } from "../../shared/types";
 
 const clampNumber = (value: unknown, fallback: number, min: number, max: number) => {
 	if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
 
 	return Math.min(max, Math.max(min, Math.round(value)));
+};
+
+const clampOptionalNumber = (value: unknown, min: number, max: number) => {
+	if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+
+	return Math.min(max, Math.max(min, Math.round(value)));
+};
+
+const normalizeServerOverride = (value: unknown) => {
+	if (!value || typeof value !== "object" || Array.isArray(value)) {
+		return null;
+	}
+
+	const input = value as Partial<ServerMonitorRuntimeOverrides>;
+	const override: ServerMonitorRuntimeOverrides = {};
+	const defaultAppLogLines = clampOptionalNumber(
+		input.defaultAppLogLines,
+		10,
+		1_000,
+	);
+	const localDockerCommandTimeoutMs = clampOptionalNumber(
+		input.localDockerCommandTimeoutMs,
+		1_000,
+		120_000,
+	);
+	const offlineAfterMs = clampOptionalNumber(
+		input.offlineAfterMs,
+		5_000,
+		3_600_000,
+	);
+	const sshCommandTimeoutMs = clampOptionalNumber(
+		input.sshCommandTimeoutMs,
+		1_000,
+		120_000,
+	);
+
+	if (defaultAppLogLines !== undefined) {
+		override.defaultAppLogLines = defaultAppLogLines;
+	}
+	if (localDockerCommandTimeoutMs !== undefined) {
+		override.localDockerCommandTimeoutMs = localDockerCommandTimeoutMs;
+	}
+	if (offlineAfterMs !== undefined) {
+		override.offlineAfterMs = offlineAfterMs;
+	}
+	if (sshCommandTimeoutMs !== undefined) {
+		override.sshCommandTimeoutMs = sshCommandTimeoutMs;
+	}
+
+	return Object.keys(override).length > 0 ? override : null;
+};
+
+const normalizeServerOverrides = (
+	settings: Partial<MonitorRuntimeSettings> | undefined,
+) => {
+	const rawOverrides = settings?.serverOverrides;
+	if (
+		!rawOverrides ||
+		typeof rawOverrides !== "object" ||
+		Array.isArray(rawOverrides)
+	) {
+		return {};
+	}
+
+	const serverOverrides: Record<string, ServerMonitorRuntimeOverrides> = {};
+	for (const [serverId, value] of Object.entries(rawOverrides)) {
+		if (!serverId.trim()) continue;
+
+		const override = normalizeServerOverride(value);
+		if (override) serverOverrides[serverId] = override;
+	}
+
+	return serverOverrides;
 };
 
 const normalizeSettings = (
@@ -64,6 +139,7 @@ const normalizeSettings = (
 			1_000,
 			60_000,
 		),
+		serverOverrides: normalizeServerOverrides(settings),
 		sshCommandTimeoutMs: clampNumber(
 			settings?.sshCommandTimeoutMs,
 			defaults.sshCommandTimeoutMs,
@@ -91,6 +167,21 @@ export class MonitorRuntimeStore {
 
 	get() {
 		return this.settings;
+	}
+
+	getServerSettings(serverId: string): ServerMonitorRuntimeSettings {
+		const override = this.settings.serverOverrides[serverId] ?? {};
+
+		return {
+			defaultAppLogLines:
+				override.defaultAppLogLines ?? this.settings.defaultAppLogLines,
+			localDockerCommandTimeoutMs:
+				override.localDockerCommandTimeoutMs ??
+				this.settings.localDockerCommandTimeoutMs,
+			offlineAfterMs: override.offlineAfterMs ?? this.settings.offlineAfterMs,
+			sshCommandTimeoutMs:
+				override.sshCommandTimeoutMs ?? this.settings.sshCommandTimeoutMs,
+		};
 	}
 
 	replace(input: MonitorRuntimeSettingsUpdateInput) {

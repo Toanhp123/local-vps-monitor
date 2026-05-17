@@ -45,9 +45,10 @@ export class AppLogsService {
 	constructor(
 		private readonly monitorOverviewService: MonitorOverviewService,
 		private readonly targetConfigStore: SshTargetConfigStore,
-		private readonly localDockerCommandTimeoutMs: () => number,
-		private readonly sshCommandTimeoutMs: () => number,
-		private readonly defaultAppLogLines: () => number = () => defaultLines,
+		private readonly localDockerCommandTimeoutMs: (serverId: string) => number,
+		private readonly sshCommandTimeoutMs: (serverId: string) => number,
+		private readonly defaultAppLogLines: (serverId: string) => number = () =>
+			defaultLines,
 	) {}
 
 	async getAppLogs({
@@ -59,7 +60,7 @@ export class AppLogsService {
 		lines?: number;
 		serverId: string;
 	}): Promise<AppLogsResponse> {
-		const normalizedLines = clampLines(lines, this.defaultAppLogLines());
+		const normalizedLines = clampLines(lines, this.defaultAppLogLines(serverId));
 		const server = this.monitorOverviewService.getServer(serverId);
 		if (!server) {
 			throw new AppLogsNotFoundError(`Server not found: ${serverId}`);
@@ -101,7 +102,7 @@ export class AppLogsService {
 		return readLocalDockerLogs(
 			dockerContainerRef(app),
 			lines,
-			this.localDockerCommandTimeoutMs(),
+			this.localDockerCommandTimeoutMs(localDockerServerId),
 		);
 	}
 
@@ -121,7 +122,7 @@ export class AppLogsService {
 			);
 		}
 
-		const sshCommandTimeoutMs = this.sshCommandTimeoutMs();
+		const sshCommandTimeoutMs = this.sshCommandTimeoutMs(serverId);
 		const client = await connectSshTarget(target, sshCommandTimeoutMs);
 
 		try {

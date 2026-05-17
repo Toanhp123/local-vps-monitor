@@ -21,12 +21,13 @@ import {
 	emptyMonitorRuntimeForm,
 	monitorRuntimeFieldSections,
 	monitorRuntimeFormFromSettings,
+	monitorRuntimeGlobalSettingsFromSettings,
 	msSummary,
 	parseMonitorRuntimeForm,
 	validateMonitorRuntimeForm,
 	type MonitorRuntimeFormState,
 	type MonitorRuntimeSectionId,
-} from "../model/monitorRuntimeForm";
+} from "@/features/monitorRuntime";
 
 const sectionIcons: Record<MonitorRuntimeSectionId, LucideIcon> = {
 	concurrency: ServerCog,
@@ -56,17 +57,40 @@ export function MonitorRuntimePanel({
 	useEffect(() => {
 		if (!settings) return;
 
-		setForm(monitorRuntimeFormFromSettings(settings));
+		setForm(
+			monitorRuntimeFormFromSettings(
+				monitorRuntimeGlobalSettingsFromSettings(settings),
+			),
+		);
 	}, [settings]);
 
-	const draftSettings = useMemo(() => parseMonitorRuntimeForm(form), [form]);
+	const draftGlobalSettings = useMemo(
+		() => parseMonitorRuntimeForm(form),
+		[form],
+	);
+	const draftSettings = useMemo(
+		() =>
+			settings
+				? {
+						...settings,
+						...draftGlobalSettings,
+					}
+				: null,
+		[draftGlobalSettings, settings],
+	);
+	const currentGlobalSettings = useMemo(
+		() =>
+			settings ? monitorRuntimeGlobalSettingsFromSettings(settings) : null,
+		[settings],
+	);
 	const validationError = useMemo(
 		() => validateMonitorRuntimeForm(form),
 		[form],
 	);
 	const isDirty =
-		settings !== null &&
-		JSON.stringify(draftSettings) !== JSON.stringify(settings);
+		currentGlobalSettings !== null &&
+		JSON.stringify(draftGlobalSettings) !==
+			JSON.stringify(currentGlobalSettings);
 	const canSave = !isLoading && !isSaving && isDirty && !validationError;
 
 	const updateField = (field: keyof MonitorRuntimeFormState, value: string) => {
@@ -78,7 +102,7 @@ export function MonitorRuntimePanel({
 
 	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		if (!canSave) return;
+		if (!canSave || !draftSettings) return;
 
 		void onSaveSettings(draftSettings);
 	};
@@ -106,7 +130,7 @@ export function MonitorRuntimePanel({
 			isSaving={isSaving}
 			loadingText="Loading monitor runtime settings"
 			onSubmit={handleSubmit}
-			title="Monitor Runtime"
+			title="Runtime Defaults"
 		>
 			<div className="grid gap-3">
 				{monitorRuntimeFieldSections.map((section) => {

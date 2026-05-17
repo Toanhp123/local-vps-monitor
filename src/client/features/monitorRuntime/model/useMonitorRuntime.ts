@@ -56,7 +56,7 @@ export function useMonitorRuntime(
 				setSettings(nextSettings);
 				setToast({
 					tone: "success",
-					message: "System settings updated",
+					message: "Runtime settings updated",
 				});
 
 				if (onUpdateComplete) {

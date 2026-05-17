@@ -27,7 +27,7 @@ export class SshScanService {
 	constructor(
 		private readonly targetConfigStore: SshTargetConfigStore,
 		private readonly monitorOverviewService: MonitorOverviewService,
-		private readonly commandTimeoutMs: () => number,
+		private readonly commandTimeoutMs: (serverId: string) => number,
 		private readonly scanConcurrency: () => number,
 		private readonly version: string,
 	) {}
@@ -44,7 +44,7 @@ export class SshScanService {
 		if (!target) throw new SshTargetNotFoundError(targetId);
 
 		const checkedAt = new Date().toISOString();
-		const commandTimeoutMs = this.commandTimeoutMs();
+		const commandTimeoutMs = this.commandTimeoutMs(target.id);
 		const client = await connectSshTarget(target, commandTimeoutMs);
 
 		try {
@@ -98,7 +98,7 @@ export class SshScanService {
 	}
 
 	private async scanKnownTarget(target: SshTarget): Promise<SshScanResult> {
-		const commandTimeoutMs = this.commandTimeoutMs();
+		const commandTimeoutMs = this.commandTimeoutMs(target.id);
 		const client = await connectSshTarget(target, commandTimeoutMs);
 
 		try {

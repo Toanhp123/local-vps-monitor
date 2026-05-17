@@ -35,6 +35,8 @@ interface OverviewProjectionOptions {
 	metricHistoryLimit?: number;
 }
 
+type OfflineAfterMsResolver = (serverId: string) => number;
+
 const summary = (servers: StoredServer[]): OverviewSummary => {
 	const apps = servers.flatMap((server) => server.apps);
 	const monitoredApps = apps.filter(isMonitoredApp);
@@ -108,17 +110,21 @@ export const createStoredServerFromSnapshot = (
 
 export const buildOverview = (
 	storedServers: StoredServer[],
-	offlineAfterMs: number,
+	offlineAfterMs: number | OfflineAfterMsResolver,
 	now = new Date(),
 	appPolicies: AppPolicy[] = [],
 	serverAlertPolicy: ServerAlertPolicy = defaultServerAlertPolicy,
 ): OverviewResponse => {
+	const resolveOfflineAfterMs =
+		typeof offlineAfterMs === "function"
+			? offlineAfterMs
+			: () => offlineAfterMs;
 	const servers = storedServers
 		.map((server) =>
 			withRuntimeStatus(
 				applyServerAppPolicy(server, appPolicies),
 				now,
-				offlineAfterMs,
+				resolveOfflineAfterMs(server.serverId),
 				resolveServerAlertThresholds(serverAlertPolicy, server.serverId),
 			),
 		)

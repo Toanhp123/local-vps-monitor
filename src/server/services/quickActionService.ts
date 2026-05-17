@@ -26,8 +26,8 @@ export class QuickActionService {
 	constructor(
 		private readonly monitorOverviewService: MonitorOverviewService,
 		private readonly targetConfigStore: SshTargetConfigStore,
-		private readonly localDockerCommandTimeoutMs: () => number,
-		private readonly sshCommandTimeoutMs: () => number,
+		private readonly localDockerCommandTimeoutMs: (serverId: string) => number,
+		private readonly sshCommandTimeoutMs: (serverId: string) => number,
 	) {}
 
 	async runQuickAction(
@@ -68,8 +68,8 @@ export class QuickActionService {
 		}
 
 		const result = await new QuickActionRunner(
-			this.localDockerCommandTimeoutMs(),
-			this.sshCommandTimeoutMs(),
+			this.localDockerCommandTimeoutMs(input.serverId),
+			this.sshCommandTimeoutMs(input.serverId),
 		).run(action.execution, target);
 
 		return createQuickActionResponse({

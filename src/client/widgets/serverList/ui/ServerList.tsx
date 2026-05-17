@@ -1,6 +1,14 @@
-import type { StoredServer } from "@shared/types";
+import type {
+	MonitorRuntimeSettings,
+	MonitorRuntimeSettingsUpdateInput,
+	ServerAlertPolicy,
+	ServerAlertPolicyUpdateInput,
+	StoredServer,
+} from "@shared/types";
 import { ServerTableRow } from "@/entities/server";
+import { ServerMonitorRuntimeDialog } from "@/features/monitorRuntime";
 import { PinToggleButton } from "@/features/pinnedItems";
+import { ServerAlertPolicyDialog } from "@/features/serverAlertPolicy";
 import { ScanServerButton } from "@/features/serverScan";
 import { Badge } from "@/shared/ui/Badge";
 import { DataTable, DataTableBody } from "@/shared/ui/DataTable";
@@ -10,10 +18,20 @@ import { ServerTableHeader } from "./ServerTableHeader";
 
 export function ServerList({
 	activeScanId,
+	alertPolicy,
+	alertPolicyError,
 	hasActiveFilter,
 	isScanDisabled,
+	isAlertPolicyLoading,
+	isMonitorRuntimeLoading,
+	isSavingAlertPolicy,
+	isSavingMonitorRuntime,
+	monitorRuntimeError,
+	monitorRuntimeSettings,
 	isServerPinned,
 	now,
+	onSaveMonitorRuntime,
+	onSaveAlertPolicy,
 	onOpenServer,
 	onScanServer,
 	onToggleServerPin,
@@ -21,10 +39,22 @@ export function ServerList({
 	servers,
 }: {
 	activeScanId: string | null;
+	alertPolicy: ServerAlertPolicy | null;
+	alertPolicyError: string;
 	hasActiveFilter: boolean;
+	isAlertPolicyLoading: boolean;
+	isMonitorRuntimeLoading: boolean;
 	isScanDisabled: boolean;
+	isSavingAlertPolicy: boolean;
+	isSavingMonitorRuntime: boolean;
 	isServerPinned: (serverId: string) => boolean;
+	monitorRuntimeError: string;
+	monitorRuntimeSettings: MonitorRuntimeSettings | null;
 	now: number;
+	onSaveMonitorRuntime: (
+		input: MonitorRuntimeSettingsUpdateInput,
+	) => Promise<boolean>;
+	onSaveAlertPolicy: (input: ServerAlertPolicyUpdateInput) => Promise<boolean>;
 	onOpenServer: (serverId: string) => void;
 	onScanServer: (serverId: string) => void;
 	onToggleServerPin: (serverId: string) => void;
@@ -61,14 +91,32 @@ export function ServerList({
 								<ServerTableRow
 									key={server.serverId}
 									actions={
-										<ScanServerButton
-											ariaLabel={`Scan ${server.serverName}`}
-											isDisabled={isScanDisabled}
-											isScanning={isScanning}
-											onScan={() =>
-												onScanServer(server.serverId)
-											}
-										/>
+										<>
+											<ServerAlertPolicyDialog
+												error={alertPolicyError}
+												isLoading={isAlertPolicyLoading}
+												isSaving={isSavingAlertPolicy}
+												onSavePolicy={onSaveAlertPolicy}
+												policy={alertPolicy}
+												server={server}
+											/>
+											<ServerMonitorRuntimeDialog
+												error={monitorRuntimeError}
+												isLoading={isMonitorRuntimeLoading}
+												isSaving={isSavingMonitorRuntime}
+												onSaveSettings={onSaveMonitorRuntime}
+												server={server}
+												settings={monitorRuntimeSettings}
+											/>
+											<ScanServerButton
+												ariaLabel={`Scan ${server.serverName}`}
+												isDisabled={isScanDisabled}
+												isScanning={isScanning}
+												onScan={() =>
+													onScanServer(server.serverId)
+												}
+											/>
+										</>
 									}
 									now={now}
 									onOpen={() => onOpenServer(server.serverId)}

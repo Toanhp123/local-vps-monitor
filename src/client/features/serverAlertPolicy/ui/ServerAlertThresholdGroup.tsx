@@ -1,8 +1,8 @@
 import { Cpu, HardDrive, MemoryStick, type LucideIcon } from "lucide-react";
 import { NumberInputField } from "@/shared/ui/NumberInputField";
 import type {
-	ServerAlertResourceId,
 	ServerAlertResourceConfig,
+	ServerAlertResourceId,
 	ThresholdFormState,
 } from "../model/serverAlertPolicyForm";
 

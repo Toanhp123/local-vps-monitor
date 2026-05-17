@@ -16,10 +16,12 @@ export function DashboardPage() {
 		isAnyScanActive,
 		isScanAllActive,
 		localDockerScanner,
+		monitorRuntime,
 		now,
 		overview,
 		pinnedItems,
 		query,
+		serverAlertPolicy,
 		setQuery,
 	} = useMonitorShellContext();
 
@@ -53,11 +55,21 @@ export function DashboardPage() {
 			/>
 			<ServerList
 				activeScanId={activeScanId}
+				alertPolicy={serverAlertPolicy.policy}
+				alertPolicyError={serverAlertPolicy.error}
 				hasActiveFilter={false}
+				isAlertPolicyLoading={serverAlertPolicy.isLoading}
+				isMonitorRuntimeLoading={monitorRuntime.isLoading}
 				isScanDisabled={isAnyScanActive}
+				isSavingAlertPolicy={serverAlertPolicy.isSaving}
+				isSavingMonitorRuntime={monitorRuntime.isSaving}
 				isServerPinned={pinnedItems.isServerPinned}
+				monitorRuntimeError={monitorRuntime.error}
+				monitorRuntimeSettings={monitorRuntime.settings}
 				now={now}
 				onOpenServer={openServerDetail}
+				onSaveAlertPolicy={serverAlertPolicy.savePolicy}
+				onSaveMonitorRuntime={monitorRuntime.saveSettings}
 				onScanServer={handleScanServer}
 				onToggleServerPin={pinnedItems.toggleServerPin}
 				query={query}

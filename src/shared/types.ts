@@ -143,6 +143,16 @@ export interface ServerAlertPolicyResponse {
 
 export type ServerAlertPolicyUpdateInput = ServerAlertPolicy;
 
+export interface ServerMonitorRuntimeSettings {
+	defaultAppLogLines: number;
+	localDockerCommandTimeoutMs: number;
+	offlineAfterMs: number;
+	sshCommandTimeoutMs: number;
+}
+
+export type ServerMonitorRuntimeOverrides =
+	Partial<ServerMonitorRuntimeSettings>;
+
 export interface MonitorRuntimeSettings {
 	autoScanIntervalMs: number;
 	defaultAppLogLines: number;
@@ -152,6 +162,7 @@ export interface MonitorRuntimeSettings {
 	metricHistoryLimit: number;
 	offlineAfterMs: number;
 	realtimeBroadcastMs: number;
+	serverOverrides: Record<string, ServerMonitorRuntimeOverrides>;
 	sshCommandTimeoutMs: number;
 	sshScanConcurrency: number;
 }

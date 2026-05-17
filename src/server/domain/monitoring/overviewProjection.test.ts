@@ -6,7 +6,10 @@ import type {
 	ServerAlertThresholds,
 	ServerSnapshotPayload,
 } from "../../../shared/types";
-import { createStoredServerFromSnapshot } from "./overviewProjection";
+import {
+	buildOverview,
+	createStoredServerFromSnapshot,
+} from "./overviewProjection";
 import { defaultServerAlertThresholds } from "./policies/serverResourcePolicy";
 
 const diskForPercent = (usedPercent: number): DiskMetrics => {
@@ -113,6 +116,22 @@ test("uses configured incident history limit", () => {
 
 	assert.equal(criticalServer.incidents.length, 1);
 	assert.equal(criticalServer.incidents[0]?.severity, "critical");
+});
+
+test("uses per-server offline threshold when building overview", () => {
+	const server = createStoredServerFromSnapshot(
+		payloadWithDisk(50),
+		undefined,
+		new Date("2026-05-15T00:00:00.000Z"),
+	);
+	const overview = buildOverview(
+		[server],
+		(serverId) => (serverId === "server-1" ? 120_000 : 60_000),
+		new Date("2026-05-15T00:01:30.000Z"),
+	);
+
+	assert.equal(overview.servers[0]?.online, true);
+	assert.equal(overview.servers[0]?.status, "healthy");
 });
 
 test("creates disk critical and recovery incidents only when threshold state changes", () => {

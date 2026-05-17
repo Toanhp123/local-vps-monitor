@@ -215,7 +215,8 @@ export function DataTableActionsCell({
 	children,
 	className = "",
 	sticky = false,
-}: {
+	...props
+}: Omit<TdHTMLAttributes<HTMLTableCellElement>, "align" | "children"> & {
 	border?: DataTableBorder;
 	children: ReactNode;
 	className?: string;
@@ -226,6 +227,7 @@ export function DataTableActionsCell({
 			align="right"
 			border={border}
 			className={`${sticky ? `${actionDividerClass} sticky right-0 z-10 min-w-36 bg-slate-50` : ""} ${className}`}
+			{...props}
 		>
 			<DataTableActions>{children}</DataTableActions>
 		</DataTableCell>

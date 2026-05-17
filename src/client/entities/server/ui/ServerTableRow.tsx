@@ -98,7 +98,9 @@ export function ServerTableRow({
 					{relativeTime(server.lastSeenAt, now)}
 				</span>
 			</DataTableCell>
-			<DataTableActionsCell>{actions}</DataTableActionsCell>
+			<DataTableActionsCell onClick={(event) => event.stopPropagation()}>
+				{actions}
+			</DataTableActionsCell>
 		</DataTableRow>
 	);
 }

@@ -1,6 +1,10 @@
 import type {
 	AppPolicyOverrideInput,
 	AppSnapshot,
+	MonitorRuntimeSettings,
+	MonitorRuntimeSettingsUpdateInput,
+	ServerAlertPolicy,
+	ServerAlertPolicyUpdateInput,
 	StoredServer,
 } from "@shared/types";
 import { ServerMetricCharts } from "@/entities/server";
@@ -12,26 +16,48 @@ import { ServerDetailsHeader } from "./ServerDetailsHeader";
 
 export function ServerDetailsView({
 	activeAppPolicyKey,
+	alertPolicy,
+	alertPolicyError,
+	isAlertPolicyLoading,
+	isMonitorRuntimeLoading,
 	isScanDisabled,
 	isSavingAppPolicy,
+	isSavingAlertPolicy,
+	isSavingMonitorRuntime,
 	isScanning,
+	monitorRuntimeError,
+	monitorRuntimeSettings,
 	now,
 	onBack,
 	onOpenAppLogs,
 	onRunQuickAction,
+	onSaveAlertPolicy,
+	onSaveMonitorRuntime,
 	onUpdateAppPolicy,
 	onScan,
 	pinnedItems,
 	server,
 }: {
 	activeAppPolicyKey: string | null;
+	alertPolicy: ServerAlertPolicy | null;
+	alertPolicyError: string;
+	isAlertPolicyLoading: boolean;
+	isMonitorRuntimeLoading: boolean;
 	isScanDisabled: boolean;
 	isSavingAppPolicy: boolean;
+	isSavingAlertPolicy: boolean;
+	isSavingMonitorRuntime: boolean;
 	isScanning: boolean;
+	monitorRuntimeError: string;
+	monitorRuntimeSettings: MonitorRuntimeSettings | null;
 	now: number;
 	onBack: () => void;
 	onOpenAppLogs: (app: AppSnapshot) => void;
 	onRunQuickAction: (action: QuickActionDefinition) => void;
+	onSaveAlertPolicy: (input: ServerAlertPolicyUpdateInput) => Promise<boolean>;
+	onSaveMonitorRuntime: (
+		input: MonitorRuntimeSettingsUpdateInput,
+	) => Promise<boolean>;
 	onUpdateAppPolicy: (input: AppPolicyOverrideInput) => Promise<boolean>;
 	onScan: () => void;
 	pinnedItems: ReturnType<typeof usePinnedItems>;
@@ -40,11 +66,21 @@ export function ServerDetailsView({
 	return (
 		<section className="grid gap-4">
 			<ServerDetailsHeader
+				alertPolicy={alertPolicy}
+				alertPolicyError={alertPolicyError}
+				isAlertPolicyLoading={isAlertPolicyLoading}
+				isMonitorRuntimeLoading={isMonitorRuntimeLoading}
 				isScanDisabled={isScanDisabled}
+				isSavingAlertPolicy={isSavingAlertPolicy}
+				isSavingMonitorRuntime={isSavingMonitorRuntime}
 				isScanning={isScanning}
+				monitorRuntimeError={monitorRuntimeError}
+				monitorRuntimeSettings={monitorRuntimeSettings}
 				now={now}
 				onBack={onBack}
 				onRunQuickAction={onRunQuickAction}
+				onSaveAlertPolicy={onSaveAlertPolicy}
+				onSaveMonitorRuntime={onSaveMonitorRuntime}
 				onScan={onScan}
 				server={server}
 			/>
