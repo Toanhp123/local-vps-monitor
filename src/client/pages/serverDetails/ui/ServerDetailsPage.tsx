@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAppLogs } from "@/features/appLogs";
 import { AppLogsPanel } from "@/features/appLogs";
-import { resolveServerMonitorRuntimeSettings } from "@/features/monitorRuntime";
 import { useQuickActionRunner } from "@/features/quickActions";
 import { QuickActionPanel } from "@/features/quickActions";
 import { routes } from "@/shared/config/routes";
@@ -27,17 +26,7 @@ export function ServerDetailsPage() {
 		? overview?.servers.find((server) => server.serverId === serverId) ||
 			null
 		: null;
-	const serverRuntimeSettings =
-		selectedServer && monitorRuntime.settings
-			? resolveServerMonitorRuntimeSettings(
-					monitorRuntime.settings,
-					selectedServer.serverId,
-				)
-			: null;
-	const appLogs = useAppLogs(
-		serverId || "",
-		serverRuntimeSettings?.defaultAppLogLines ?? 200,
-	);
+	const appLogs = useAppLogs(serverId || "", 200);
 	const quickActions = useQuickActionRunner();
 
 	useEffect(() => {

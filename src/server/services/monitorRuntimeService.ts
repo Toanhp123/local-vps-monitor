@@ -19,6 +19,10 @@ export class MonitorRuntimeService {
 		return this.monitorRuntimeStore.get();
 	}
 
+	getServerSettings(serverId: string) {
+		return this.monitorRuntimeStore.getServerSettings(serverId);
+	}
+
 	updateSettings(input: MonitorRuntimeSettingsUpdateInput) {
 		const settings = this.monitorRuntimeStore.replace(input);
 		const didPruneHistory = this.monitorOverviewService.applyRetentionLimits();

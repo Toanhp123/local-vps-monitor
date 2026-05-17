@@ -70,14 +70,18 @@ export class SshScanService {
 		}
 	}
 
-	async scanAllTargets(): Promise<SshScanAllResponse> {
-		const targets = this.targetConfigStore
+	listEnabledTargetIds() {
+		return this.targetConfigStore
 			.list()
-			.filter((target) => target.enabled);
+			.filter((target) => target.enabled)
+			.map((target) => target.id);
+	}
+
+	async scanTargets(targetIds: string[]): Promise<SshScanAllResponse> {
 		const settled = await settleWithConcurrency(
-			targets,
+			targetIds,
 			this.scanConcurrency(),
-			(target) => this.scanKnownTarget(target),
+			(targetId) => this.scanTarget(targetId),
 		);
 
 		return settled.reduce<SshScanAllResponse>(
@@ -86,7 +90,7 @@ export class SshScanService {
 					response.results.push(result.value);
 				} else {
 					response.errors.push({
-						targetId: targets[index]?.id || "unknown",
+						targetId: targetIds[index] || "unknown",
 						message: errorMessage(result.reason),
 					});
 				}
@@ -95,6 +99,10 @@ export class SshScanService {
 			},
 			{ results: [], errors: [] },
 		);
+	}
+
+	async scanAllTargets(): Promise<SshScanAllResponse> {
+		return this.scanTargets(this.listEnabledTargetIds());
 	}
 
 	private async scanKnownTarget(target: SshTarget): Promise<SshScanResult> {

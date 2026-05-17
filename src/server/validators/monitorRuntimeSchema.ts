@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const serverMonitorRuntimeOverrideSchema = z
 	.object({
+		autoScanIntervalMs: z.number().int().min(0).max(3_600_000).optional(),
 		defaultAppLogLines: z.number().int().min(10).max(1_000).optional(),
 		localDockerCommandTimeoutMs: z
 			.number()

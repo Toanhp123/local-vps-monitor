@@ -26,6 +26,11 @@ const normalizeServerOverride = (value: unknown) => {
 
 	const input = value as Partial<ServerMonitorRuntimeOverrides>;
 	const override: ServerMonitorRuntimeOverrides = {};
+	const autoScanIntervalMs = clampOptionalNumber(
+		input.autoScanIntervalMs,
+		0,
+		3_600_000,
+	);
 	const defaultAppLogLines = clampOptionalNumber(
 		input.defaultAppLogLines,
 		10,
@@ -47,6 +52,9 @@ const normalizeServerOverride = (value: unknown) => {
 		120_000,
 	);
 
+	if (autoScanIntervalMs !== undefined) {
+		override.autoScanIntervalMs = autoScanIntervalMs;
+	}
 	if (defaultAppLogLines !== undefined) {
 		override.defaultAppLogLines = defaultAppLogLines;
 	}
@@ -173,6 +181,8 @@ export class MonitorRuntimeStore {
 		const override = this.settings.serverOverrides[serverId] ?? {};
 
 		return {
+			autoScanIntervalMs:
+				override.autoScanIntervalMs ?? this.settings.autoScanIntervalMs,
 			defaultAppLogLines:
 				override.defaultAppLogLines ?? this.settings.defaultAppLogLines,
 			localDockerCommandTimeoutMs:

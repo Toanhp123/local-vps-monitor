@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
 	Clock,
 	Database,
-	FileText,
 	History,
 	RadioTower,
 	ServerCog,
@@ -31,7 +30,6 @@ import {
 
 const sectionIcons: Record<MonitorRuntimeSectionId, LucideIcon> = {
 	concurrency: ServerCog,
-	logs: FileText,
 	retention: Database,
 	scan: Clock,
 	timeout: Zap,
@@ -123,7 +121,7 @@ export function MonitorRuntimePanel({
 				</>
 			}
 			canSave={canSave}
-			description="Default scan cadence, timeouts, concurrency, retention, and log limits."
+			description="Default scan cadence, timeouts, concurrency, and retention."
 			error={error}
 			icon={<Settings2 size={18} />}
 			iconClassName="bg-blue-50 text-blue-700"

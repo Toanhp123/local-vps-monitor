@@ -94,10 +94,10 @@ export function SettingsPage() {
 							Runtime Defaults
 						</div>
 						<div className="mt-1 text-lg font-extrabold text-slate-900">
-							{monitorRuntime.settings ? "10 values" : "--"}
+							{monitorRuntime.settings ? "9 values" : "--"}
 						</div>
 						<div className="mt-1 text-xs font-semibold text-slate-500">
-							Scan, timeout, logs, retention
+							Scan, timeout, concurrency, retention
 						</div>
 					</div>
 					<div className="px-5 py-4">

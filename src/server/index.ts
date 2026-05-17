@@ -18,6 +18,9 @@ const autoScanScheduler = new AutoScanScheduler(
 	sshScanService,
 	localDockerScanService,
 	httpCheckService,
+	(serverId) =>
+		services.monitorRuntimeService.getServerSettings(serverId)
+			.autoScanIntervalMs,
 	monitorRuntime.autoScanIntervalMs,
 );
 
@@ -42,12 +45,10 @@ httpServer.listen(serverConfig.port, serverConfig.host, () => {
 		`VPS Monitor WebSocket listening on ws://${serverConfig.host}:${serverConfig.port}/ws`,
 	);
 
-	if (monitorRuntime.autoScanIntervalMs > 0) {
-		console.log(
-			`VPS Monitor auto scan interval: ${monitorRuntime.autoScanIntervalMs}ms`,
-		);
-		autoScanScheduler.start();
-	}
+	console.log(
+		`VPS Monitor default auto scan interval: ${monitorRuntime.autoScanIntervalMs}ms`,
+	);
+	autoScanScheduler.start();
 });
 
 const shutdown = () => {

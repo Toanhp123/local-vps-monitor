@@ -6,7 +6,7 @@ import type {
 
 export type MonitorRuntimeFieldKey = Exclude<
 	keyof MonitorRuntimeSettings,
-	"serverOverrides"
+	"defaultAppLogLines" | "serverOverrides"
 >;
 
 export type MonitorRuntimeGlobalSettings = Pick<
@@ -18,7 +18,6 @@ export type MonitorRuntimeFormState = Record<MonitorRuntimeFieldKey, string>;
 
 export type MonitorRuntimeSectionId =
 	| "concurrency"
-	| "logs"
 	| "retention"
 	| "scan"
 	| "timeout";
@@ -138,27 +137,12 @@ export const monitorRuntimeFieldSections: MonitorRuntimeFieldSection[] = [
 			},
 		],
 	},
-	{
-		id: "logs",
-		title: "Logs",
-		fields: [
-			{
-				key: "defaultAppLogLines",
-				label: "Default app logs",
-				max: 1000,
-				min: 10,
-				scale: 1,
-				unit: "lines",
-			},
-		],
-	},
 ];
 
 const flatFields = monitorRuntimeFieldSections.flatMap((section) => section.fields);
 
 export const emptyMonitorRuntimeForm = (): MonitorRuntimeFormState => ({
 	autoScanIntervalMs: "",
-	defaultAppLogLines: "",
 	httpCheckConcurrency: "",
 	incidentHistoryLimit: "",
 	localDockerCommandTimeoutMs: "",
@@ -240,7 +224,7 @@ export const validateMonitorRuntimeForm = (form: MonitorRuntimeFormState) => {
 };
 
 export type ServerMonitorRuntimeFieldKey =
-	keyof ServerMonitorRuntimeSettings;
+	Exclude<keyof ServerMonitorRuntimeSettings, "defaultAppLogLines">;
 
 export type ServerMonitorRuntimeFormState = Record<
 	ServerMonitorRuntimeFieldKey,
@@ -254,13 +238,13 @@ const serverMonitorRuntimeFieldsByKey: Record<
 	ServerMonitorRuntimeFieldKey,
 	ServerMonitorRuntimeFieldConfig
 > = {
-	defaultAppLogLines: {
-		key: "defaultAppLogLines",
-		label: "Default app logs",
-		max: 1000,
-		min: 10,
-		scale: 1,
-		unit: "lines",
+	autoScanIntervalMs: {
+		key: "autoScanIntervalMs",
+		label: "Auto scan",
+		max: 3600,
+		min: 0,
+		scale: 1000,
+		unit: "sec",
 	},
 	localDockerCommandTimeoutMs: {
 		key: "localDockerCommandTimeoutMs",
@@ -291,8 +275,8 @@ const serverMonitorRuntimeFieldsByKey: Record<
 const localDockerServerId = "local-docker";
 
 export const serverMonitorRuntimeFieldsForServer = (serverId: string) => [
+	serverMonitorRuntimeFieldsByKey.autoScanIntervalMs,
 	serverMonitorRuntimeFieldsByKey.offlineAfterMs,
-	serverMonitorRuntimeFieldsByKey.defaultAppLogLines,
 	serverId === localDockerServerId
 		? serverMonitorRuntimeFieldsByKey.localDockerCommandTimeoutMs
 		: serverMonitorRuntimeFieldsByKey.sshCommandTimeoutMs,
@@ -301,6 +285,7 @@ export const serverMonitorRuntimeFieldsForServer = (serverId: string) => [
 export const serverMonitorRuntimeDefaultsFromSettings = (
 	settings: MonitorRuntimeSettings,
 ): ServerMonitorRuntimeSettings => ({
+	autoScanIntervalMs: settings.autoScanIntervalMs,
 	defaultAppLogLines: settings.defaultAppLogLines,
 	localDockerCommandTimeoutMs: settings.localDockerCommandTimeoutMs,
 	offlineAfterMs: settings.offlineAfterMs,
@@ -315,6 +300,8 @@ export const resolveServerMonitorRuntimeSettings = (
 	const defaults = serverMonitorRuntimeDefaultsFromSettings(settings);
 
 	return {
+		autoScanIntervalMs:
+			override.autoScanIntervalMs ?? defaults.autoScanIntervalMs,
 		defaultAppLogLines:
 			override.defaultAppLogLines ?? defaults.defaultAppLogLines,
 		localDockerCommandTimeoutMs:
@@ -328,7 +315,7 @@ export const resolveServerMonitorRuntimeSettings = (
 
 export const emptyServerMonitorRuntimeForm =
 	(): ServerMonitorRuntimeFormState => ({
-		defaultAppLogLines: "",
+		autoScanIntervalMs: "",
 		localDockerCommandTimeoutMs: "",
 		offlineAfterMs: "",
 		sshCommandTimeoutMs: "",

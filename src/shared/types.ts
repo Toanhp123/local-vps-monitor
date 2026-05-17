@@ -144,6 +144,7 @@ export interface ServerAlertPolicyResponse {
 export type ServerAlertPolicyUpdateInput = ServerAlertPolicy;
 
 export interface ServerMonitorRuntimeSettings {
+	autoScanIntervalMs: number;
 	defaultAppLogLines: number;
 	localDockerCommandTimeoutMs: number;
 	offlineAfterMs: number;

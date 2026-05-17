@@ -40,11 +40,13 @@ test("resolves server runtime overrides over global defaults", () => {
 			...defaults,
 			serverOverrides: {
 				"local-docker": {
+					autoScanIntervalMs: 45_000,
 					defaultAppLogLines: 300,
 					localDockerCommandTimeoutMs: 20_000,
 					offlineAfterMs: 90_000,
 				},
 				"server-1": {
+					autoScanIntervalMs: 30_000,
 					defaultAppLogLines: 500,
 					offlineAfterMs: 120_000,
 					sshCommandTimeoutMs: 30_000,
@@ -55,18 +57,21 @@ test("resolves server runtime overrides over global defaults", () => {
 			const store = new MonitorRuntimeStore(filePath, defaults);
 
 			assert.deepEqual(store.getServerSettings("server-1"), {
+				autoScanIntervalMs: 30_000,
 				defaultAppLogLines: 500,
 				localDockerCommandTimeoutMs: 12_000,
 				offlineAfterMs: 120_000,
 				sshCommandTimeoutMs: 30_000,
 			});
 			assert.deepEqual(store.getServerSettings("server-2"), {
+				autoScanIntervalMs: 60_000,
 				defaultAppLogLines: 200,
 				localDockerCommandTimeoutMs: 12_000,
 				offlineAfterMs: 60_000,
 				sshCommandTimeoutMs: 12_000,
 			});
 			assert.deepEqual(store.getServerSettings("local-docker"), {
+				autoScanIntervalMs: 45_000,
 				defaultAppLogLines: 300,
 				localDockerCommandTimeoutMs: 20_000,
 				offlineAfterMs: 90_000,
@@ -82,6 +87,7 @@ test("drops invalid server runtime override values when loading settings", () =>
 			...defaults,
 			serverOverrides: {
 				"server-1": {
+					autoScanIntervalMs: 999_999_999,
 					defaultAppLogLines: "many",
 					offlineAfterMs: 1,
 					sshCommandTimeoutMs: 999_999,
@@ -94,11 +100,13 @@ test("drops invalid server runtime override values when loading settings", () =>
 
 			assert.deepEqual(store.get().serverOverrides, {
 				"server-1": {
+					autoScanIntervalMs: 3_600_000,
 					offlineAfterMs: 5_000,
 					sshCommandTimeoutMs: 120_000,
 				},
 			});
 			assert.deepEqual(store.getServerSettings("server-1"), {
+				autoScanIntervalMs: 3_600_000,
 				defaultAppLogLines: 200,
 				localDockerCommandTimeoutMs: 12_000,
 				offlineAfterMs: 5_000,
