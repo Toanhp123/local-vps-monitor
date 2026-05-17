@@ -1,13 +1,11 @@
 import type { ReactNode } from "react";
 import { Server, WifiOff } from "lucide-react";
 import type { StoredServer } from "../../../../shared/types";
-import { serverAppCounts } from "../../application/model/appMonitoringPolicy";
+import { serverAppCounts } from "../../application/model/appPolicy";
 import { formatBytes, relativeTime } from "../../../shared/lib/format";
+import { DataTableCell, DataTableRow } from "../../../shared/ui/DataTable";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 import { serverDisk, serverMemory } from "../model/serverMetrics";
-
-const bodyCellClass =
-	"border-b border-slate-200 px-3.5 py-3 text-left align-middle whitespace-nowrap";
 
 export function ServerTableRow({
 	actions,
@@ -27,8 +25,8 @@ export function ServerTableRow({
 	const appCounts = serverAppCounts(server);
 
 	return (
-		<tr className="cursor-pointer hover:bg-blue-50/50" onClick={onOpen}>
-			<td className={`${bodyCellClass} min-w-68`}>
+		<DataTableRow className="cursor-pointer hover:bg-blue-50/50" onClick={onOpen}>
+			<DataTableCell className="min-w-68">
 				<div className="flex items-center gap-2.5">
 					{pinControl}
 					<span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -43,36 +41,36 @@ export function ServerTableRow({
 						</span>
 					</span>
 				</div>
-			</td>
-			<td className={bodyCellClass}>
+			</DataTableCell>
+			<DataTableCell>
 				<StatusBadge status={server.status} />
-			</td>
-			<td className={bodyCellClass}>
+			</DataTableCell>
+			<DataTableCell>
 				<strong className="text-slate-900">{appCounts.monitored}</strong>
 				<span className="ml-1 text-slate-500">
 					/{appCounts.total} apps
 				</span>
-			</td>
-			<td className={bodyCellClass}>
+			</DataTableCell>
+			<DataTableCell>
 				<span className="font-semibold text-slate-700">
 					{server.host.platform}/{server.host.arch}
 				</span>
-			</td>
-			<td className={bodyCellClass}>
+			</DataTableCell>
+			<DataTableCell>
 				<span className="font-semibold text-slate-700">
 					{server.host.cpuCount}
 				</span>
 				<span className="ml-1 text-slate-500">cores</span>
-			</td>
-			<td className={bodyCellClass}>
+			</DataTableCell>
+			<DataTableCell>
 				<span className="font-semibold text-slate-700">
 					{formatBytes(memory.used)}
 				</span>
 				<span className="ml-1 text-slate-500">
 					/ {formatBytes(server.host.memoryTotalBytes)} ({memory.percent}%)
 				</span>
-			</td>
-			<td className={bodyCellClass}>
+			</DataTableCell>
+			<DataTableCell>
 				{disk ? (
 					<>
 						<span className="font-semibold text-slate-700">
@@ -85,15 +83,15 @@ export function ServerTableRow({
 				) : (
 					<span className="font-semibold text-slate-400">-</span>
 				)}
-			</td>
-			<td className={bodyCellClass}>
+			</DataTableCell>
+			<DataTableCell>
 				<span className="font-semibold text-slate-600">
 					{relativeTime(server.lastSeenAt, now)}
 				</span>
-			</td>
-			<td className={`${bodyCellClass} text-right`}>
+			</DataTableCell>
+			<DataTableCell align="right">
 				<div className="flex items-center justify-end gap-2">{actions}</div>
-			</td>
-		</tr>
+			</DataTableCell>
+		</DataTableRow>
 	);
 }

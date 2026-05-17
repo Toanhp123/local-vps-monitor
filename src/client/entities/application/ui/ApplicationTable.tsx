@@ -4,20 +4,22 @@ import {
 	appDisplayName,
 	appImportance,
 	isIgnoredApp,
-} from "../model/appMonitoringPolicy";
+} from "../model/appPolicy";
 import { formatBytes } from "../../../shared/lib/format";
+import {
+	DataTable,
+	DataTableBody,
+	DataTableCell,
+	DataTableHeader,
+	DataTableHeaderCell,
+	DataTableMessageRow,
+	DataTableRow,
+} from "../../../shared/ui/DataTable";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 import { RuntimeBadge } from "./RuntimeBadge";
 
-const headerCellClass =
-	"border-t border-slate-200 bg-slate-50 px-3.5 py-3 text-left align-middle text-xs font-bold uppercase text-slate-500 whitespace-nowrap";
-const bodyCellClass =
-	"border-t border-slate-200 px-3.5 py-3 text-left align-middle whitespace-nowrap";
 const actionDividerClass =
 	"before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-slate-300 before:content-['']";
-const actionHeaderCellClass = `${headerCellClass} ${actionDividerClass} sticky right-0 z-20 min-w-36 bg-slate-100 text-right`;
-const actionBodyCellClass =
-	`sticky right-0 z-10 min-w-36 border-t border-slate-200 bg-slate-50 px-3.5 py-3 text-right align-middle whitespace-nowrap ${actionDividerClass}`;
 
 const importanceClasses = {
 	critical: "bg-red-100 text-red-800",
@@ -53,23 +55,41 @@ export function ApplicationTable({
 	const columnCount = 7 + (hasActions ? 1 : 0);
 
 	return (
-		<div className="overflow-x-auto">
-			<table className="w-full min-w-250 border-collapse">
-				<thead>
-					<tr>
-						<th className={headerCellClass}>App</th>
-						<th className={headerCellClass}>Runtime</th>
-						<th className={headerCellClass}>Status</th>
-						<th className={headerCellClass}>CPU</th>
-						<th className={headerCellClass}>Memory</th>
-						<th className={headerCellClass}>Image</th>
-						<th className={headerCellClass}>Ports</th>
-						{hasActions && (
-							<th className={actionHeaderCellClass}>Actions</th>
-						)}
-					</tr>
-				</thead>
-				<tbody>
+		<DataTable>
+			<DataTableHeader>
+				<DataTableHeaderCell border="top" tone="subtle">
+					App
+				</DataTableHeaderCell>
+				<DataTableHeaderCell border="top" tone="subtle">
+					Runtime
+				</DataTableHeaderCell>
+				<DataTableHeaderCell border="top" tone="subtle">
+					Status
+				</DataTableHeaderCell>
+				<DataTableHeaderCell border="top" tone="subtle">
+					CPU
+				</DataTableHeaderCell>
+				<DataTableHeaderCell border="top" tone="subtle">
+					Memory
+				</DataTableHeaderCell>
+				<DataTableHeaderCell border="top" tone="subtle">
+					Image
+				</DataTableHeaderCell>
+				<DataTableHeaderCell border="top" tone="subtle">
+					Ports
+				</DataTableHeaderCell>
+				{hasActions && (
+					<DataTableHeaderCell
+						align="right"
+						border="top"
+						className={`${actionDividerClass} sticky right-0 z-20 min-w-36 bg-slate-100`}
+						tone="subtle"
+					>
+						Actions
+					</DataTableHeaderCell>
+				)}
+			</DataTableHeader>
+			<DataTableBody>
 					{apps.map((app) => {
 						const ports = portItems(app.ports);
 						const statusText = displayStatusText(app.status);
@@ -78,11 +98,11 @@ export function ApplicationTable({
 						const isIgnored = isIgnoredApp(app);
 
 						return (
-							<tr
+							<DataTableRow
 								key={app.id}
 								className={isIgnored ? "bg-slate-50/70" : undefined}
 							>
-								<td className={`${bodyCellClass} min-w-47.5`}>
+								<DataTableCell border="top" className="min-w-47.5">
 									<div className="grid gap-1">
 										<div className="flex min-w-0 items-center gap-2">
 											<strong
@@ -108,11 +128,11 @@ export function ApplicationTable({
 											</span>
 										)}
 									</div>
-								</td>
-								<td className={bodyCellClass}>
+								</DataTableCell>
+								<DataTableCell border="top">
 									<RuntimeBadge kind={app.kind} />
-								</td>
-								<td className={bodyCellClass}>
+								</DataTableCell>
+								<DataTableCell border="top">
 									<StatusBadge status={app.health} />
 									<span
 										className="ml-2 inline-block max-w-45 overflow-hidden text-xs text-ellipsis align-middle text-slate-500"
@@ -120,23 +140,26 @@ export function ApplicationTable({
 									>
 										{statusText || app.status}
 									</span>
-								</td>
-								<td className={bodyCellClass}>
+								</DataTableCell>
+								<DataTableCell border="top">
 									{app.cpuPercent === undefined
 										? "-"
 										: `${app.cpuPercent.toFixed(1)}%`}
-								</td>
-								<td className={bodyCellClass}>
+								</DataTableCell>
+								<DataTableCell border="top">
 									{formatBytes(app.memoryBytes)}
-								</td>
-								<td
-									className={`${bodyCellClass} max-w-62 overflow-hidden text-ellipsis font-mono text-xs text-slate-500`}
+								</DataTableCell>
+								<DataTableCell
+									border="top"
+									className="max-w-62 overflow-hidden text-ellipsis font-mono text-xs text-slate-500"
 									title={app.image}
 								>
 									{app.image || "-"}
-								</td>
-								<td
-									className="min-w-80 border-t border-slate-200 px-3.5 py-3 text-left align-middle text-slate-500"
+								</DataTableCell>
+								<DataTableCell
+									border="top"
+									className="min-w-80 text-slate-500"
+									noWrap={false}
 									title={app.ports}
 								>
 									{ports && ports.length > 0 ? (
@@ -153,27 +176,25 @@ export function ApplicationTable({
 									) : (
 										"-"
 									)}
-								</td>
+								</DataTableCell>
 								{actions && (
-									<td className={actionBodyCellClass}>
+									<DataTableCell
+										align="right"
+										border="top"
+										className={`${actionDividerClass} sticky right-0 z-10 min-w-36 bg-slate-50`}
+									>
 										{actions(app)}
-									</td>
+									</DataTableCell>
 								)}
-							</tr>
+							</DataTableRow>
 						);
 					})}
 					{apps.length === 0 && (
-						<tr>
-							<td
-								colSpan={columnCount}
-								className="h-18 border-t border-slate-200 text-center text-slate-500"
-							>
-								No Docker or PM2 apps reported
-							</td>
-						</tr>
+						<DataTableMessageRow border="top" colSpan={columnCount}>
+							No Docker or PM2 apps reported
+						</DataTableMessageRow>
 					)}
-				</tbody>
-			</table>
-		</div>
+			</DataTableBody>
+		</DataTable>
 	);
 }

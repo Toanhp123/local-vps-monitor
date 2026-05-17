@@ -24,7 +24,7 @@ export class HttpCheckService {
 	constructor(
 		private readonly httpCheckConfigStore: HttpCheckConfigStore,
 		private readonly monitorOverviewService: MonitorOverviewService,
-		private readonly concurrency: number,
+		private readonly concurrency: () => number,
 	) {}
 
 	listChecks() {
@@ -56,7 +56,7 @@ export class HttpCheckService {
 			.filter((check) => check.enabled);
 		const settled = await settleWithConcurrency(
 			checks,
-			this.concurrency,
+			this.concurrency(),
 			(check) => this.runKnownCheck(check),
 		);
 

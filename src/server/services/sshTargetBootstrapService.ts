@@ -126,22 +126,23 @@ const targetForKeyTest = (input: SshTargetCreateInput): SshTarget => {
 export class SshTargetBootstrapService {
 	constructor(
 		private readonly sshTargetConfigService: SshTargetConfigService,
-		private readonly sshCommandTimeoutMs: number,
+		private readonly sshCommandTimeoutMs: () => number,
 	) {}
 
 	async bootstrapTarget(input: SshTargetBootstrapInput) {
+		const sshCommandTimeoutMs = this.sshCommandTimeoutMs();
 		const keyPair = await ensureMonitorKeyPair();
 		const passwordConnection = await connectWithPassword(
 			input,
 			input.password,
-			this.sshCommandTimeoutMs,
+			sshCommandTimeoutMs,
 		);
 
 		try {
 			const installResult = await runSshCommand(
 				passwordConnection.client,
 				installPublicKeyCommand(keyPair.publicKey),
-				this.sshCommandTimeoutMs,
+				sshCommandTimeoutMs,
 			);
 
 			if (!installResult.ok) {
@@ -172,14 +173,14 @@ export class SshTargetBootstrapService {
 		const keyTestTarget = targetForKeyTest(createInput);
 		const keyClient = await connectSshTarget(
 			keyTestTarget,
-			this.sshCommandTimeoutMs,
+			sshCommandTimeoutMs,
 		);
 
 		try {
 			const keyTestResult = await runSshCommand(
 				keyClient,
 				"echo ok",
-				this.sshCommandTimeoutMs,
+				sshCommandTimeoutMs,
 			);
 			if (!keyTestResult.ok) {
 				throw new Error(

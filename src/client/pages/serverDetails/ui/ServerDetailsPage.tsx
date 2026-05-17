@@ -13,18 +13,22 @@ export function ServerDetailsPage() {
 	const { serverId } = useParams<{ serverId: string }>();
 	const {
 		activeScanId,
-		appMonitoringRules,
+		appPolicies,
 		handleScanServer,
 		isAnyScanActive,
 		now,
 		overview,
 		pinnedItems,
+		monitorRuntime,
 	} = useMonitorShellContext();
 	const selectedServer = serverId
 		? overview?.servers.find((server) => server.serverId === serverId) ||
 			null
 		: null;
-	const appLogs = useAppLogs(serverId || "");
+	const appLogs = useAppLogs(
+		serverId || "",
+		monitorRuntime.settings?.defaultAppLogLines ?? 200,
+	);
 	const quickActions = useQuickActionRunner();
 
 	useEffect(() => {
@@ -52,9 +56,9 @@ export function ServerDetailsPage() {
 	return (
 		<>
 			<ServerDetailsView
-				activeAppPolicyKey={appMonitoringRules.activeAppKey}
+				activeAppPolicyKey={appPolicies.activeAppKey}
 				isScanDisabled={isAnyScanActive}
-				isSavingAppPolicy={appMonitoringRules.isSaving}
+				isSavingAppPolicy={appPolicies.isSaving}
 				isScanning={activeScanId === selectedServer.serverId}
 				now={now}
 				onBack={() => {
@@ -63,7 +67,7 @@ export function ServerDetailsPage() {
 				}}
 				onOpenAppLogs={appLogs.loadLogs}
 				onRunQuickAction={quickActions.requestAction}
-				onUpdateAppPolicy={appMonitoringRules.upsertAppOverride}
+				onUpdateAppPolicy={appPolicies.upsertAppOverride}
 				onScan={() => handleScanServer(selectedServer.serverId)}
 				pinnedItems={pinnedItems}
 				server={selectedServer}

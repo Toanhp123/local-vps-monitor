@@ -1,6 +1,6 @@
 import { ArrowLeft, Box, Server, SquareTerminal, WifiOff } from "lucide-react";
 import type {
-	AppMonitorAppOverrideInput,
+	AppPolicyOverrideInput,
 	AppSnapshot,
 	StoredServer,
 } from "../../../../shared/types";
@@ -11,11 +11,11 @@ import {
 import {
 	monitoredApps,
 	serverAppCounts,
-} from "../../../entities/application/model/appMonitoringPolicy";
+} from "../../../entities/application/model/appPolicy";
 import { ApplicationTable } from "../../../entities/application/ui/ApplicationTable";
 import { ServerMetricCharts } from "../../../entities/server/ui/ServerMetricCharts";
 import { ServerMetricsGrid } from "../../../entities/server/ui/ServerMetricsGrid";
-import { AppPolicyDialog } from "../../../features/appMonitoringRules/ui/AppPolicyDialog";
+import { AppPolicyDialog } from "../../../features/appPolicies/ui/AppPolicyDialog";
 import { OpenAppLogsButton } from "../../../features/appLogs/ui/OpenAppLogsButton";
 import type { usePinnedItems } from "../../../features/pinnedItems/model/usePinnedItems";
 import { PinToggleButton } from "../../../features/pinnedItems/ui/PinToggleButton";
@@ -28,6 +28,7 @@ import { QuickActionButton } from "../../../features/quickActions/ui/QuickAction
 import { QuickActionMenu } from "../../../features/quickActions/ui/QuickActionMenu";
 import { ScanServerButton } from "../../../features/serverScan/ui/ScanServerButton";
 import { relativeTime } from "../../../shared/lib/format";
+import { Button } from "../../../shared/ui/Button";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 
 export function ServerDetailsView({
@@ -52,7 +53,7 @@ export function ServerDetailsView({
 	onBack: () => void;
 	onOpenAppLogs: (app: AppSnapshot) => void;
 	onRunQuickAction: (action: QuickActionDefinition) => void;
-	onUpdateAppPolicy: (input: AppMonitorAppOverrideInput) => Promise<boolean>;
+	onUpdateAppPolicy: (input: AppPolicyOverrideInput) => Promise<boolean>;
 	onScan: () => void;
 	pinnedItems: ReturnType<typeof usePinnedItems>;
 	server: StoredServer;
@@ -71,14 +72,13 @@ export function ServerDetailsView({
 	return (
 		<section className="grid gap-4">
 			<div className="rounded-lg border border-slate-200 bg-white p-4.5">
-				<button
-					type="button"
-					className="mb-4 inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+				<Button
+					className="mb-4"
 					onClick={onBack}
+					icon={ArrowLeft}
 				>
-					<ArrowLeft size={16} />
 					Back to dashboard
-				</button>
+				</Button>
 
 				<div className="flex items-start justify-between gap-4 max-md:flex-col">
 					<div className="flex min-w-0 items-start gap-3">

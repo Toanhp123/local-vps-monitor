@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
-import { useAppMonitoringRules } from "../../../features/appMonitoringRules/model/useAppMonitoringRules";
+import { useServerAlertPolicy } from "../../../features/serverAlertPolicy/model/useServerAlertPolicy";
+import { useAppPolicies } from "../../../features/appPolicies/model/useAppPolicies";
 import { useHttpCheckManager } from "../../../features/httpChecks/model/useHttpCheckManager";
 import { useLocalDockerScanner } from "../../../features/localDockerScan/model/useLocalDockerScanner";
 import { useMonitorOverview } from "../../../features/monitorOverview/model/useMonitorOverview";
 import { usePinnedItems } from "../../../features/pinnedItems/model/usePinnedItems";
 import { useSshTargetManager } from "../../../features/sshTargetManagement/model/useSshTargetManager";
+import { useMonitorRuntime } from "../../../features/monitorRuntime/model/useMonitorRuntime";
 import { routes } from "../../../shared/config/routes";
 import { useNow } from "../../../shared/lib/useNow";
 import { Toast } from "../../../shared/ui/Toast";
@@ -26,13 +28,16 @@ export function MonitorLayoutPage() {
 		requestStatus,
 		setQuery,
 	} = useMonitorOverview();
-	const appMonitoringRules = useAppMonitoringRules(loadOverview);
+	const serverAlertPolicy = useServerAlertPolicy(loadOverview);
+	const appPolicies = useAppPolicies(loadOverview);
 	const httpCheckManager = useHttpCheckManager(loadOverview);
 	const localDockerScanner = useLocalDockerScanner(loadOverview);
 	const pinnedItems = usePinnedItems();
 	const sshTargetManager = useSshTargetManager(loadOverview);
+	const monitorRuntime = useMonitorRuntime(loadOverview);
 	const serverDetailMatch = useMatch("/servers/:serverId");
 	const httpChecksMatch = useMatch(routes.httpChecks);
+	const settingsMatch = useMatch(routes.settings);
 	const sshTargetsMatch = useMatch(routes.sshTargets);
 	const selectedServerId = serverDetailMatch?.params.serverId;
 	const selectedServer = selectedServerId
@@ -53,9 +58,11 @@ export function MonitorLayoutPage() {
 		? "server-detail"
 		: httpChecksMatch
 			? "http-checks"
-			: sshTargetsMatch
-				? "ssh-targets"
-				: "dashboard";
+			: settingsMatch
+				? "settings"
+				: sshTargetsMatch
+					? "ssh-targets"
+					: "dashboard";
 	const openDashboard = () => {
 		navigate(routes.dashboard);
 		window.scrollTo({ top: 0 });
@@ -66,6 +73,10 @@ export function MonitorLayoutPage() {
 	};
 	const openSshTargets = () => {
 		navigate(routes.sshTargets);
+		window.scrollTo({ top: 0 });
+	};
+	const openSettings = () => {
+		navigate(routes.settings);
 		window.scrollTo({ top: 0 });
 	};
 
@@ -96,7 +107,8 @@ export function MonitorLayoutPage() {
 
 	const context: MonitorShellContext = {
 		activeScanId,
-		appMonitoringRules,
+		serverAlertPolicy,
+		appPolicies,
 		filteredServers,
 		handleScanAll,
 		handleScanServer,
@@ -110,6 +122,7 @@ export function MonitorLayoutPage() {
 		query,
 		setQuery,
 		sshTargetManager,
+		monitorRuntime,
 	};
 
 	return (
@@ -119,6 +132,7 @@ export function MonitorLayoutPage() {
 				httpCheckCount={httpCheckManager.checks.length}
 				onDashboardOpen={openDashboard}
 				onHttpChecksOpen={openHttpChecks}
+				onSettingsOpen={openSettings}
 				onSshTargetsOpen={openSshTargets}
 				overview={overview}
 				realtimeStatus={realtimeStatus}
@@ -142,8 +156,10 @@ export function MonitorLayoutPage() {
 				toast={
 					localDockerScanner.toast ||
 					sshTargetManager.toast ||
-					appMonitoringRules.toast ||
-					httpCheckManager.toast
+					appPolicies.toast ||
+					serverAlertPolicy.toast ||
+					httpCheckManager.toast ||
+					monitorRuntime.toast
 				}
 			/>
 		</div>

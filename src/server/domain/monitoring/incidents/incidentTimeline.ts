@@ -1,19 +1,28 @@
 import type {
 	AppSnapshot,
 	IncidentEvent,
+	ServerAlertThresholds,
 	ServerSnapshotPayload,
 	StoredServer,
 } from "../../../../shared/types";
 import { createAppIncidentEvents } from "./appIncidentRules";
-import { createDiskUsageIncident } from "./diskIncidentRules";
+import { createServerResourceIncidents } from "./serverResourceIncidentRules";
 
 const maxIncidentEvents = 100;
+const minIncidentEvents = 1;
+
+const normalizeIncidentLimit = (value: number) => {
+	if (!Number.isFinite(value)) return maxIncidentEvents;
+
+	return Math.max(minIncidentEvents, Math.round(value));
+};
 
 export const createIncidentEvents = (
 	apps: AppSnapshot[],
 	payload: ServerSnapshotPayload,
 	previousServer: StoredServer | undefined,
 	observedAt: Date,
+	thresholds?: ServerAlertThresholds,
 ) => {
 	const incidents = createAppIncidentEvents({
 		apps,
@@ -22,13 +31,12 @@ export const createIncidentEvents = (
 		previousApps: previousServer?.apps ?? [],
 		previousServerExists: previousServer !== undefined,
 	});
-	const diskIncident = createDiskUsageIncident(
+	incidents.push(...createServerResourceIncidents(
 		payload,
 		observedAt,
 		previousServer,
-	);
-
-	if (diskIncident) incidents.push(diskIncident);
+		thresholds,
+	));
 
 	return incidents;
 };
@@ -36,9 +44,10 @@ export const createIncidentEvents = (
 export const appendIncidentTimeline = (
 	previousIncidents: IncidentEvent[] | undefined,
 	incidents: IncidentEvent[],
+	limit = maxIncidentEvents,
 ) => {
 	return [...incidents, ...(previousIncidents ?? [])].slice(
 		0,
-		maxIncidentEvents,
+		normalizeIncidentLimit(limit),
 	);
 };

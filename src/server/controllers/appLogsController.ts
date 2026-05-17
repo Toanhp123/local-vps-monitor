@@ -5,10 +5,10 @@ import { paramString } from "../lib/httpParams";
 import type { AppLogsService } from "../services/appLogsService";
 
 const parseLines = (value: unknown) => {
-	if (typeof value !== "string") return 200;
+	if (typeof value !== "string") return undefined;
 
 	const parsed = Number(value);
-	return Number.isFinite(parsed) ? parsed : 200;
+	return Number.isFinite(parsed) ? parsed : undefined;
 };
 
 export class AppLogsController {

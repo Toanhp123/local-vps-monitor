@@ -2,8 +2,10 @@ import {
 	AlertTriangle,
 	BellOff,
 	CheckCircle2,
+	Cpu,
 	HardDrive,
 	Globe2,
+	MemoryStick,
 	PlusCircle,
 	RotateCcw,
 	Trash2,
@@ -18,8 +20,9 @@ import type {
 import {
 	snoozePresets,
 	type SnoozePreset,
-} from "../model/incidentActions";
+} from "../model/incidentState";
 import { relativeTime } from "../../../shared/lib/format";
+import { Button } from "../../../shared/ui/Button";
 import { SelectField } from "../../../shared/ui/SelectField";
 
 const severityLabels: Record<IncidentSeverity, string> = {
@@ -48,14 +51,18 @@ const kindIcons: Record<IncidentKind, LucideIcon> = {
 	"app-health": AlertTriangle,
 	"app-removed": Trash2,
 	"app-restart": RotateCcw,
+	"cpu-load": Cpu,
 	"disk-usage": HardDrive,
 	"http-check": Globe2,
+	"memory-usage": MemoryStick,
 };
 
 const resolvedIcons: Partial<Record<IncidentKind, LucideIcon>> = {
 	"app-health": CheckCircle2,
+	"cpu-load": CheckCircle2,
 	"disk-usage": CheckCircle2,
 	"http-check": CheckCircle2,
+	"memory-usage": CheckCircle2,
 };
 
 const formatSnoozedUntil = (snoozedUntil: number) => {
@@ -144,24 +151,22 @@ export function IncidentListItem({
 				</p>
 				<div className="mt-3 flex flex-wrap items-center gap-2">
 					{isMuted ? (
-						<button
-							type="button"
-							className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-extrabold text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+						<Button
 							onClick={onClearAction}
+							icon={Undo2}
+							size="sm"
 						>
-							<Undo2 size={14} />
 							Restore
-						</button>
+						</Button>
 					) : (
 						<>
-							<button
-								type="button"
-								className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-extrabold text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+							<Button
 								onClick={onAcknowledge}
+								icon={CheckCircle2}
+								size="sm"
 							>
-								<CheckCircle2 size={14} />
 								Acknowledge
-							</button>
+							</Button>
 							<SelectField
 								ariaLabel={`Snooze ${incident.title}`}
 								buttonClassName="inline-flex min-h-8 cursor-pointer items-center justify-between gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-extrabold text-slate-600 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700"

@@ -7,11 +7,16 @@ import type {
 	SshTargetCreateInput,
 	SshTargetUpdateInput,
 } from "../../../../shared/types";
+import { SegmentedControl } from "../../../shared/ui/SegmentedControl";
 import { SshTargetBulkImport } from "./SshTargetBulkImport";
 import { SshTargetForm } from "./SshTargetForm";
 import { SshTargetTable } from "./SshTargetTable";
 
 type SshTargetEntryMode = "single" | "bulk";
+const entryModeOptions: Array<{ label: string; value: SshTargetEntryMode }> = [
+	{ label: "Add one", value: "single" },
+	{ label: "Bulk import", value: "bulk" },
+];
 
 export function SshTargetManagerPanel({
 	activeScanId,
@@ -86,30 +91,12 @@ export function SshTargetManagerPanel({
 			)}
 
 			<div className="border-b border-slate-200 bg-slate-50 px-4.5 py-3">
-				<div className="inline-grid h-10 grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white p-0.5">
-					<button
-						type="button"
-						className={`cursor-pointer rounded-md px-4 text-sm font-extrabold ${
-							entryMode === "single"
-								? "bg-blue-600 text-white"
-								: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-						}`}
-						onClick={() => setEntryMode("single")}
-					>
-						Add one
-					</button>
-					<button
-						type="button"
-						className={`cursor-pointer rounded-md px-4 text-sm font-extrabold ${
-							entryMode === "bulk"
-								? "bg-blue-600 text-white"
-								: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-						}`}
-						onClick={() => setEntryMode("bulk")}
-					>
-						Bulk import
-					</button>
-				</div>
+				<SegmentedControl
+					ariaLabel="SSH target entry mode"
+					onChange={setEntryMode}
+					options={entryModeOptions}
+					value={entryMode}
+				/>
 			</div>
 
 			{entryMode === "single" ? (

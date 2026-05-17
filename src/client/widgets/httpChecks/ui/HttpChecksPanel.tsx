@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import { CheckCircle2, Globe2, LoaderCircle, Play, XCircle } from "lucide-react";
+import { CheckCircle2, Globe2, Play, XCircle } from "lucide-react";
 import type {
 	HttpCheck,
 	HttpCheckCreateInput,
 	HttpCheckUpdateInput,
 	OverviewResponse,
 } from "../../../../shared/types";
+import { Button } from "../../../shared/ui/Button";
 import { HttpCheckForm } from "./HttpCheckForm";
 import { HttpCheckTable } from "./HttpCheckTable";
 
@@ -80,19 +81,16 @@ export function HttpChecksPanel({
 						</div>
 					</div>
 				</div>
-				<button
-					type="button"
-					className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-3.5 font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+				<Button
 					disabled={isRunningAll || checks.length === 0}
 					onClick={onRunAllChecks}
+					icon={Play}
+					isLoading={isRunningAll}
+					size="lg"
+					variant="accent"
 				>
-					{isRunningAll ? (
-						<LoaderCircle size={16} className="animate-spin" />
-					) : (
-						<Play size={16} />
-					)}
 					{isRunningAll ? "Checking" : "Run all"}
-				</button>
+				</Button>
 			</div>
 
 			{error && (

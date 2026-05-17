@@ -9,13 +9,15 @@ import {
 import {
 	getIncidentSnoozedUntil,
 	isIncidentAcknowledged,
-	type IncidentActionState,
+	type IncidentDrawerState,
 	type IncidentDrawerFilter,
 	type IncidentFilterCounts,
 	type SnoozePreset,
-} from "../model/incidentActions";
+} from "../model/incidentState";
 import type { IncidentGroup } from "../model/incidentGroups";
 import { relativeTime } from "../../../shared/lib/format";
+import { Button } from "../../../shared/ui/Button";
+import { IconButton } from "../../../shared/ui/IconButton";
 import { IncidentListItem } from "./IncidentListItem";
 
 const filterOptions: Array<{
@@ -37,7 +39,7 @@ const emptyMessages: Record<IncidentDrawerFilter, string> = {
 };
 
 export function IncidentDrawer({
-	actionState,
+	incidentState,
 	badgeCount,
 	expandedServerId,
 	filterCounts,
@@ -46,7 +48,7 @@ export function IncidentDrawer({
 	isClosing,
 	now,
 	onAcknowledgeIncident,
-	onClearIncidentAction,
+	onClearIncidentState,
 	onClose,
 	onFilterChange,
 	onMarkAllRead,
@@ -55,7 +57,7 @@ export function IncidentDrawer({
 	readIncidentIds,
 	selectedFilter,
 }: {
-	actionState: IncidentActionState;
+	incidentState: IncidentDrawerState;
 	badgeCount: number;
 	expandedServerId: string | null;
 	filterCounts: IncidentFilterCounts;
@@ -64,7 +66,7 @@ export function IncidentDrawer({
 	isClosing: boolean;
 	now: number;
 	onAcknowledgeIncident: (incidentId: string) => void;
-	onClearIncidentAction: (incidentId: string) => void;
+	onClearIncidentState: (incidentId: string) => void;
 	onClose: () => void;
 	onFilterChange: (filter: IncidentDrawerFilter) => void;
 	onMarkAllRead: () => void;
@@ -109,22 +111,18 @@ export function IncidentDrawer({
 					</div>
 					<div className="flex shrink-0 items-center gap-2">
 						{badgeCount > 0 && (
-							<button
-								type="button"
-								className="inline-flex min-h-9 cursor-pointer items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-extrabold text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+							<Button
 								onClick={onMarkAllRead}
+								size="sm"
 							>
 								Mark all read
-							</button>
+							</Button>
 						)}
-						<button
-							type="button"
-							className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+						<IconButton
 							onClick={onClose}
 							aria-label="Close"
-						>
-							<X size={17} />
-						</button>
+							icon={X}
+						/>
 					</div>
 				</div>
 
@@ -218,7 +216,7 @@ export function IncidentDrawer({
 													const snoozedUntil =
 														getIncidentSnoozedUntil(
 															incident,
-															actionState,
+															incidentState,
 															now,
 														);
 
@@ -228,7 +226,7 @@ export function IncidentDrawer({
 															incident={incident}
 															isAcknowledged={isIncidentAcknowledged(
 																incident,
-																actionState,
+																incidentState,
 															)}
 															isUnread={
 																!readIncidentIds.has(
@@ -242,7 +240,7 @@ export function IncidentDrawer({
 																)
 															}
 															onClearAction={() =>
-																onClearIncidentAction(
+																onClearIncidentState(
 																	incident.id,
 																)
 															}

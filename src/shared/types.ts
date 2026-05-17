@@ -4,11 +4,12 @@ export type HealthStatus = "healthy" | "warning" | "down" | "unknown";
 
 export type AppImportance = "critical" | "normal" | "ignored";
 
-export type AppMonitorRuleMatchMode = "contains" | "exact" | "regex";
+export type AppPolicyMatchMode = "contains" | "exact" | "regex";
 
-export interface AppMonitoringPolicy {
+export interface EffectiveAppPolicy {
   displayName?: string;
   importance: AppImportance;
+  policyId?: string;
   ruleId?: string;
 }
 
@@ -48,7 +49,7 @@ export interface AppSnapshot {
   status: string;
   health: HealthStatus;
   group?: AppGroup;
-  monitoring?: AppMonitoringPolicy;
+  monitoring?: EffectiveAppPolicy;
   cpuPercent?: number;
   memoryBytes?: number;
   image?: string;
@@ -85,8 +86,10 @@ export type IncidentKind =
   | "app-health"
   | "app-removed"
   | "app-restart"
+  | "cpu-load"
   | "disk-usage"
-  | "http-check";
+  | "http-check"
+  | "memory-usage";
 
 export interface IncidentEvent {
   id: string;
@@ -102,8 +105,62 @@ export interface IncidentEvent {
   serverId: string;
   serverName: string;
   severity: IncidentSeverity;
-  title: string;
+	title: string;
 }
+
+export interface IncidentSnoozeState {
+	incidentId: string;
+	snoozedUntil: number;
+}
+
+export interface IncidentStateSnapshot {
+	acknowledgedIncidentIds: string[];
+	readIncidentIds: string[];
+	snoozedIncidents: IncidentSnoozeState[];
+}
+
+export interface IncidentStateResponse {
+	state: IncidentStateSnapshot;
+}
+
+export interface ServerAlertThresholds {
+	cpuLoadCriticalPercent: number;
+	cpuLoadWarningPercent: number;
+	diskCriticalPercent: number;
+	diskWarningPercent: number;
+	memoryCriticalPercent: number;
+	memoryWarningPercent: number;
+}
+
+export interface ServerAlertPolicy {
+	defaults: ServerAlertThresholds;
+	serverOverrides: Record<string, ServerAlertThresholds>;
+}
+
+export interface ServerAlertPolicyResponse {
+	policy: ServerAlertPolicy;
+}
+
+export type ServerAlertPolicyUpdateInput = ServerAlertPolicy;
+
+export interface MonitorRuntimeSettings {
+	autoScanIntervalMs: number;
+	defaultAppLogLines: number;
+	httpCheckConcurrency: number;
+	incidentHistoryLimit: number;
+	localDockerCommandTimeoutMs: number;
+	metricHistoryLimit: number;
+	offlineAfterMs: number;
+	realtimeBroadcastMs: number;
+	sshCommandTimeoutMs: number;
+	sshScanConcurrency: number;
+}
+
+export interface MonitorRuntimeSettingsResponse {
+	settings: MonitorRuntimeSettings;
+}
+
+export type MonitorRuntimeSettingsUpdateInput = MonitorRuntimeSettings;
 
 export interface StoredServer extends ServerSnapshotPayload {
   lastSeenAt: string;
@@ -269,7 +326,7 @@ export interface HttpCheckRunAllResponse {
   }>;
 }
 
-export interface AppMonitorRule {
+export interface AppPolicy {
   id: string;
   appId?: string;
   appKind?: AppKind;
@@ -278,35 +335,35 @@ export interface AppMonitorRule {
   enabled: boolean;
   importance: AppImportance;
   match?: string;
-  matchMode?: AppMonitorRuleMatchMode;
+  matchMode?: AppPolicyMatchMode;
   name: string;
   serverId?: string;
   updatedAt: string;
 }
 
-export interface AppMonitorRuleCreateInput {
+export interface AppPolicyCreateInput {
   appKind?: AppKind;
   displayName?: string;
   enabled?: boolean;
   importance: AppImportance;
   match: string;
-  matchMode?: AppMonitorRuleMatchMode;
+  matchMode?: AppPolicyMatchMode;
   name: string;
   serverId?: string;
 }
 
-export interface AppMonitorRuleUpdateInput {
+export interface AppPolicyUpdateInput {
   appKind?: AppKind;
   displayName?: string;
   enabled?: boolean;
   importance?: AppImportance;
   match?: string;
-  matchMode?: AppMonitorRuleMatchMode;
+  matchMode?: AppPolicyMatchMode;
   name?: string;
   serverId?: string;
 }
 
-export interface AppMonitorAppOverrideInput {
+export interface AppPolicyOverrideInput {
   appId: string;
   appKind: AppKind;
   appName: string;
@@ -315,12 +372,14 @@ export interface AppMonitorAppOverrideInput {
   serverId: string;
 }
 
-export interface AppMonitorRuleListResponse {
-  rules: AppMonitorRule[];
+export interface AppPolicyListResponse {
+  policies?: AppPolicy[];
+  rules?: AppPolicy[];
 }
 
-export interface AppMonitorRuleResponse {
-  rule: AppMonitorRule | null;
+export interface AppPolicyResponse {
+  policy?: AppPolicy | null;
+  rule?: AppPolicy | null;
 }
 
 export interface ScanResult {

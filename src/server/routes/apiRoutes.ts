@@ -1,8 +1,10 @@
 import { Router } from "express";
-import type { AppMonitorRuleService } from "../services/appMonitorRuleService";
+import type { ServerAlertPolicyService } from "../services/serverAlertPolicyService";
+import type { AppPolicyService } from "../services/appPolicyService";
 import type { AppLogsService } from "../services/appLogsService";
 import type { HealthService } from "../services/healthService";
 import type { HttpCheckService } from "../services/httpCheckService";
+import type { IncidentStateService } from "../services/incidentStateService";
 import type { LocalDockerScanService } from "../services/localDockerScanService";
 import type { MonitorOverviewService } from "../services/monitorOverviewService";
 import type { QuickActionService } from "../services/quickActionService";
@@ -10,20 +12,26 @@ import type { SshScanService } from "../services/sshScanService";
 import type { SshTargetBootstrapService } from "../services/sshTargetBootstrapService";
 import type { SshTargetConfigService } from "../services/sshTargetConfigService";
 import type { SshTargetImportService } from "../services/sshTargetImportService";
-import { createAppMonitorRuleRouter } from "./appMonitorRuleRoutes";
+import type { MonitorRuntimeService } from "../services/monitorRuntimeService";
+import { createServerAlertPolicyRouter } from "./serverAlertPolicyRoutes";
+import { createAppPolicyRouter } from "./appPolicyRoutes";
 import { createHealthRouter } from "./healthRoutes";
 import { createAppLogsRouter } from "./appLogsRoutes";
 import { createHttpCheckRouter } from "./httpCheckRoutes";
+import { createIncidentStateRouter } from "./incidentStateRoutes";
 import { createLocalDockerRouter } from "./localDockerRoutes";
 import { createOverviewRouter } from "./overviewRoutes";
 import { createQuickActionsRouter } from "./quickActionsRoutes";
 import { createSshTargetRouter } from "./sshTargetRoutes";
+import { createMonitorRuntimeRouter } from "./monitorRuntimeRoutes";
 
 interface ApiRouterDependencies {
-  appMonitorRuleService: AppMonitorRuleService;
+  serverAlertPolicyService: ServerAlertPolicyService;
+  appPolicyService: AppPolicyService;
   appLogsService: AppLogsService;
   healthService: HealthService;
   httpCheckService: HttpCheckService;
+  incidentStateService: IncidentStateService;
   localDockerScanService: LocalDockerScanService;
   monitorOverviewService: MonitorOverviewService;
   quickActionService: QuickActionService;
@@ -31,27 +39,33 @@ interface ApiRouterDependencies {
   sshTargetBootstrapService: SshTargetBootstrapService;
   sshTargetConfigService: SshTargetConfigService;
   sshTargetImportService: SshTargetImportService;
+  monitorRuntimeService: MonitorRuntimeService;
 }
 
 export const createApiRouter = ({
-  appMonitorRuleService,
+  serverAlertPolicyService,
+  appPolicyService,
   appLogsService,
   healthService,
   httpCheckService,
+  incidentStateService,
   localDockerScanService,
   monitorOverviewService,
   quickActionService,
   sshScanService,
   sshTargetBootstrapService,
   sshTargetConfigService,
-  sshTargetImportService
+  sshTargetImportService,
+  monitorRuntimeService
 }: ApiRouterDependencies) => {
   const router = Router();
 
-  router.use(createAppMonitorRuleRouter(appMonitorRuleService));
+  router.use(createServerAlertPolicyRouter(serverAlertPolicyService));
+  router.use(createAppPolicyRouter(appPolicyService));
   router.use(createAppLogsRouter(appLogsService));
   router.use(createHealthRouter(healthService));
   router.use(createHttpCheckRouter(httpCheckService));
+  router.use(createIncidentStateRouter(incidentStateService));
   router.use(createLocalDockerRouter(localDockerScanService));
   router.use(createOverviewRouter(monitorOverviewService));
   router.use(createQuickActionsRouter(quickActionService));
@@ -63,6 +77,7 @@ export const createApiRouter = ({
       sshTargetImportService
     )
   );
+  router.use(createMonitorRuntimeRouter(monitorRuntimeService));
 
   return router;
 };

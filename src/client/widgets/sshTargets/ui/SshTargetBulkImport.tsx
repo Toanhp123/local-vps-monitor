@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { LoaderCircle, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import type { SshTargetBulkImportInput } from "../../../../shared/types";
+import { Button } from "../../../shared/ui/Button";
+import { SegmentedControl } from "../../../shared/ui/SegmentedControl";
 import type { SshAuthMode } from "../model/useSshTargetForm";
+
+const authModeOptions: Array<{ label: string; value: SshAuthMode }> = [
+	{ label: "Key path", value: "key" },
+	{ label: "Password", value: "password" },
+];
 
 const sampleRows: Record<SshAuthMode, string> = {
 	key: "Production VPS,203.0.113.10,22,root,~/.ssh/vps_monitor",
@@ -128,30 +135,13 @@ export function SshTargetBulkImport({
 					<span className="text-xs font-bold text-slate-500 uppercase">
 						Auth
 					</span>
-					<div className="grid h-9 grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white p-0.5">
-						<button
-							type="button"
-							className={`cursor-pointer rounded-md px-3 text-xs font-extrabold ${
-								authMode === "key"
-									? "bg-blue-600 text-white"
-									: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-							}`}
-							onClick={() => setAuthMode("key")}
-						>
-							Key path
-						</button>
-						<button
-							type="button"
-							className={`cursor-pointer rounded-md px-3 text-xs font-extrabold ${
-								authMode === "password"
-									? "bg-blue-600 text-white"
-									: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-							}`}
-							onClick={() => setAuthMode("password")}
-						>
-							Password
-						</button>
-					</div>
+					<SegmentedControl
+						ariaLabel="Bulk import auth mode"
+						onChange={setAuthMode}
+						options={authModeOptions}
+						size="sm"
+						value={authMode}
+					/>
 				</div>
 				<span className="text-xs font-semibold text-slate-500">
 					name,host,port,user,
@@ -171,19 +161,16 @@ export function SshTargetBulkImport({
 			/>
 			{error && <div className="text-sm font-bold text-rose-700">{error}</div>}
 			<div className="flex justify-end">
-				<button
-					type="button"
-					className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-blue-600 bg-blue-600 px-3.5 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+				<Button
 					onClick={handleImport}
 					disabled={isSaving}
+					icon={Upload}
+					isLoading={isSaving}
+					size="lg"
+					variant="accent"
 				>
-					{isSaving ? (
-						<LoaderCircle size={15} className="animate-spin" />
-					) : (
-						<Upload size={15} />
-					)}
 					Import targets
-				</button>
+				</Button>
 			</div>
 		</div>
 	);

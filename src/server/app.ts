@@ -44,10 +44,12 @@ export const createApp = (services = createServerServices()) => {
 	app.use(
 		"/api",
 		createApiRouter({
-			appMonitorRuleService: services.appMonitorRuleService,
+			serverAlertPolicyService: services.serverAlertPolicyService,
+			appPolicyService: services.appPolicyService,
 			appLogsService: services.appLogsService,
 			healthService: services.healthService,
 			httpCheckService: services.httpCheckService,
+			incidentStateService: services.incidentStateService,
 			localDockerScanService: services.localDockerScanService,
 			monitorOverviewService: services.monitorOverviewService,
 			quickActionService: services.quickActionService,
@@ -55,6 +57,7 @@ export const createApp = (services = createServerServices()) => {
 			sshTargetBootstrapService: services.sshTargetBootstrapService,
 			sshTargetConfigService: services.sshTargetConfigService,
 			sshTargetImportService: services.sshTargetImportService,
+			monitorRuntimeService: services.monitorRuntimeService,
 		}),
 	);
 	app.use("/api", apiErrorHandler());

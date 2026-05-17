@@ -8,6 +8,7 @@ import {
 	Terminal,
 	type LucideIcon,
 } from "lucide-react";
+import { IconButton } from "../../../shared/ui/IconButton";
 import type { QuickActionDefinition } from "../model/quickActions";
 
 const actionIcons: Partial<Record<string, LucideIcon>> = {
@@ -103,17 +104,15 @@ export function QuickActionMenu({
 
 	return (
 		<>
-			<button
+			<IconButton
 				ref={buttonRef}
-				type="button"
-				className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
 				onClick={() => setIsOpen((current) => !current)}
 				aria-haspopup="menu"
 				aria-expanded={isOpen}
 				aria-label="Open quick actions"
-			>
-				<MoreHorizontal size={16} />
-			</button>
+				icon={MoreHorizontal}
+				size="sm"
+			/>
 
 			{isOpen &&
 				createPortal(

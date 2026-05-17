@@ -6,8 +6,11 @@ import type {
 	HttpCheckUpdateInput,
 	StoredServer,
 } from "../../../../shared/types";
-import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
+import { appDisplayName } from "../../../entities/application/model/appPolicy";
+import { Button } from "../../../shared/ui/Button";
+import { NumberInputField } from "../../../shared/ui/NumberInputField";
 import { SelectField } from "../../../shared/ui/SelectField";
+import { TextInputField } from "../../../shared/ui/TextInputField";
 
 const defaultForm = {
 	appId: "",
@@ -21,8 +24,6 @@ const defaultForm = {
 	url: "",
 };
 
-const inputClass =
-	"min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-800 outline-none focus:border-blue-300";
 const labelClass = "grid gap-1.5 text-xs font-bold text-slate-500";
 const methodOptions = [
 	{ label: "GET", value: "GET" },
@@ -122,27 +123,27 @@ export function HttpCheckForm({
 			className="grid grid-cols-12 gap-3 border-b border-slate-200 bg-slate-50 px-4.5 py-4 max-lg:grid-cols-2 max-md:grid-cols-1"
 			onSubmit={handleSubmit}
 		>
-			<label className={`${labelClass} col-span-2 max-lg:col-span-1`}>
-				Name
-				<input
-					className={inputClass}
-					maxLength={100}
-					onChange={(event) => updateField("name", event.target.value)}
-					required
-					value={form.name}
-				/>
-			</label>
-			<label className={`${labelClass} col-span-4 max-lg:col-span-1`}>
-				URL
-				<input
-					className={inputClass}
-					onChange={(event) => updateField("url", event.target.value)}
-					placeholder="https://example.com/health"
-					required
-					type="url"
-					value={form.url}
-				/>
-			</label>
+			<TextInputField
+				className="col-span-2 max-lg:col-span-1"
+				inputClassName="text-slate-800"
+				label="Name"
+				labelClassName="text-xs font-bold text-slate-500"
+				maxLength={100}
+				onChange={(value) => updateField("name", value)}
+				required
+				value={form.name}
+			/>
+			<TextInputField
+				className="col-span-4 max-lg:col-span-1"
+				inputClassName="text-slate-800"
+				label="URL"
+				labelClassName="text-xs font-bold text-slate-500"
+				onChange={(value) => updateField("url", value)}
+				placeholder="https://example.com/health"
+				required
+				type="url"
+				value={form.url}
+			/>
 			<div className={labelClass}>
 				<span>Method</span>
 				<SelectField
@@ -152,47 +153,35 @@ export function HttpCheckForm({
 					value={form.method}
 				/>
 			</div>
-			<label className={labelClass}>
-				Min
-				<input
-					className={inputClass}
-					max={599}
-					min={100}
-					onChange={(event) =>
-						updateField("expectedStatusMin", event.target.value)
-					}
-					required
-					type="number"
-					value={form.expectedStatusMin}
-				/>
-			</label>
-			<label className={labelClass}>
-				Max
-				<input
-					className={inputClass}
-					max={599}
-					min={100}
-					onChange={(event) =>
-						updateField("expectedStatusMax", event.target.value)
-					}
-					required
-					type="number"
-					value={form.expectedStatusMax}
-				/>
-			</label>
-			<label className={labelClass}>
-				Timeout
-				<input
-					className={inputClass}
-					max={60000}
-					min={500}
-					onChange={(event) => updateField("timeoutMs", event.target.value)}
-					required
-					step={500}
-					type="number"
-					value={form.timeoutMs}
-				/>
-			</label>
+			<NumberInputField
+				label="Min"
+				labelClassName="text-xs font-bold text-slate-500"
+				max={599}
+				min={100}
+				onChange={(value) => updateField("expectedStatusMin", value)}
+				required
+				value={form.expectedStatusMin}
+			/>
+			<NumberInputField
+				label="Max"
+				labelClassName="text-xs font-bold text-slate-500"
+				max={599}
+				min={100}
+				onChange={(value) => updateField("expectedStatusMax", value)}
+				required
+				value={form.expectedStatusMax}
+			/>
+			<NumberInputField
+				label="Timeout"
+				labelClassName="text-xs font-bold text-slate-500"
+				max={60000}
+				min={500}
+				onChange={(value) => updateField("timeoutMs", value)}
+				required
+				step={500}
+				unit="ms"
+				value={form.timeoutMs}
+			/>
 			<div className={labelClass}>
 				<span>Server</span>
 				<SelectField
@@ -224,23 +213,23 @@ export function HttpCheckForm({
 			</label>
 			<div className="col-span-12 flex flex-wrap justify-end gap-2 max-lg:col-span-2 max-md:col-span-1">
 				{editingCheck && (
-					<button
-						type="button"
-						className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+					<Button
 						onClick={onCancelEdit}
+						icon={XCircle}
+						size="lg"
 					>
-						<XCircle size={16} />
 						Cancel
-					</button>
+					</Button>
 				)}
-				<button
+				<Button
 					type="submit"
-					className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
 					disabled={isSaving}
+					icon={Plus}
+					size="lg"
+					variant="primary"
 				>
-					<Plus size={16} />
 					{editingCheck ? "Save check" : "Add check"}
-				</button>
+				</Button>
 			</div>
 		</form>
 	);

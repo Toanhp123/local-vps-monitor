@@ -4,7 +4,7 @@ import type {
 	AppSnapshot,
 	HealthStatus,
 } from "../../../../shared/types";
-import { isIgnoredApp } from "./appMonitoringPolicy";
+import { isIgnoredApp } from "./appPolicy";
 
 export interface ApplicationGroupView {
 	apps: AppSnapshot[];

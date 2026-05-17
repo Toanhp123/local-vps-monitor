@@ -1,6 +1,8 @@
-import { LoaderCircle, RefreshCw, Search, X } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import type { IncidentEvent } from "../../../../shared/types";
 import { IncidentNotificationCenter } from "../../../entities/incident/ui/IncidentNotificationCenter";
+import { Button } from "../../../shared/ui/Button";
+import { SearchInput } from "../../../shared/ui/SearchInput";
 
 export function DashboardHeader({
 	incidents,
@@ -30,40 +32,26 @@ export function DashboardHeader({
 				</p>
 			</div>
 			<div className="flex flex-wrap items-center justify-end gap-2.5 max-md:w-full">
-				<label className="flex h-10 min-w-72.5 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 max-md:w-full">
-					<Search size={16} />
-					<input
-						className="w-full min-w-0 border-0 text-slate-900 outline-0"
-						value={query}
-						onChange={(event) => onQueryChange(event.target.value)}
-						placeholder="Search server, app, runtime"
-					/>
-					{query && (
-						<button
-							type="button"
-							className="cursor-pointer text-slate-400 hover:text-slate-700"
-							onClick={() => onQueryChange("")}
-							aria-label="Clear dashboard search"
-						>
-							<X size={15} />
-						</button>
-					)}
-				</label>
+				<SearchInput
+					ariaLabel="Dashboard search"
+					className="max-md:w-full max-md:min-w-0"
+					onChange={onQueryChange}
+					placeholder="Search server, app, runtime"
+					value={query}
+				/>
 				<IncidentNotificationCenter incidents={incidents} now={now} />
-				<button
-					type="button"
-					className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 max-md:flex-1 max-md:justify-center"
+				<Button
+					className="max-md:flex-1"
 					onClick={onScanAll}
 					disabled={isScanAllDisabled}
 					aria-label="Scan all servers"
+					icon={RefreshCw}
+					isLoading={isScanningAll}
+					size="lg"
+					variant="primary"
 				>
-					{isScanningAll ? (
-						<LoaderCircle size={16} className="animate-spin" />
-					) : (
-						<RefreshCw size={16} />
-					)}
 					{isScanningAll ? "Scanning" : "Scan All"}
-				</button>
+				</Button>
 			</div>
 		</header>
 	);

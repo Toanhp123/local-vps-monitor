@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
 	Check,
-	LoaderCircle,
 	Pencil,
 	RefreshCw,
 	Server,
@@ -10,6 +9,17 @@ import {
 	X,
 } from "lucide-react";
 import type { SshTarget, SshTargetUpdateInput } from "../../../../shared/types";
+import { Button } from "../../../shared/ui/Button";
+import {
+	DataTable,
+	DataTableBody,
+	DataTableCell,
+	DataTableHeader,
+	DataTableHeaderCell,
+	DataTableMessageRow,
+	DataTableRow,
+} from "../../../shared/ui/DataTable";
+import { IconButton } from "../../../shared/ui/IconButton";
 
 interface EditFormState {
 	host: string;
@@ -111,8 +121,8 @@ function SshTargetRow({
 	};
 
 	return (
-		<tr>
-			<td className="border-b border-slate-200 px-3.5 py-3">
+		<DataTableRow>
+			<DataTableCell noWrap={false}>
 				<div className="flex items-center gap-2.5">
 					<Server size={16} className="text-blue-600" />
 					{isEditing ? (
@@ -128,8 +138,8 @@ function SshTargetRow({
 						<strong className="text-slate-900">{target.name}</strong>
 					)}
 				</div>
-			</td>
-			<td className="border-b border-slate-200 px-3.5 py-3 font-semibold text-slate-600">
+			</DataTableCell>
+			<DataTableCell className="font-semibold text-slate-600">
 				{isEditing ? (
 					<div className="grid grid-cols-[0.9fr_1.4fr_0.65fr] gap-1.5">
 						<input
@@ -164,8 +174,8 @@ function SshTargetRow({
 				) : (
 					`${target.username}@${target.host}:${target.port}`
 				)}
-			</td>
-			<td className="max-w-95 overflow-hidden border-b border-slate-200 px-3.5 py-3 text-ellipsis font-semibold whitespace-nowrap text-slate-500">
+			</DataTableCell>
+			<DataTableCell className="max-w-95 overflow-hidden text-ellipsis font-semibold text-slate-500">
 				{isEditing ? (
 					<input
 						className={`${editInputClass} w-full`}
@@ -178,88 +188,74 @@ function SshTargetRow({
 				) : (
 					target.privateKeyPath
 				)}
-			</td>
-			<td className="border-b border-slate-200 px-3.5 py-3">
+			</DataTableCell>
+			<DataTableCell align="right">
 				<div className="flex justify-end gap-2">
 					{isEditing ? (
 						<>
-							<button
-								type="button"
-								className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-blue-600 bg-blue-600 px-3 font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+							<Button
 								onClick={saveEdit}
 								disabled={isSaving}
+								icon={Check}
+								isLoading={isSaving}
+								variant="accent"
 							>
-								{isSaving ? (
-									<LoaderCircle size={15} className="animate-spin" />
-								) : (
-									<Check size={15} />
-								)}
 								Save
-							</button>
-							<button
-								type="button"
-								className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 font-bold text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+							</Button>
+							<IconButton
 								onClick={cancelEditing}
-							>
-								<X size={15} />
-							</button>
+								aria-label={`Cancel editing ${target.name}`}
+								icon={X}
+							/>
 						</>
 					) : (
 						<>
-							<button
-								type="button"
-								className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+							<Button
 								onClick={() => onTestTarget(target.id)}
 								disabled={Boolean(isScanDisabled || activeTestId)}
 								aria-label={`Test ${target.name}`}
+								icon={Wifi}
+								isLoading={isTesting}
 							>
-								{isTesting ? (
-									<LoaderCircle size={15} className="animate-spin" />
-								) : (
-									<Wifi size={15} />
-								)}
 								{isTesting ? "Testing" : "Test"}
-							</button>
-							<button
-								type="button"
-								className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+							</Button>
+							<Button
 								onClick={startEditing}
+								icon={Pencil}
 							>
-								<Pencil size={15} />
 								Edit
-							</button>
-							<button
-								type="button"
-								className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+							</Button>
+							<Button
 								onClick={() => onScanTarget(target.id)}
 								disabled={Boolean(isScanDisabled)}
 								aria-label={`Scan ${target.name}`}
+								icon={RefreshCw}
+								isLoading={isScanning}
 							>
-								{isScanning ? (
-									<LoaderCircle size={15} className="animate-spin" />
-								) : (
-									<RefreshCw size={15} />
-								)}
 								{isScanning ? "Scanning" : "Scan"}
-							</button>
-							<button
-								type="button"
-								className={`inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 font-bold ${
-									isConfirmingDelete
-										? "border-rose-200 bg-rose-50 text-rose-700"
-										: "border-slate-200 bg-white text-slate-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
-								}`}
-								onClick={handleRemoveTarget}
-								aria-label={`Delete ${target.name}`}
-							>
-								<Trash2 size={15} />
-								{isConfirmingDelete ? "Confirm" : ""}
-							</button>
+							</Button>
+							{isConfirmingDelete ? (
+								<Button
+									onClick={handleRemoveTarget}
+									aria-label={`Delete ${target.name}`}
+									icon={Trash2}
+									variant="dangerSoft"
+								>
+									Confirm
+								</Button>
+							) : (
+								<IconButton
+									onClick={handleRemoveTarget}
+									aria-label={`Delete ${target.name}`}
+									icon={Trash2}
+									variant="danger"
+								/>
+							)}
 						</>
 					)}
 				</div>
-			</td>
-		</tr>
+			</DataTableCell>
+		</DataTableRow>
 	);
 }
 
@@ -293,25 +289,14 @@ export function SshTargetTable({
 	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
 	return (
-		<div className="overflow-x-auto">
-			<table className="w-full min-w-220 border-collapse">
-				<thead>
-					<tr>
-						<th className="border-b border-slate-200 bg-white px-3.5 py-3 text-left text-xs font-bold text-slate-500 uppercase">
-							Target
-						</th>
-						<th className="border-b border-slate-200 bg-white px-3.5 py-3 text-left text-xs font-bold text-slate-500 uppercase">
-							SSH
-						</th>
-						<th className="border-b border-slate-200 bg-white px-3.5 py-3 text-left text-xs font-bold text-slate-500 uppercase">
-							Key path
-						</th>
-						<th className="border-b border-slate-200 bg-white px-3.5 py-3 text-right text-xs font-bold text-slate-500 uppercase">
-							Actions
-						</th>
-					</tr>
-				</thead>
-				<tbody>
+		<DataTable minWidth="min-w-220">
+			<DataTableHeader>
+				<DataTableHeaderCell>Target</DataTableHeaderCell>
+				<DataTableHeaderCell>SSH</DataTableHeaderCell>
+				<DataTableHeaderCell>Key path</DataTableHeaderCell>
+				<DataTableHeaderCell align="right">Actions</DataTableHeaderCell>
+			</DataTableHeader>
+			<DataTableBody>
 					{targets.map((target) => (
 						<SshTargetRow
 							key={target.id}
@@ -331,17 +316,11 @@ export function SshTargetTable({
 						/>
 					))}
 					{targets.length === 0 && (
-						<tr>
-							<td
-								colSpan={4}
-								className="h-18 border-b border-slate-200 text-center font-semibold text-slate-500"
-							>
-								{isLoading ? "Loading SSH targets" : "No SSH targets"}
-							</td>
-						</tr>
+						<DataTableMessageRow colSpan={4}>
+							{isLoading ? "Loading SSH targets" : "No SSH targets"}
+						</DataTableMessageRow>
 					)}
-				</tbody>
-			</table>
-		</div>
+			</DataTableBody>
+		</DataTable>
 	);
 }

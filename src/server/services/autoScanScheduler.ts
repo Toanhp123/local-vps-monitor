@@ -12,11 +12,21 @@ export class AutoScanScheduler {
 		private readonly sshScanService: SshScanService,
 		private readonly localDockerScanService: LocalDockerScanService,
 		private readonly httpCheckService: HttpCheckService,
-		private readonly intervalMs: number,
+		private intervalMs: number,
 	) {}
 
 	start() {
-		if (this.intervalMs <= 0 || this.timer) return;
+		this.updateInterval(this.intervalMs);
+	}
+
+	updateInterval(intervalMs: number) {
+		const nextIntervalMs = Math.max(0, Math.round(intervalMs));
+		if (this.timer && this.intervalMs === nextIntervalMs) return;
+
+		this.stop();
+		this.intervalMs = nextIntervalMs;
+
+		if (this.intervalMs <= 0) return;
 
 		this.timer = setInterval(() => {
 			void this.scan();

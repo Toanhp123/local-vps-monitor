@@ -11,9 +11,20 @@ const minLines = 10;
 const maxLines = 1000;
 const defaultLines = 200;
 
-const clampLines = (value: number) => {
-	if (!Number.isFinite(value)) return defaultLines;
-	return Math.min(maxLines, Math.max(minLines, Math.round(value)));
+const clampLines = (value: number | undefined, fallback: number) => {
+	const normalizedFallback = Number.isFinite(fallback)
+		? fallback
+		: defaultLines;
+	const target = value ?? normalizedFallback;
+	if (!Number.isFinite(target)) return defaultLines;
+
+	return Math.min(
+		maxLines,
+		Math.max(
+			minLines,
+			Math.round(target),
+		),
+	);
 };
 
 export class AppLogsNotFoundError extends Error {
@@ -34,8 +45,9 @@ export class AppLogsService {
 	constructor(
 		private readonly monitorOverviewService: MonitorOverviewService,
 		private readonly targetConfigStore: SshTargetConfigStore,
-		private readonly localDockerCommandTimeoutMs: number,
-		private readonly sshCommandTimeoutMs: number,
+		private readonly localDockerCommandTimeoutMs: () => number,
+		private readonly sshCommandTimeoutMs: () => number,
+		private readonly defaultAppLogLines: () => number = () => defaultLines,
 	) {}
 
 	async getAppLogs({
@@ -44,10 +56,10 @@ export class AppLogsService {
 		serverId,
 	}: {
 		appId: string;
-		lines: number;
+		lines?: number;
 		serverId: string;
 	}): Promise<AppLogsResponse> {
-		const normalizedLines = clampLines(lines);
+		const normalizedLines = clampLines(lines, this.defaultAppLogLines());
 		const server = this.monitorOverviewService.getServer(serverId);
 		if (!server) {
 			throw new AppLogsNotFoundError(`Server not found: ${serverId}`);
@@ -89,7 +101,7 @@ export class AppLogsService {
 		return readLocalDockerLogs(
 			dockerContainerRef(app),
 			lines,
-			this.localDockerCommandTimeoutMs,
+			this.localDockerCommandTimeoutMs(),
 		);
 	}
 
@@ -109,14 +121,15 @@ export class AppLogsService {
 			);
 		}
 
-		const client = await connectSshTarget(target, this.sshCommandTimeoutMs);
+		const sshCommandTimeoutMs = this.sshCommandTimeoutMs();
+		const client = await connectSshTarget(target, sshCommandTimeoutMs);
 
 		try {
 			return await readSshAppLogs(
 				client,
 				app,
 				lines,
-				this.sshCommandTimeoutMs,
+				sshCommandTimeoutMs,
 			);
 		} finally {
 			client.end();

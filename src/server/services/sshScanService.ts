@@ -27,8 +27,8 @@ export class SshScanService {
 	constructor(
 		private readonly targetConfigStore: SshTargetConfigStore,
 		private readonly monitorOverviewService: MonitorOverviewService,
-		private readonly commandTimeoutMs: number,
-		private readonly scanConcurrency: number,
+		private readonly commandTimeoutMs: () => number,
+		private readonly scanConcurrency: () => number,
 		private readonly version: string,
 	) {}
 
@@ -44,13 +44,14 @@ export class SshScanService {
 		if (!target) throw new SshTargetNotFoundError(targetId);
 
 		const checkedAt = new Date().toISOString();
-		const client = await connectSshTarget(target, this.commandTimeoutMs);
+		const commandTimeoutMs = this.commandTimeoutMs();
+		const client = await connectSshTarget(target, commandTimeoutMs);
 
 		try {
 			const result = await runSshCommand(
 				client,
 				"echo ok",
-				this.commandTimeoutMs,
+				commandTimeoutMs,
 			);
 			const output = [result.stdout.trim(), result.stderr.trim()]
 				.filter(Boolean)
@@ -75,7 +76,7 @@ export class SshScanService {
 			.filter((target) => target.enabled);
 		const settled = await settleWithConcurrency(
 			targets,
-			this.scanConcurrency,
+			this.scanConcurrency(),
 			(target) => this.scanKnownTarget(target),
 		);
 
@@ -97,13 +98,14 @@ export class SshScanService {
 	}
 
 	private async scanKnownTarget(target: SshTarget): Promise<SshScanResult> {
-		const client = await connectSshTarget(target, this.commandTimeoutMs);
+		const commandTimeoutMs = this.commandTimeoutMs();
+		const client = await connectSshTarget(target, commandTimeoutMs);
 
 		try {
 			const [host, dockerApps, pm2Apps] = await Promise.all([
-				collectSshHostMetrics(client, this.commandTimeoutMs),
-				collectSshDockerApps(client, this.commandTimeoutMs),
-				collectSshPm2Apps(client, this.commandTimeoutMs),
+				collectSshHostMetrics(client, commandTimeoutMs),
+				collectSshDockerApps(client, commandTimeoutMs),
+				collectSshPm2Apps(client, commandTimeoutMs),
 			]);
 			const payload: ServerSnapshotPayload = {
 				serverId: target.id,

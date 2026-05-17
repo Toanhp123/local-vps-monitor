@@ -1,10 +1,10 @@
 import {
 	Box,
 	HardDrive,
-	LoaderCircle,
 	RefreshCw,
 	ShieldCheck,
 } from "lucide-react";
+import { Button } from "../../../shared/ui/Button";
 
 export function LocalDockerPanel({
 	isScanDisabled,
@@ -38,19 +38,16 @@ export function LocalDockerPanel({
 						</div>
 					</div>
 				</div>
-				<button
-					type="button"
-					className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3.5 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+				<Button
 					onClick={onScan}
 					disabled={isScanDisabled}
+					icon={RefreshCw}
+					isLoading={isScanning}
+					size="lg"
+					variant="primary"
 				>
-					{isScanning ? (
-						<LoaderCircle size={16} className="animate-spin" />
-					) : (
-						<RefreshCw size={16} />
-					)}
 					{isScanning ? "Scanning" : "Scan Docker"}
-				</button>
+				</Button>
 			</div>
 		</section>
 	);

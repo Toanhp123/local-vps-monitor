@@ -1,16 +1,17 @@
 import type {
+	ServerAlertPolicy,
 	OverviewResponse,
 	OverviewSummary,
 	ServerSnapshotPayload,
 	StoredServer,
-	AppMonitorRule,
+	AppPolicy,
 } from "../../../shared/types";
 import {
 	appImportance,
-	applyAppMonitoringPolicy,
-	applyServerMonitoringPolicy,
+	applyEffectiveAppPolicy,
+	applyServerAppPolicy,
 	isMonitoredApp,
-} from "./applications/appMonitoringPolicy";
+} from "./applications/appPolicy";
 import { normalizeAppSnapshots } from "./applications/applicationSnapshots";
 import {
 	appendIncidentTimeline,
@@ -24,6 +25,15 @@ import {
 	serverHealthStatus,
 	withRuntimeStatus,
 } from "./policies/serverHealthPolicy";
+import {
+	defaultServerAlertPolicy,
+	resolveServerAlertThresholds,
+} from "./policies/serverResourcePolicy";
+
+interface OverviewProjectionOptions {
+	incidentHistoryLimit?: number;
+	metricHistoryLimit?: number;
+}
 
 const summary = (servers: StoredServer[]): OverviewSummary => {
 	const apps = servers.flatMap((server) => server.apps);
@@ -52,15 +62,21 @@ export const createStoredServerFromSnapshot = (
 	payload: ServerSnapshotPayload,
 	previousServer: StoredServer | undefined,
 	receivedAt: Date,
-	appMonitorRules: AppMonitorRule[] = [],
+	appPolicies: AppPolicy[] = [],
+	serverAlertPolicy: ServerAlertPolicy = defaultServerAlertPolicy,
+	options: OverviewProjectionOptions = {},
 ): StoredServer => {
-	const apps = applyAppMonitoringPolicy(
+	const alertThresholds = resolveServerAlertThresholds(
+		serverAlertPolicy,
+		payload.serverId,
+	);
+	const apps = applyEffectiveAppPolicy(
 		normalizeAppSnapshots(payload.apps, previousServer?.apps),
-		appMonitorRules,
+		appPolicies,
 		payload.serverId,
 	);
 	const previousServerWithPolicy = previousServer
-		? applyServerMonitoringPolicy(previousServer, appMonitorRules)
+		? applyServerAppPolicy(previousServer, appPolicies)
 		: undefined;
 	const metricPoint = createServerMetricPoint(apps, payload, receivedAt);
 	const incidents = createIncidentEvents(
@@ -68,6 +84,7 @@ export const createStoredServerFromSnapshot = (
 		payload,
 		previousServerWithPolicy,
 		receivedAt,
+		alertThresholds,
 	);
 
 	return {
@@ -77,13 +94,15 @@ export const createStoredServerFromSnapshot = (
 		metricsHistory: appendMetricHistory(
 			previousServer?.metricsHistory,
 			metricPoint,
+			options.metricHistoryLimit,
 		),
 		incidents: appendIncidentTimeline(
 			previousServer?.incidents,
 			incidents,
+			options.incidentHistoryLimit,
 		),
 		online: true,
-		status: serverHealthStatus(apps, payload.host.disk),
+		status: serverHealthStatus(apps, payload.host, alertThresholds),
 	};
 };
 
@@ -91,14 +110,16 @@ export const buildOverview = (
 	storedServers: StoredServer[],
 	offlineAfterMs: number,
 	now = new Date(),
-	appMonitorRules: AppMonitorRule[] = [],
+	appPolicies: AppPolicy[] = [],
+	serverAlertPolicy: ServerAlertPolicy = defaultServerAlertPolicy,
 ): OverviewResponse => {
 	const servers = storedServers
 		.map((server) =>
 			withRuntimeStatus(
-				applyServerMonitoringPolicy(server, appMonitorRules),
+				applyServerAppPolicy(server, appPolicies),
 				now,
 				offlineAfterMs,
+				resolveServerAlertThresholds(serverAlertPolicy, server.serverId),
 			),
 		)
 		.sort((left, right) => left.serverName.localeCompare(right.serverName));

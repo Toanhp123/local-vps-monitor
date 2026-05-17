@@ -5,18 +5,20 @@ import {
 	KeyRound,
 	LayoutDashboard,
 	Server,
+	Settings,
 } from "lucide-react";
 import type { OverviewResponse, StoredServer } from "../../../../shared/types";
 import {
 	serverAppCounts,
 	summaryMonitoredApps,
-} from "../../../entities/application/model/appMonitoringPolicy";
+} from "../../../entities/application/model/appPolicy";
 import type { RealtimeStatus } from "../../../shared/api/realtime";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 
 type DashboardSection =
 	| "dashboard"
 	| "http-checks"
+	| "settings"
 	| "server-detail"
 	| "ssh-targets";
 
@@ -53,6 +55,7 @@ export function DashboardSidebar({
 	httpCheckCount,
 	onDashboardOpen,
 	onHttpChecksOpen,
+	onSettingsOpen,
 	onSshTargetsOpen,
 	overview,
 	realtimeStatus,
@@ -63,6 +66,7 @@ export function DashboardSidebar({
 	httpCheckCount: number;
 	onDashboardOpen: () => void;
 	onHttpChecksOpen: () => void;
+	onSettingsOpen: () => void;
 	onSshTargetsOpen: () => void;
 	overview: OverviewResponse | null;
 	realtimeStatus: RealtimeStatus;
@@ -96,6 +100,13 @@ export function DashboardSidebar({
 			label: "SSH Targets",
 			onClick: onSshTargetsOpen,
 			section: "ssh-targets" as const,
+		},
+		{
+			count: null,
+			icon: Settings,
+			label: "Settings",
+			onClick: onSettingsOpen,
+			section: "settings" as const,
 		},
 	];
 
@@ -140,9 +151,11 @@ export function DashboardSidebar({
 									<Icon size={16} />
 									<span className="truncate">{item.label}</span>
 								</span>
-								<span className={navCountClass(isActive)}>
-									{item.count}
-								</span>
+								{item.count !== null && (
+									<span className={navCountClass(isActive)}>
+										{item.count}
+									</span>
+								)}
 							</button>
 						);
 					})}

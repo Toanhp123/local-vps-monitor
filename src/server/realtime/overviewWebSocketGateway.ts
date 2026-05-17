@@ -6,7 +6,7 @@ import type { MonitorOverviewService } from "../services/monitorOverviewService"
 
 export class OverviewWebSocketGateway {
   private readonly wss: WebSocketServer;
-  private readonly broadcastTimer: NodeJS.Timeout;
+  private broadcastTimer?: NodeJS.Timeout;
   private readonly unsubscribeOverview: () => void;
 
   constructor(
@@ -46,17 +46,28 @@ export class OverviewWebSocketGateway {
       });
     });
 
+    this.updateBroadcastInterval(broadcastIntervalMs);
+
+    this.wss.on("close", () => {
+      if (this.broadcastTimer) clearInterval(this.broadcastTimer);
+      this.unsubscribeOverview();
+    });
+  }
+
+  updateBroadcastInterval(broadcastIntervalMs: number) {
+    if (this.broadcastTimer) {
+      clearInterval(this.broadcastTimer);
+      this.broadcastTimer = undefined;
+    }
+
+    const normalizedIntervalMs = Math.max(1_000, Math.round(broadcastIntervalMs));
+
     this.broadcastTimer = setInterval(() => {
       this.broadcast({
         type: "overview.snapshot",
         payload: this.monitorOverviewService.getOverview()
       });
-    }, broadcastIntervalMs);
-
-    this.wss.on("close", () => {
-      clearInterval(this.broadcastTimer);
-      this.unsubscribeOverview();
-    });
+    }, normalizedIntervalMs);
   }
 
   private broadcast(message: RealtimeMessage) {

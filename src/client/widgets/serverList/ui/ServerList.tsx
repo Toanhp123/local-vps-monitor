@@ -2,6 +2,7 @@ import type { StoredServer } from "../../../../shared/types";
 import { ServerTableRow } from "../../../entities/server/ui/ServerTableRow";
 import { PinToggleButton } from "../../../features/pinnedItems/ui/PinToggleButton";
 import { ScanServerButton } from "../../../features/serverScan/ui/ScanServerButton";
+import { DataTable, DataTableBody } from "../../../shared/ui/DataTable";
 import { ServerListEmptyState } from "./ServerListEmptyState";
 import { ServerTableHeader } from "./ServerTableHeader";
 
@@ -56,48 +57,46 @@ export function ServerList({
 			{servers.length === 0 ? (
 				<ServerListEmptyState title={emptyTitle} />
 			) : (
-				<div className="overflow-x-auto">
-					<table className="w-full min-w-260 border-collapse">
-						<ServerTableHeader />
-						<tbody>
-							{servers.map((server) => {
-								const isScanning = activeScanId === server.serverId;
+				<DataTable minWidth="min-w-260">
+					<ServerTableHeader />
+					<DataTableBody>
+						{servers.map((server) => {
+							const isScanning = activeScanId === server.serverId;
 
-								return (
-									<ServerTableRow
-										key={server.serverId}
-										actions={
-											<ScanServerButton
-												ariaLabel={`Scan ${server.serverName}`}
-												isDisabled={isScanDisabled}
-												isScanning={isScanning}
-												onScan={() =>
-													onScanServer(server.serverId)
-												}
-											/>
-										}
-										now={now}
-										onOpen={() => onOpenServer(server.serverId)}
-										pinControl={
-											<PinToggleButton
-												ariaLabel={
-													isServerPinned(server.serverId)
-														? `Unpin ${server.serverName}`
-														: `Pin ${server.serverName}`
-												}
-												isPinned={isServerPinned(server.serverId)}
-												onToggle={() =>
-													onToggleServerPin(server.serverId)
-												}
-											/>
-										}
-										server={server}
-									/>
-								);
-							})}
-						</tbody>
-					</table>
-				</div>
+							return (
+								<ServerTableRow
+									key={server.serverId}
+									actions={
+										<ScanServerButton
+											ariaLabel={`Scan ${server.serverName}`}
+											isDisabled={isScanDisabled}
+											isScanning={isScanning}
+											onScan={() =>
+												onScanServer(server.serverId)
+											}
+										/>
+									}
+									now={now}
+									onOpen={() => onOpenServer(server.serverId)}
+									pinControl={
+										<PinToggleButton
+											ariaLabel={
+												isServerPinned(server.serverId)
+													? `Unpin ${server.serverName}`
+													: `Pin ${server.serverName}`
+											}
+											isPinned={isServerPinned(server.serverId)}
+											onToggle={() =>
+												onToggleServerPin(server.serverId)
+											}
+										/>
+									}
+									server={server}
+								/>
+							);
+						})}
+					</DataTableBody>
+				</DataTable>
 			)}
 		</section>
 	);

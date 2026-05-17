@@ -9,7 +9,7 @@ import {
 	appDisplayName,
 	appImportance,
 	isIgnoredApp,
-} from "../applications/appMonitoringPolicy";
+} from "../applications/appPolicy";
 import { createIncidentId } from "./incidentIds";
 
 const healthLabels: Record<HealthStatus, string> = {

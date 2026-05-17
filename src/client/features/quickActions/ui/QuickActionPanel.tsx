@@ -8,6 +8,8 @@ import {
 	X,
 } from "lucide-react";
 import type { QuickActionRunResponse } from "../../../../shared/types";
+import { Button } from "../../../shared/ui/Button";
+import { IconButton } from "../../../shared/ui/IconButton";
 import type { QuickActionDefinition } from "../model/quickActions";
 
 const outputText = (result: QuickActionRunResponse | null) => {
@@ -93,15 +95,12 @@ export function QuickActionPanel({
 							</div>
 						</div>
 					</div>
-					<button
-						type="button"
-						className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+					<IconButton
 						onClick={onClose}
 						disabled={isRunning}
 						aria-label="Close quick action"
-					>
-						<X size={17} />
-					</button>
+						icon={X}
+					/>
 				</header>
 
 				<div className="min-h-0 overflow-y-auto p-4.5">
@@ -156,19 +155,14 @@ export function QuickActionPanel({
 										{ranAtLabel(result.ranAt)}
 									</span>
 								</div>
-								<button
-									type="button"
-									className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+								<Button
 									onClick={copyOutput}
 									disabled={!output}
+									icon={isCopied ? Check : Clipboard}
+									size="sm"
 								>
-									{isCopied ? (
-										<Check size={14} />
-									) : (
-										<Clipboard size={14} />
-									)}
 									{isCopied ? "Copied" : "Copy"}
-								</button>
+								</Button>
 							</div>
 							<pre className="max-h-90 overflow-auto bg-slate-950 p-3 font-mono text-xs leading-5 whitespace-pre-wrap wrap-break-word text-slate-100">
 								{output || "No output returned"}
@@ -178,23 +172,20 @@ export function QuickActionPanel({
 				</div>
 
 				<footer className="flex justify-end gap-2 border-t border-slate-200 px-4.5 py-3">
-					<button
-						type="button"
-						className="inline-flex min-h-9 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+					<Button
 						onClick={onClose}
 						disabled={isRunning}
 					>
 						{result || error ? "Close" : "Cancel"}
-					</button>
+					</Button>
 					{needsConfirmation && (
-						<button
-							type="button"
-							className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-900 bg-slate-900 px-3 text-sm font-bold text-white hover:bg-slate-700"
+						<Button
 							onClick={onConfirm}
+							icon={Play}
+							variant="primary"
 						>
-							<Play size={15} />
 							Run action
-						</button>
+						</Button>
 					)}
 				</footer>
 			</section>

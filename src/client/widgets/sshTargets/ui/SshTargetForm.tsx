@@ -1,13 +1,19 @@
-import { CircleHelp, LoaderCircle, Plus } from "lucide-react";
+import { CircleHelp, Plus } from "lucide-react";
 import type {
 	SshTargetBootstrapInput,
 	SshTargetCreateInput,
 } from "../../../../shared/types";
-import { useSshTargetForm } from "../model/useSshTargetForm";
+import { Button } from "../../../shared/ui/Button";
+import { NumberInputField } from "../../../shared/ui/NumberInputField";
+import { SegmentedControl } from "../../../shared/ui/SegmentedControl";
+import { TextInputField } from "../../../shared/ui/TextInputField";
+import { useSshTargetForm, type SshAuthMode } from "../model/useSshTargetForm";
 
-const inputClass =
-	"h-10 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 outline-0 focus:border-blue-400";
 const labelClass = "grid gap-1.5 text-[13px] font-bold text-slate-500";
+const authModeOptions: Array<{ label: string; value: SshAuthMode }> = [
+	{ label: "Key path", value: "key" },
+	{ label: "Password", value: "password" },
+];
 
 function CredentialHelpTooltip({ message }: { message: string }) {
 	return (
@@ -50,116 +56,90 @@ export function SshTargetForm({
 			className="grid grid-cols-[1.1fr_1.1fr_0.45fr_0.75fr_1fr_1.35fr_auto] gap-2.5 border-b border-slate-200 bg-slate-50 px-4.5 py-3.5 max-2xl:grid-cols-3 max-xl:grid-cols-2 max-md:grid-cols-1"
 			onSubmit={handleSubmit}
 		>
-			<label className={labelClass}>
-				Name
-				<input
-					className={inputClass}
-					value={form.name}
-					onChange={(event) => updateField("name", event.target.value)}
-					placeholder="My VPS"
-					required
-				/>
-			</label>
-			<label className={labelClass}>
-				Host
-				<input
-					className={inputClass}
-					value={form.host}
-					onChange={(event) => updateField("host", event.target.value)}
-					placeholder="IP or hostname"
-					required
-				/>
-			</label>
-			<label className={labelClass}>
-				Port
-				<input
-					className={inputClass}
-					value={form.port}
-					onChange={(event) => updateField("port", event.target.value)}
-					inputMode="numeric"
-					min={1}
-					max={65535}
-					type="number"
-					required
-				/>
-			</label>
-			<label className={labelClass}>
-				User
-				<input
-					className={inputClass}
-					value={form.username}
-					onChange={(event) =>
-						updateField("username", event.target.value)
-					}
-					placeholder="SSH user"
-					required
-				/>
-			</label>
+			<TextInputField
+				inputClassName="font-semibold focus:border-blue-400"
+				label="Name"
+				labelClassName="text-[13px] font-bold text-slate-500"
+				onChange={(value) => updateField("name", value)}
+				placeholder="My VPS"
+				required
+				value={form.name}
+			/>
+			<TextInputField
+				inputClassName="font-semibold focus:border-blue-400"
+				label="Host"
+				labelClassName="text-[13px] font-bold text-slate-500"
+				onChange={(value) => updateField("host", value)}
+				placeholder="IP or hostname"
+				required
+				value={form.host}
+			/>
+			<NumberInputField
+				label="Port"
+				labelClassName="text-[13px] font-bold text-slate-500"
+				max={65535}
+				min={1}
+				onChange={(value) => updateField("port", value)}
+				required
+				value={form.port}
+			/>
+			<TextInputField
+				inputClassName="font-semibold focus:border-blue-400"
+				label="User"
+				labelClassName="text-[13px] font-bold text-slate-500"
+				onChange={(value) => updateField("username", value)}
+				placeholder="SSH user"
+				required
+				value={form.username}
+			/>
 			<div className={labelClass}>
 				Auth
-				<div className="grid h-10 grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white p-0.5">
-					<button
-						type="button"
-						className={`cursor-pointer rounded-md px-2 text-xs font-extrabold ${
-							form.authMode === "key"
-								? "bg-blue-600 text-white"
-								: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-						}`}
-						onClick={() => updateField("authMode", "key")}
-					>
-						Key path
-					</button>
-					<button
-						type="button"
-						className={`cursor-pointer rounded-md px-2 text-xs font-extrabold ${
-							form.authMode === "password"
-								? "bg-blue-600 text-white"
-								: "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-						}`}
-						onClick={() => updateField("authMode", "password")}
-					>
-						Password
-					</button>
-				</div>
-			</div>
-			<label className={labelClass}>
-				<span className="flex items-center gap-1.5">
-					{credentialLabel}
-					<CredentialHelpTooltip message={credentialHelp} />
-				</span>
-				<input
-					className={inputClass}
-					value={
-						form.authMode === "password"
-							? form.password
-							: form.privateKeyPath
-					}
-					onChange={(event) =>
-						form.authMode === "password"
-							? updateField("password", event.target.value)
-							: updateField("privateKeyPath", event.target.value)
-					}
-					placeholder={credentialPlaceholder}
-					type={form.authMode === "password" ? "password" : "text"}
-					autoComplete={
-						form.authMode === "password" ? "current-password" : "off"
-					}
-					required
+				<SegmentedControl
+					ariaLabel="SSH auth mode"
+					className="w-full"
+					onChange={(value) => updateField("authMode", value)}
+					options={authModeOptions}
+					value={form.authMode}
 				/>
-			</label>
+			</div>
+			<TextInputField
+				autoComplete={
+					form.authMode === "password" ? "current-password" : "off"
+				}
+				inputClassName="font-semibold focus:border-blue-400"
+				label={
+					<span className="flex items-center gap-1.5">
+						{credentialLabel}
+						<CredentialHelpTooltip message={credentialHelp} />
+					</span>
+				}
+				labelClassName="text-[13px] font-bold text-slate-500"
+				onChange={(value) =>
+					form.authMode === "password"
+						? updateField("password", value)
+						: updateField("privateKeyPath", value)
+				}
+				placeholder={credentialPlaceholder}
+				required
+				type={form.authMode === "password" ? "password" : "text"}
+				value={
+					form.authMode === "password"
+						? form.password
+						: form.privateKeyPath
+				}
+			/>
 			<div className="flex items-end">
-				<button
+				<Button
 					type="submit"
-					className="inline-flex h-10 w-full min-w-28 cursor-pointer items-center justify-center gap-2 rounded-lg border border-blue-600 bg-blue-600 px-3.5 font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+					className="h-10 w-full min-w-28"
 					disabled={isSaving}
+					icon={Plus}
+					isLoading={isSaving}
+					size="lg"
+					variant="accent"
 				>
-					{isSaving ? (
-						<LoaderCircle size={16} className="animate-spin" />
-					) : (
-						<Plus size={16} />
-					)}
 					Add
-				</button>
+				</Button>
 			</div>
 		</form>
 	);

@@ -1,20 +1,20 @@
-const headerCellClass =
-	"border-b border-slate-200 bg-white px-3.5 py-3 text-left text-xs font-bold uppercase text-slate-500 whitespace-nowrap";
+import {
+	DataTableHeader,
+	DataTableHeaderCell,
+} from "../../../shared/ui/DataTable";
 
 export function ServerTableHeader() {
 	return (
-		<thead>
-			<tr>
-				<th className={headerCellClass}>Server</th>
-				<th className={headerCellClass}>Status</th>
-				<th className={headerCellClass}>Apps</th>
-				<th className={headerCellClass}>System</th>
-				<th className={headerCellClass}>CPU</th>
-				<th className={headerCellClass}>Memory</th>
-				<th className={headerCellClass}>Disk</th>
-				<th className={headerCellClass}>Last scan</th>
-				<th className={`${headerCellClass} text-right`}>Actions</th>
-			</tr>
-		</thead>
+		<DataTableHeader>
+			<DataTableHeaderCell>Server</DataTableHeaderCell>
+			<DataTableHeaderCell>Status</DataTableHeaderCell>
+			<DataTableHeaderCell>Apps</DataTableHeaderCell>
+			<DataTableHeaderCell>System</DataTableHeaderCell>
+			<DataTableHeaderCell>CPU</DataTableHeaderCell>
+			<DataTableHeaderCell>Memory</DataTableHeaderCell>
+			<DataTableHeaderCell>Disk</DataTableHeaderCell>
+			<DataTableHeaderCell>Last scan</DataTableHeaderCell>
+			<DataTableHeaderCell align="right">Actions</DataTableHeaderCell>
+		</DataTableHeader>
 	);
 }

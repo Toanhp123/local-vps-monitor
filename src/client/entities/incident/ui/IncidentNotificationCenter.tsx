@@ -7,7 +7,7 @@ import {
 	isIncidentNew,
 	type IncidentDrawerFilter,
 	type SnoozePreset,
-} from "../model/incidentActions";
+} from "../model/incidentState";
 import {
 	getIncidentIds,
 	getUnreadIncidentStats,
@@ -15,8 +15,7 @@ import {
 	type IncidentGroup,
 	visibleBadgeCount,
 } from "../model/incidentGroups";
-import { useIncidentActionState } from "../model/useIncidentActionState";
-import { useIncidentReadState } from "../model/useIncidentReadState";
+import { useIncidentDrawerState } from "../model/useIncidentDrawerState";
 import { IncidentDrawer } from "./IncidentDrawer";
 
 const drawerAnimationMs = 280;
@@ -37,21 +36,19 @@ export function IncidentNotificationCenter({
 		useState<IncidentDrawerFilter>("all");
 	const closeTimerRef = useRef<number | null>(null);
 	const {
+		acknowledgeIncident,
+		incidentState,
+		clearIncidentState,
 		markAllRead,
 		markIncidentsRead,
 		markIncidentsUnread,
 		readIncidentIds,
-	} = useIncidentReadState(incidents);
-	const {
-		acknowledgeIncident,
-		actionState,
-		clearIncidentAction,
 		snoozeIncident,
-	} = useIncidentActionState(incidents, now);
+	} = useIncidentDrawerState(incidents, now);
 	const isUnreadIncident = useCallback(
 		(incident: IncidentEvent) =>
-			isIncidentNew(incident, readIncidentIds, actionState, now),
-		[actionState, now, readIncidentIds],
+			isIncidentNew(incident, readIncidentIds, incidentState, now),
+		[incidentState, now, readIncidentIds],
 	);
 	const visibleIncidents = useMemo(
 		() =>
@@ -59,10 +56,10 @@ export function IncidentNotificationCenter({
 				incidents,
 				drawerFilter,
 				readIncidentIds,
-				actionState,
+				incidentState,
 				now,
 			),
-		[actionState, drawerFilter, incidents, now, readIncidentIds],
+		[incidentState, drawerFilter, incidents, now, readIncidentIds],
 	);
 	const incidentGroups = useMemo(
 		() =>
@@ -80,8 +77,8 @@ export function IncidentNotificationCenter({
 	);
 	const filterCounts = useMemo(
 		() =>
-			getIncidentFilterCounts(incidents, readIncidentIds, actionState, now),
-		[actionState, incidents, now, readIncidentIds],
+			getIncidentFilterCounts(incidents, readIncidentIds, incidentState, now),
+		[incidentState, incidents, now, readIncidentIds],
 	);
 
 	const openGroup = useCallback(
@@ -176,7 +173,7 @@ export function IncidentNotificationCenter({
 		const expiredSnoozedIncidentIds = incidents
 			.filter((incident) => {
 				const snoozedUntil =
-					actionState.snoozedUntilByIncidentId.get(incident.id);
+					incidentState.snoozedUntilByIncidentId.get(incident.id);
 
 				return snoozedUntil !== undefined && snoozedUntil <= now;
 			})
@@ -187,11 +184,11 @@ export function IncidentNotificationCenter({
 		markIncidentsUnread(expiredSnoozedIncidentIds);
 
 		for (const incidentId of expiredSnoozedIncidentIds) {
-			clearIncidentAction(incidentId);
+			clearIncidentState(incidentId);
 		}
 	}, [
-		actionState,
-		clearIncidentAction,
+		incidentState,
+		clearIncidentState,
 		incidents,
 		markIncidentsUnread,
 		now,
@@ -231,7 +228,7 @@ export function IncidentNotificationCenter({
 
 			{isOpen && (
 				<IncidentDrawer
-					actionState={actionState}
+					incidentState={incidentState}
 					badgeCount={unreadStats.count}
 					expandedServerId={expandedServerId}
 					filterCounts={filterCounts}
@@ -240,7 +237,7 @@ export function IncidentNotificationCenter({
 					isClosing={isClosing}
 					now={now}
 					onAcknowledgeIncident={handleAcknowledgeIncident}
-					onClearIncidentAction={clearIncidentAction}
+					onClearIncidentState={clearIncidentState}
 					onClose={closeDrawer}
 					onFilterChange={setDrawerFilter}
 					onMarkAllRead={markAllRead}

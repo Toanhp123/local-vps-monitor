@@ -12,12 +12,15 @@ It is built for developers who run apps with Docker or PM2 and want a quick way 
 - Shows server health, app status, CPU, memory, ports, image names, and restart information.
 - Shows lightweight CPU, RAM, and disk charts from local scan history.
 - Shows an incident notification drawer for app status changes and restarts.
-- Raises disk usage incidents when a server filesystem crosses warning or critical thresholds.
+- Persists incident state locally.
+- Raises disk, memory, and CPU load incidents when a server crosses warning or critical thresholds.
+- Lets you tune default and per-server resource warning and critical thresholds from Settings.
+- Lets you tune scan intervals, timeouts, concurrency, retention limits, log defaults, and offline detection from Settings.
 - Runs HTTP health checks against app or server URLs and records latency, status codes, and failures.
 - Lets you mark apps as critical, normal, or ignored so low-value processes do not pollute health.
 - Runs allowlisted quick actions such as app restarts and basic VPS checks.
 - Updates the dashboard through WebSocket after scans.
-- Runs automatic scans through `AUTO_SCAN_INTERVAL_MS`.
+- Runs automatic scans on the interval configured in Settings.
 - Stores monitor data locally under `data/`.
 
 ## Security Model
@@ -247,11 +250,9 @@ npm start
 - `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
 - `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.
 - `HTTP_CHECKS_FILE`: local HTTP health check config file. Defaults to `./data/http-checks.json`.
-- `APP_MONITOR_RULES_FILE`: app monitoring rule config file. Defaults to `./data/app-monitor-rules.json`.
-- `SSH_COMMAND_TIMEOUT_MS`: SSH connect and command timeout. Defaults to `12000`.
-- `LOCAL_DOCKER_COMMAND_TIMEOUT_MS`: local Docker command timeout. Defaults to `12000`.
-- `OFFLINE_AFTER_MS`: timeout before a server is marked offline.
-- `REALTIME_BROADCAST_MS`: interval for periodic WebSocket overview broadcasts.
-- `AUTO_SCAN_INTERVAL_MS`: interval for automatic SSH and Local Docker scans. Set to `0` to disable.
-- `SSH_SCAN_CONCURRENCY`: maximum SSH scans running at the same time. Defaults to `4`.
-- `HTTP_CHECK_CONCURRENCY`: maximum HTTP checks running at the same time. Defaults to `8`.
+- `APP_POLICIES_FILE`: app policy config file. Defaults to `./data/app-policies.json`. Legacy `APP_MONITOR_RULES_FILE` is still accepted.
+- `SERVER_ALERT_POLICY_FILE`: server alert policy file. Defaults to `./data/server-alert-policy.json`.
+- `INCIDENT_STATE_FILE`: incident state file. Defaults to `./data/incident-state.json`.
+- `MONITOR_RUNTIME_FILE`: monitor runtime settings file. Defaults to `./data/monitor-runtime.json`.
+
+Runtime behavior such as scan interval, command timeouts, concurrency, offline detection, retention limits, and app log defaults is managed from Settings and persisted in `MONITOR_RUNTIME_FILE`.

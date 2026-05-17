@@ -6,11 +6,11 @@ const errorMessage = (error: unknown) => {
 	return error instanceof Error ? error.message : String(error);
 };
 
-export function useAppLogs(serverId: string) {
+export function useAppLogs(serverId: string, defaultLineCount = 200) {
 	const [app, setApp] = useState<AppSnapshot | null>(null);
 	const [error, setError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-	const [lineCount, setLineCount] = useState(200);
+	const [lineCount, setLineCount] = useState(defaultLineCount);
 	const [logs, setLogs] = useState<AppLogsResponse | null>(null);
 
 	const loadLogs = useCallback(
@@ -46,6 +46,10 @@ export function useAppLogs(serverId: string) {
 	useEffect(() => {
 		closeLogs();
 	}, [closeLogs, serverId]);
+
+	useEffect(() => {
+		if (!app) setLineCount(defaultLineCount);
+	}, [app, defaultLineCount]);
 
 	const changeLineCount = useCallback(
 		(nextLineCount: number) => {

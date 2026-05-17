@@ -1,8 +1,18 @@
 import { useState } from "react";
 import { Activity, Edit3, Play, Trash2 } from "lucide-react";
 import type { HttpCheck, StoredServer } from "../../../../shared/types";
-import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
+import { appDisplayName } from "../../../entities/application/model/appPolicy";
 import { relativeTime } from "../../../shared/lib/format";
+import { Button } from "../../../shared/ui/Button";
+import {
+	DataTable,
+	DataTableBody,
+	DataTableCell,
+	DataTableHeader,
+	DataTableHeaderCell,
+	DataTableMessageRow,
+	DataTableRow,
+} from "../../../shared/ui/DataTable";
 
 const statusClasses: Record<string, string> = {
 	down: "bg-red-100 text-red-800",
@@ -33,41 +43,36 @@ export function HttpCheckTable({
 	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
 	return (
-		<div className="overflow-x-auto">
-			<table className="w-full min-w-250 border-collapse">
-				<thead>
-					<tr>
-						{["Check", "Target", "Status", "Last run", "Actions"].map(
-							(header) => (
-								<th
-									key={header}
-									className="border-b border-slate-200 bg-white px-3.5 py-3 text-left text-xs font-bold text-slate-500 uppercase whitespace-nowrap"
-								>
-									{header}
-								</th>
-							),
-						)}
-					</tr>
-				</thead>
-				<tbody>
+		<DataTable>
+			<DataTableHeader>
+				{["Check", "Target", "Status", "Last run", "Actions"].map(
+					(header) => (
+						<DataTableHeaderCell
+							key={header}
+							align={header === "Actions" ? "right" : "left"}
+						>
+							{header}
+						</DataTableHeaderCell>
+					),
+				)}
+			</DataTableHeader>
+			<DataTableBody>
 					{isLoading ? (
-						<tr>
-							<td
-								className="px-4 py-5 text-sm font-bold text-slate-500"
-								colSpan={5}
-							>
-								Loading HTTP checks
-							</td>
-						</tr>
+						<DataTableMessageRow
+							align="left"
+							className="h-auto px-4 py-5 text-sm font-bold"
+							colSpan={5}
+						>
+							Loading HTTP checks
+						</DataTableMessageRow>
 					) : checks.length === 0 ? (
-						<tr>
-							<td
-								className="px-4 py-5 text-sm font-bold text-slate-500"
-								colSpan={5}
-							>
-								No HTTP checks yet
-							</td>
-						</tr>
+						<DataTableMessageRow
+							align="left"
+							className="h-auto px-4 py-5 text-sm font-bold"
+							colSpan={5}
+						>
+							No HTTP checks yet
+						</DataTableMessageRow>
 					) : (
 						checks.map((check) => {
 							const result = check.lastResult;
@@ -81,8 +86,11 @@ export function HttpCheckTable({
 							const isRunning = activeCheckId === check.id;
 
 							return (
-								<tr key={check.id} className="hover:bg-blue-50/50">
-									<td className="border-b border-slate-200 px-3.5 py-3 align-middle">
+								<DataTableRow
+									key={check.id}
+									className="hover:bg-blue-50/50"
+								>
+									<DataTableCell noWrap={false}>
 										<div className="min-w-0">
 											<strong className="block max-w-72 overflow-hidden text-ellipsis text-slate-900">
 												{check.name}
@@ -91,8 +99,8 @@ export function HttpCheckTable({
 												{check.method} {check.url}
 											</span>
 										</div>
-									</td>
-									<td className="border-b border-slate-200 px-3.5 py-3 align-middle whitespace-nowrap">
+									</DataTableCell>
+									<DataTableCell>
 										<span className="font-semibold text-slate-700">
 											{linkedServer?.serverName || "Standalone"}
 										</span>
@@ -101,8 +109,8 @@ export function HttpCheckTable({
 												/ {appDisplayName(linkedApp)}
 											</span>
 										)}
-									</td>
-									<td className="border-b border-slate-200 px-3.5 py-3 align-middle whitespace-nowrap">
+									</DataTableCell>
+									<DataTableCell>
 										<span
 											className={`inline-flex min-h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-extrabold ${statusClasses[status]}`}
 										>
@@ -114,8 +122,8 @@ export function HttpCheckTable({
 												{result.statusCode}
 											</span>
 										)}
-									</td>
-									<td className="border-b border-slate-200 px-3.5 py-3 align-middle whitespace-nowrap">
+									</DataTableCell>
+									<DataTableCell>
 										{result ? (
 											<>
 												<span className="font-semibold text-slate-700">
@@ -137,39 +145,32 @@ export function HttpCheckTable({
 												Never
 											</span>
 										)}
-									</td>
-									<td className="border-b border-slate-200 px-3.5 py-3 text-right align-middle whitespace-nowrap">
+									</DataTableCell>
+									<DataTableCell align="right">
 										<div className="flex justify-end gap-2">
-											<button
-												type="button"
-												className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-extrabold text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+											<Button
 												disabled={isRunning}
+												icon={Play}
 												onClick={() => {
 													setPendingDeleteId(null);
 													onRunCheck(check.id);
 												}}
+												size="sm"
 											>
-												<Play size={14} />
 												{isRunning ? "Running" : "Run"}
-											</button>
-											<button
-												type="button"
-												className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-extrabold text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+											</Button>
+											<Button
+												icon={Edit3}
 												onClick={() => {
 													setPendingDeleteId(null);
 													onEditCheck(check);
 												}}
+												size="sm"
 											>
-												<Edit3 size={14} />
 												Edit
-											</button>
-											<button
-												type="button"
-												className={`inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-extrabold ${
-													pendingDeleteId === check.id
-														? "border-rose-200 bg-rose-50 text-rose-700"
-														: "border-slate-200 bg-white text-rose-700 hover:border-rose-200 hover:bg-rose-50"
-												}`}
+											</Button>
+											<Button
+												icon={Trash2}
 												onClick={() => {
 													if (pendingDeleteId !== check.id) {
 														setPendingDeleteId(check.id);
@@ -179,20 +180,24 @@ export function HttpCheckTable({
 													onRemoveCheck(check.id);
 													setPendingDeleteId(null);
 												}}
+												size="sm"
+												variant={
+													pendingDeleteId === check.id
+														? "dangerSoft"
+														: "danger"
+												}
 											>
-												<Trash2 size={14} />
 												{pendingDeleteId === check.id
 													? "Confirm"
 													: "Delete"}
-											</button>
+											</Button>
 										</div>
-									</td>
-								</tr>
+									</DataTableCell>
+								</DataTableRow>
 							);
 						})
 					)}
-				</tbody>
-			</table>
-		</div>
+			</DataTableBody>
+		</DataTable>
 	);
 }

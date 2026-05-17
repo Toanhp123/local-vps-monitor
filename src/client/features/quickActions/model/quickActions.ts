@@ -4,7 +4,7 @@ import type {
 	QuickActionRunInput,
 	StoredServer,
 } from "../../../../shared/types";
-import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
+import { appDisplayName } from "../../../entities/application/model/appPolicy";
 
 const localDockerServerId = "local-docker";
 

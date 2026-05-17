@@ -6,12 +6,14 @@ import {
 	Pause,
 	Play,
 	RefreshCw,
-	Search,
 	X,
 } from "lucide-react";
 import type { AppLogsResponse, AppSnapshot } from "../../../../shared/types";
-import { appDisplayName } from "../../../entities/application/model/appMonitoringPolicy";
+import { appDisplayName } from "../../../entities/application/model/appPolicy";
 import { RuntimeBadge } from "../../../entities/application/ui/RuntimeBadge";
+import { Button } from "../../../shared/ui/Button";
+import { IconButton } from "../../../shared/ui/IconButton";
+import { SearchInput } from "../../../shared/ui/SearchInput";
 import { SelectField } from "../../../shared/ui/SelectField";
 
 const fetchedAtLabel = (value?: string) => {
@@ -34,10 +36,15 @@ const warningPattern = /\b(warn|warning|deprecated|retry|timeout)\b/i;
 const dockerTimestampPattern =
 	/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?Z\s+(.*)$/;
 const duplicateTimePattern = /^\d{2}:\d{2}:\d{2}(?:\.\d+)?\s+/;
-const lineCountOptions = [100, 200, 300, 500, 1000].map((value) => ({
-	label: `${value} lines`,
-	value: String(value),
-}));
+const logLineCountOptions = (lineCount: number) => {
+	const values = new Set([100, 200, 300, 500, 1000, lineCount]);
+	return Array.from(values)
+		.sort((left, right) => left - right)
+		.map((value) => ({
+			label: `${value} lines`,
+			value: String(value),
+		}));
+};
 
 const formatLogTimestamp = (value: string) => {
 	const date = new Date(value);
@@ -175,6 +182,10 @@ export function AppLogsPanel({
 	const visibleContent = visibleLineEntries
 		.map((entry) => entry.line)
 		.join("\n");
+	const lineOptions = useMemo(
+		() => logLineCountOptions(lineCount),
+		[lineCount],
+	);
 
 	useEffect(() => {
 		setCopyState("idle");
@@ -226,58 +237,35 @@ export function AppLogsPanel({
 					</div>
 
 					<div className="flex flex-wrap items-center justify-end gap-2 max-lg:w-full max-lg:justify-start">
-						<label className="flex h-9 min-w-60 items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 text-slate-500">
-							<Search size={15} />
-							<input
-								className="w-full min-w-0 border-0 text-sm font-semibold text-slate-900 outline-0"
-								value={query}
-								onChange={(event) => setQuery(event.target.value)}
-								placeholder="Search logs"
-							/>
-							{query && (
-								<button
-									type="button"
-									className="cursor-pointer text-slate-400 hover:text-slate-700"
-									onClick={() => setQuery("")}
-									aria-label="Clear log search"
-								>
-									<X size={14} />
-								</button>
-							)}
-						</label>
+						<SearchInput
+							ariaLabel="Log search"
+							className="max-sm:w-full max-sm:min-w-0"
+							onChange={setQuery}
+							placeholder="Search logs"
+							size="sm"
+							value={query}
+						/>
 						<SelectField
 							ariaLabel="Log line count"
 							buttonClassName="inline-flex min-h-9 min-w-28 cursor-pointer items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2.5 text-left text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
 							disabled={isLoading}
 							onChange={(value) => onLineCountChange(Number(value))}
-							options={lineCountOptions}
+							options={lineOptions}
 							value={String(lineCount)}
 						/>
-						<button
-							type="button"
-							className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+						<Button
 							onClick={() =>
 								setIsAutoScrollEnabled((current) => !current)
 							}
+							icon={isAutoScrollEnabled ? Pause : Play}
 						>
-							{isAutoScrollEnabled ? (
-								<Pause size={15} />
-							) : (
-								<Play size={15} />
-							)}
 							{isAutoScrollEnabled ? "Pause" : "Auto"}
-						</button>
-						<button
-							type="button"
-							className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+						</Button>
+						<Button
 							onClick={copyVisibleLogs}
 							disabled={!visibleContent}
+							icon={copyState === "copied" ? Check : Clipboard}
 						>
-							{copyState === "copied" ? (
-								<Check size={15} />
-							) : (
-								<Clipboard size={15} />
-							)}
 							{copyState === "failed"
 								? "Copy failed"
 								: copyState === "copied"
@@ -285,31 +273,21 @@ export function AppLogsPanel({
 									: searchQuery
 										? "Copy matches"
 										: "Copy logs"}
-						</button>
-						<button
-							type="button"
-							className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+						</Button>
+						<Button
 							onClick={onRefresh}
 							disabled={isLoading}
+							icon={RefreshCw}
+							isLoading={isLoading}
 						>
-							{isLoading ? (
-								<LoaderCircle
-									size={15}
-									className="animate-spin"
-								/>
-							) : (
-								<RefreshCw size={15} />
-							)}
 							Refresh
-						</button>
-						<button
-							type="button"
-							className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+						</Button>
+						<IconButton
 							onClick={onClose}
 							aria-label="Close logs"
-						>
-							<X size={16} />
-						</button>
+							icon={X}
+							variant="danger"
+						/>
 					</div>
 				</header>
 

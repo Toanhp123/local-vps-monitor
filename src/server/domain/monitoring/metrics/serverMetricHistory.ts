@@ -5,6 +5,13 @@ import type {
 } from "../../../../shared/types";
 
 const maxMetricHistoryPoints = 60;
+const minMetricHistoryPoints = 1;
+
+const normalizeMetricHistoryLimit = (value: number) => {
+	if (!Number.isFinite(value)) return maxMetricHistoryPoints;
+
+	return Math.max(minMetricHistoryPoints, Math.round(value));
+};
 
 const numberOrZero = (value: number | undefined) => {
 	return typeof value === "number" && Number.isFinite(value) ? value : 0;
@@ -48,6 +55,9 @@ export const createServerMetricPoint = (
 export const appendMetricHistory = (
 	previousHistory: ServerMetricPoint[] | undefined,
 	point: ServerMetricPoint,
+	limit = maxMetricHistoryPoints,
 ) => {
-	return [...(previousHistory ?? []), point].slice(-maxMetricHistoryPoints);
+	return [...(previousHistory ?? []), point].slice(
+		-normalizeMetricHistoryLimit(limit),
+	);
 };
