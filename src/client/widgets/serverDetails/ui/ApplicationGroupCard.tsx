@@ -68,7 +68,7 @@ export function ApplicationGroupCard({
 				<div className="flex flex-wrap items-center gap-1.5">
 					<StatusBadge status={group.status} />
 					<Badge size="md">
-						{monitoredApps(group.apps).length}/{group.apps.length}{" "}
+						{monitoredApps(group.apps).filter((app) => app.health !== "down").length}/{monitoredApps(group.apps).length}{" "}
 						apps
 					</Badge>
 					{group.dockerCount > 0 && (

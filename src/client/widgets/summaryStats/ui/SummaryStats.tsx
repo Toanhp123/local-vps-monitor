@@ -7,7 +7,6 @@ import {
 	WifiOff,
 } from "lucide-react";
 import type { OverviewResponse } from "@shared/types";
-import { summaryMonitoredApps } from "@/shared/lib/format";
 import { StatCard } from "@/shared/ui/StatCard";
 
 export function SummaryStats({
@@ -19,7 +18,6 @@ export function SummaryStats({
 	const totalServers = summary?.totalServers ?? 0;
 	const onlineServers = summary?.onlineServers ?? 0;
 	const offlineServers = Math.max(0, totalServers - onlineServers);
-	const monitoredAppCount = summaryMonitoredApps(summary);
 
 	return (
 		<section
@@ -41,7 +39,7 @@ export function SummaryStats({
 			<StatCard
 				icon={HardDrive}
 				label="Monitored apps"
-				value={`${monitoredAppCount}/${summary?.totalApps ?? 0}`}
+				value={`${summary?.healthyApps ?? 0}/${summary?.monitoredApps ?? 0}`}
 			/>
 			<StatCard
 				icon={CircleCheck}
