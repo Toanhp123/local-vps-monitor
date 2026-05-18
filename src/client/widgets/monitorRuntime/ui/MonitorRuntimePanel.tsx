@@ -45,7 +45,9 @@ export function MonitorRuntimePanel({
 	error: string;
 	isLoading: boolean;
 	isSaving: boolean;
-	onSaveSettings: (input: MonitorRuntimeSettingsUpdateInput) => Promise<boolean>;
+	onSaveSettings: (
+		input: MonitorRuntimeSettingsUpdateInput,
+	) => Promise<boolean>;
 	settings: MonitorRuntimeSettings | null;
 }) {
 	const [form, setForm] = useState<MonitorRuntimeFormState>(() =>
@@ -78,7 +80,9 @@ export function MonitorRuntimePanel({
 	);
 	const currentGlobalSettings = useMemo(
 		() =>
-			settings ? monitorRuntimeGlobalSettingsFromSettings(settings) : null,
+			settings
+				? monitorRuntimeGlobalSettingsFromSettings(settings)
+				: null,
 		[settings],
 	);
 	const validationError = useMemo(
@@ -91,7 +95,10 @@ export function MonitorRuntimePanel({
 			JSON.stringify(currentGlobalSettings);
 	const canSave = !isLoading && !isSaving && isDirty && !validationError;
 
-	const updateField = (field: keyof MonitorRuntimeFormState, value: string) => {
+	const updateField = (
+		field: keyof MonitorRuntimeFormState,
+		value: string,
+	) => {
 		setForm((current) => ({
 			...current,
 			[field]: value,
