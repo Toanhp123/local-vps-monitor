@@ -22,7 +22,7 @@ export function SummaryStats({
 	return (
 		<section
 			id="overview"
-			className="mb-4.5 scroll-mt-6 grid grid-cols-6 gap-3 max-xl:grid-cols-3 max-md:grid-cols-1"
+			className="mb-4.5 scroll-mt-6 grid grid-cols-5 gap-3 max-xl:grid-cols-3 max-md:grid-cols-1"
 		>
 			<StatCard
 				icon={Server}
@@ -35,11 +35,6 @@ export function SummaryStats({
 				label="Offline VPS"
 				value={offlineServers}
 				tone={offlineServers > 0 ? "bad" : undefined}
-			/>
-			<StatCard
-				icon={HardDrive}
-				label="Monitored apps"
-				value={`${summary?.healthyApps ?? 0}/${summary?.monitoredApps ?? 0}`}
 			/>
 			<StatCard
 				icon={CircleCheck}
