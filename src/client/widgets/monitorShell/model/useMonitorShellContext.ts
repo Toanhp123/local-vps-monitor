@@ -7,11 +7,12 @@ import type { useHttpCheckManager } from "@/features/httpChecks";
 import type { useSshTargetManager } from "@/features/sshTargetManagement";
 import type { usePinnedItems } from "@/features/pinnedItems";
 import type { useMonitorRuntime } from "@/features/monitorRuntime";
+import type { useDataRetention } from "@/features/dataRetention";
 
 export interface MonitorShellContext {
 	activeScanId: string | null;
-	serverAlertPolicy: ReturnType<typeof useServerAlertPolicy>;
 	appPolicies: ReturnType<typeof useAppPolicies>;
+	dataRetention: ReturnType<typeof useDataRetention>;
 	filteredServers: StoredServer[];
 	handleScanAll: () => void;
 	handleScanServer: (serverId: string) => void;
@@ -23,6 +24,7 @@ export interface MonitorShellContext {
 	overview: OverviewResponse | null;
 	pinnedItems: ReturnType<typeof usePinnedItems>;
 	query: string;
+	serverAlertPolicy: ReturnType<typeof useServerAlertPolicy>;
 	setQuery: (query: string) => void;
 	sshTargetManager: ReturnType<typeof useSshTargetManager>;
 	monitorRuntime: ReturnType<typeof useMonitorRuntime>;

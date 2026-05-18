@@ -7,10 +7,12 @@ import {
 import { useMonitorShellContext } from "@/widgets/monitorShell";
 import { MonitorRuntimePanel } from "@/widgets/monitorRuntime";
 import { ServerAlertDefaultsPanel } from "@/widgets/serverAlertPolicy";
+import { DataRetentionPanel } from "@/widgets/dataRetention";
 import { Badge } from "@/shared/ui/Badge";
 
 export function SettingsPage() {
-	const { monitorRuntime, serverAlertPolicy } = useMonitorShellContext();
+	const { dataRetention, monitorRuntime, serverAlertPolicy } =
+		useMonitorShellContext();
 	const alertOverrideCount = serverAlertPolicy.policy
 		? Object.keys(serverAlertPolicy.policy.serverOverrides).length
 		: null;
@@ -43,8 +45,8 @@ export function SettingsPage() {
 						System Settings
 					</h1>
 					<p className="mt-1 max-w-190 text-sm leading-6 font-semibold text-slate-500">
-						Default monitor and alert settings used when a server has no
-						override.
+						Default monitor and alert settings used when a server
+						has no override.
 					</p>
 				</div>
 			</div>
@@ -60,8 +62,8 @@ export function SettingsPage() {
 								Default Mode
 							</h2>
 							<p className="mt-1 max-w-150 text-sm leading-6 font-semibold text-slate-500">
-								Every server follows these defaults until a server-level
-								alert or runtime override is set.
+								Every server follows these defaults until a
+								server-level alert or runtime override is set.
 							</p>
 						</div>
 					</div>
@@ -129,6 +131,22 @@ export function SettingsPage() {
 					isSaving={monitorRuntime.isSaving}
 					onSaveSettings={monitorRuntime.saveSettings}
 					settings={monitorRuntime.settings}
+				/>
+
+				<DataRetentionPanel
+					activeMaintenanceAction={
+						dataRetention.activeMaintenanceAction
+					}
+					error={dataRetention.error}
+					isLoading={dataRetention.isLoading}
+					isSaving={dataRetention.isSaving}
+					isStatsLoading={dataRetention.isStatsLoading}
+					onRefreshStats={() => void dataRetention.loadStats(true)}
+					onRunCleanup={dataRetention.runCleanup}
+					onSaveSettings={dataRetention.saveSettings}
+					onVacuum={dataRetention.vacuum}
+					settings={dataRetention.settings}
+					stats={dataRetention.stats}
 				/>
 			</div>
 		</section>

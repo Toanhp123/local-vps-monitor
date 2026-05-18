@@ -9,6 +9,7 @@ import { useMonitorOverview } from "@/features/monitorOverview";
 import { usePinnedItems } from "@/features/pinnedItems";
 import { useSshTargetManager } from "@/features/sshTargetManagement";
 import { useMonitorRuntime } from "@/features/monitorRuntime";
+import { useDataRetention } from "@/features/dataRetention";
 import { routes } from "@/shared/config/routes";
 import { useNow } from "@/shared/lib/useNow";
 import { Toast } from "@/shared/ui/Toast";
@@ -35,6 +36,7 @@ export function MonitorLayoutPage() {
 	const pinnedItems = usePinnedItems();
 	const sshTargetManager = useSshTargetManager(loadOverview);
 	const monitorRuntime = useMonitorRuntime(loadOverview);
+	const dataRetention = useDataRetention();
 	const serverDetailMatch = useMatch("/servers/:serverId");
 	const httpChecksMatch = useMatch(routes.httpChecks);
 	const settingsMatch = useMatch(routes.settings);
@@ -107,8 +109,8 @@ export function MonitorLayoutPage() {
 
 	const context: MonitorShellContext = {
 		activeScanId,
-		serverAlertPolicy,
 		appPolicies,
+		dataRetention,
 		filteredServers,
 		handleScanAll,
 		handleScanServer,
@@ -120,6 +122,7 @@ export function MonitorLayoutPage() {
 		overview,
 		pinnedItems,
 		query,
+		serverAlertPolicy,
 		setQuery,
 		sshTargetManager,
 		monitorRuntime,
@@ -159,7 +162,8 @@ export function MonitorLayoutPage() {
 					appPolicies.toast ||
 					serverAlertPolicy.toast ||
 					httpCheckManager.toast ||
-					monitorRuntime.toast
+					monitorRuntime.toast ||
+					dataRetention.toast
 				}
 			/>
 		</div>
