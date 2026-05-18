@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import type { IncidentEvent } from "@shared/types";
+import { routes } from "@/shared/config/routes";
 import {
 	filterIncidents,
 	getIncidentFilterCounts,
@@ -27,6 +29,7 @@ export function IncidentNotificationCenter({
 	incidents: IncidentEvent[];
 	now: number;
 }) {
+	const navigate = useNavigate();
 	const [isOpen, setIsOpen] = useState(false);
 	const [isClosing, setIsClosing] = useState(false);
 	const [expandedServerId, setExpandedServerId] = useState<string | null>(
@@ -150,6 +153,11 @@ export function IncidentNotificationCenter({
 		[markIncidentsRead, snoozeIncident],
 	);
 
+	const handleViewAll = useCallback(() => {
+		closeDrawer();
+		navigate(routes.incidents);
+	}, [closeDrawer, navigate]);
+
 	useEffect(() => {
 		if (!isOpen) return undefined;
 
@@ -243,6 +251,7 @@ export function IncidentNotificationCenter({
 					onMarkAllRead={markAllRead}
 					onSnoozeIncident={handleSnoozeIncident}
 					onToggleGroup={handleToggleGroup}
+					onViewAll={handleViewAll}
 					readIncidentIds={readIncidentIds}
 					selectedFilter={drawerFilter}
 				/>

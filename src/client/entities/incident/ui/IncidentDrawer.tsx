@@ -5,6 +5,7 @@ import {
 	Clock,
 	Server,
 	X,
+	ArrowRight,
 } from "lucide-react";
 import {
 	getIncidentSnoozedUntil,
@@ -55,6 +56,7 @@ export function IncidentDrawer({
 	onMarkAllRead,
 	onSnoozeIncident,
 	onToggleGroup,
+	onViewAll,
 	readIncidentIds,
 	selectedFilter,
 }: {
@@ -73,6 +75,7 @@ export function IncidentDrawer({
 	onMarkAllRead: () => void;
 	onSnoozeIncident: (incidentId: string, preset: SnoozePreset) => void;
 	onToggleGroup: (group: IncidentGroup) => void;
+	onViewAll: () => void;
 	readIncidentIds: Set<string>;
 	selectedFilter: IncidentDrawerFilter;
 }) {
@@ -262,6 +265,17 @@ export function IncidentDrawer({
 							})}
 						</div>
 					)}
+				</div>
+
+				<div className="border-t border-slate-200 p-4">
+					<button
+						type="button"
+						onClick={onViewAll}
+						className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-extrabold text-blue-700 hover:bg-blue-100"
+					>
+						View all incidents
+						<ArrowRight size={16} />
+					</button>
 				</div>
 			</aside>
 		</div>

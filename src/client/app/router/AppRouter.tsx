@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { DashboardPage } from "@/pages/dashboard";
 import { HttpChecksPage } from "@/pages/httpChecks";
+import { IncidentsPage } from "@/pages/incidents";
 import { MonitorLayoutPage } from "@/pages/monitor";
 import { SettingsPage } from "@/pages/settings";
 import { ServerDetailsPage } from "@/pages/serverDetails";
@@ -14,6 +15,7 @@ export function AppRouter() {
 				<Route path={routes.dashboard} element={<MonitorLayoutPage />}>
 					<Route index element={<DashboardPage />} />
 					<Route path="http-checks" element={<HttpChecksPage />} />
+					<Route path="incidents" element={<IncidentsPage />} />
 					<Route path="settings" element={<SettingsPage />} />
 					<Route path="servers/:serverId" element={<ServerDetailsPage />} />
 					<Route path="ssh-targets" element={<SshTargetsPage />} />
