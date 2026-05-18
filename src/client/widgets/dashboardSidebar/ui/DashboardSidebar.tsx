@@ -74,7 +74,7 @@ export function DashboardSidebar({
 }) {
 	const summary = overview?.summary;
 	const issueCount = (summary?.warningApps ?? 0) + (summary?.downApps ?? 0);
-	const monitoredAppCount = summaryMonitoredApps(summary);
+
 	const selectedServerAppCounts = selectedServer
 		? serverAppCounts(selectedServer)
 		: null;
@@ -148,7 +148,9 @@ export function DashboardSidebar({
 							>
 								<span className="inline-flex min-w-0 items-center gap-2">
 									<Icon size={16} />
-									<span className="truncate">{item.label}</span>
+									<span className="truncate">
+										{item.label}
+									</span>
 								</span>
 								{item.count !== null && (
 									<span className={navCountClass(isActive)}>
@@ -180,7 +182,9 @@ export function DashboardSidebar({
 									{selectedServer.host.hostname}
 								</span>
 								<div className="flex flex-wrap gap-1.5">
-									<StatusBadge status={selectedServer.status} />
+									<StatusBadge
+										status={selectedServer.status}
+									/>
 									<Badge size="sm" tone="white">
 										{selectedServerAppCounts?.monitored}/
 										{selectedServerAppCounts?.total} apps
@@ -201,7 +205,8 @@ export function DashboardSidebar({
 							Online servers
 						</span>
 						<strong className="mt-1 block text-lg font-extrabold text-slate-900">
-							{summary?.onlineServers ?? 0}/{summary?.totalServers ?? 0}
+							{summary?.onlineServers ?? 0}/
+							{summary?.totalServers ?? 0}
 						</strong>
 					</div>
 					<div className="rounded-lg bg-slate-50 px-3 py-2.5">
@@ -209,7 +214,7 @@ export function DashboardSidebar({
 							Apps
 						</span>
 						<strong className="mt-1 block text-lg font-extrabold text-slate-900">
-							{monitoredAppCount}/{summary?.totalApps ?? 0}
+							{summary?.healthyApps ?? 0}/{summary?.monitoredApps ?? 0}
 						</strong>
 					</div>
 					<div className="rounded-lg bg-slate-50 px-3 py-2.5">
