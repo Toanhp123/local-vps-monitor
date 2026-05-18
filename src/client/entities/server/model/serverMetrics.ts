@@ -26,11 +26,12 @@ export const serverDisk = (server: StoredServer) => {
 };
 
 export const serverAppCounts = (server: StoredServer) => {
-	const monitored = monitoredApps(server.apps).length;
+	const monitoredAppsList = monitoredApps(server.apps);
+	const healthyApps = monitoredAppsList.filter((app) => app.health !== "down");
 
 	return {
-		ignored: server.apps.length - monitored,
-		monitored,
-		total: server.apps.length,
+		ignored: server.apps.length - monitoredAppsList.length,
+		monitored: healthyApps.length,
+		total: monitoredAppsList.length,
 	};
 };
