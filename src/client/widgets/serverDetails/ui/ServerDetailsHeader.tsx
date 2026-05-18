@@ -17,7 +17,7 @@ import { ScanServerButton } from "@/features/serverScan";
 import { relativeTime } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui/Badge";
 import { Button } from "@/shared/ui/Button";
-import { StatusBadge } from "@/shared/ui/StatusBadge";
+import { ServerStatusBadge } from "@/shared/ui/ServerStatusBadge";
 import { ServerQuickActions } from "./ServerQuickActions";
 
 export function ServerDetailsHeader({
@@ -80,7 +80,7 @@ export function ServerDetailsHeader({
 							<h1 className="max-w-140 overflow-hidden text-ellipsis text-2xl leading-tight font-extrabold text-slate-900">
 								{server.serverName}
 							</h1>
-							<StatusBadge status={server.status} />
+							<ServerStatusBadge online={server.online} status={server.status} />
 						</div>
 						<p className="mt-1 max-w-140 overflow-hidden text-sm font-semibold text-ellipsis text-slate-500">
 							{server.host.hostname}

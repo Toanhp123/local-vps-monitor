@@ -8,7 +8,7 @@ import type {
 } from "@shared/types";
 import { Button } from "@/shared/ui/Button";
 import { IconButton } from "@/shared/ui/IconButton";
-import { StatusBadge } from "@/shared/ui/StatusBadge";
+import { ServerStatusBadge } from "@/shared/ui/ServerStatusBadge";
 import {
 	parseThresholdForm,
 	serverAlertResources,
@@ -160,7 +160,7 @@ export function ServerAlertPolicyDialog({
 										<h2 className="max-w-100 overflow-hidden text-ellipsis text-lg leading-tight font-extrabold text-slate-900">
 											{server.serverName}
 										</h2>
-										<StatusBadge status={server.status} />
+										<ServerStatusBadge online={server.online} status={server.status} />
 									</div>
 									<p className="mt-1 text-xs font-semibold text-slate-500">
 										Set resource alert thresholds for this server.

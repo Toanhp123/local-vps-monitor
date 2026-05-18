@@ -9,7 +9,7 @@ import {
 	DataTableRow,
 	DataTableTitle,
 } from "@/shared/ui/DataTable";
-import { StatusBadge } from "@/shared/ui/StatusBadge";
+import { ServerStatusBadge } from "@/shared/ui/ServerStatusBadge";
 import { serverDisk, serverMemory } from "../model/serverMetrics";
 
 export function ServerTableRow({
@@ -52,7 +52,7 @@ export function ServerTableRow({
 				/>
 			</DataTableCell>
 			<DataTableCell>
-				<StatusBadge status={server.status} />
+				<ServerStatusBadge online={server.online} status={server.status} />
 			</DataTableCell>
 			<DataTableCell>
 				<strong className="text-slate-900">{appCounts.monitored}</strong>
