@@ -233,7 +233,7 @@ Then click `Scan Docker` in the dashboard, or wait for the automatic scan loop.
 npm run reset:data
 ```
 
-This resets the monitor state file. SSH targets and other config documents are stored in SQLite.
+This removes the local SQLite database and any legacy JSON import files. The next start recreates the database with default settings.
 
 ## Manual Build
 
@@ -244,16 +244,11 @@ npm start
 
 ## Environment Variables
 
+No `.env` file is required for a fresh clone. The app uses built-in defaults and creates `./data/monitor.db` automatically.
+
 - `HOST`: API bind host. Defaults to `127.0.0.1`.
 - `PORT`: API port, and dashboard port when using `npm start`. Defaults to `3101`.
 - `DASHBOARD_PORT`: dashboard dev server port for `npm run dev`. Defaults to `5173`.
 - `DATABASE_FILE`: SQLite database file. Defaults to `./data/monitor.db`.
-- `DATA_FILE`: local current monitor state file. Defaults to `./data/monitor-state.json`.
-- `SSH_TARGETS_FILE`: legacy SSH target import file. Defaults to `./data/ssh-targets.json`.
-- `HTTP_CHECKS_FILE`: legacy HTTP health check import file. Defaults to `./data/http-checks.json`.
-- `APP_POLICIES_FILE`: legacy app policy import file. Defaults to `./data/app-policies.json`. Legacy `APP_MONITOR_RULES_FILE` is still accepted.
-- `SERVER_ALERT_POLICY_FILE`: legacy server alert policy import file. Defaults to `./data/server-alert-policy.json`.
-- `INCIDENT_STATE_FILE`: legacy incident state import file. Defaults to `./data/incident-state.json`.
-- `MONITOR_RUNTIME_FILE`: legacy monitor runtime settings import file. Defaults to `./data/monitor-runtime.json`.
 
 Runtime behavior such as scan interval, command timeouts, concurrency, offline detection, retention limits, and app log defaults is managed from Settings and persisted in SQLite.

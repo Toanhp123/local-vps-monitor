@@ -10,6 +10,8 @@ import type {
 	StoredServer,
 } from "../../shared/types";
 import { defaultServerAlertPolicy } from "../domain/monitoring/policies/serverResourcePolicy";
+import { ConfigDocumentStore } from "../stores/database/configDocumentStore";
+import { DatabaseStore } from "../stores/databaseStore";
 import { MonitorStateStore } from "../stores/monitorStateStore";
 import { MonitorOverviewService } from "./monitorOverviewService";
 
@@ -52,12 +54,18 @@ const incident = (): IncidentEvent => ({
 
 test("persists snapshot metrics and new incidents through callbacks", () => {
 	const dir = mkdtempSync(path.join(tmpdir(), "vps-monitor-overview-"));
+	const dbStore = new DatabaseStore({
+		databasePath: path.join(dir, "monitor.db"),
+	});
 	const metrics: ServerMetricPoint[] = [];
 	const incidents: IncidentEvent[] = [];
 
 	try {
 		const service = new MonitorOverviewService(
-			new MonitorStateStore(path.join(dir, "state.json")),
+			new MonitorStateStore(
+				new ConfigDocumentStore(dbStore.getDatabase()),
+				path.join(dir, "state.json"),
+			),
 			() => 60_000,
 			() => [],
 			() => defaultServerAlertPolicy,
@@ -82,7 +90,14 @@ test("persists snapshot metrics and new incidents through callbacks", () => {
 		service.appendServerIncident("server-1", incident());
 
 		assert.equal(incidents.at(-1)?.id, "manual-incident");
+
+		const reloadedState = new MonitorStateStore(
+			new ConfigDocumentStore(dbStore.getDatabase()),
+			path.join(dir, "state.json"),
+		);
+		assert.equal(reloadedState.getServer("server-1")?.serverName, "Server 1");
 	} finally {
+		dbStore.close();
 		rmSync(dir, { force: true, recursive: true });
 	}
 });

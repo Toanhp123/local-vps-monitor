@@ -1,5 +1,5 @@
 export interface HealthServiceOptions {
-	dataFile: string;
+	databaseFile: string;
 	version: string;
 }
 
@@ -14,8 +14,8 @@ export class HealthService {
 			uptimeSeconds: Math.round(process.uptime()),
 			timestamp: new Date().toISOString(),
 			storage: {
-				type: "json-file",
-				path: this.options.dataFile,
+				type: "sqlite",
+				path: this.options.databaseFile,
 			},
 		};
 	}

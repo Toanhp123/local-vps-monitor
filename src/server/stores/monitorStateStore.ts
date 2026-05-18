@@ -1,14 +1,18 @@
-import fs from "node:fs";
-import path from "node:path";
 import type {
 	IncidentEvent,
 	ServerMetricPoint,
 	StoredServer,
 } from "../../shared/types";
+import {
+	ConfigDocumentStore,
+	readLegacyConfigDocument,
+} from "./database/configDocumentStore";
 
 interface MonitorState {
 	servers: Record<string, StoredServer>;
 }
+
+const configKey = "monitor_state";
 
 type LegacyStoredServer = Omit<
 	StoredServer,
@@ -36,10 +40,23 @@ const normalizeStoredServer = (server: LegacyStoredServer): StoredServer => {
 	};
 };
 
-const normalizeState = (state: MonitorState): MonitorState => {
+const normalizeState = (state: unknown): MonitorState => {
+	if (!state || typeof state !== "object" || !("servers" in state)) {
+		return emptyState();
+	}
+
+	const parsed = state as MonitorState;
+	if (
+		!parsed.servers ||
+		typeof parsed.servers !== "object" ||
+		Array.isArray(parsed.servers)
+	) {
+		return emptyState();
+	}
+
 	return {
 		servers: Object.fromEntries(
-			Object.entries(state.servers).map(([serverId, server]) => [
+			Object.entries(parsed.servers).map(([serverId, server]) => [
 				serverId,
 				normalizeStoredServer(server as LegacyStoredServer),
 			]),
@@ -50,7 +67,10 @@ const normalizeState = (state: MonitorState): MonitorState => {
 export class MonitorStateStore {
 	private state: MonitorState;
 
-	constructor(private readonly filePath: string) {
+	constructor(
+		private readonly documents: ConfigDocumentStore,
+		private readonly legacyFilePath: string,
+	) {
 		this.state = this.load();
 	}
 
@@ -70,34 +90,21 @@ export class MonitorStateStore {
 	}
 
 	private load(): MonitorState {
-		if (!fs.existsSync(this.filePath)) return emptyState();
+		const persisted = this.documents.get<MonitorState>(configKey);
+		if (persisted) return normalizeState(persisted);
 
-		try {
-			const raw = fs.readFileSync(this.filePath, "utf8");
-			const parsed = JSON.parse(raw) as MonitorState;
-			return parsed && parsed.servers
-				? normalizeState(parsed)
-				: emptyState();
-		} catch (error) {
-			console.warn(
-				`Cannot read monitor state at ${this.filePath}:`,
-				error,
-			);
-			return emptyState();
-		}
+		const legacy = readLegacyConfigDocument(
+			this.legacyFilePath,
+			"monitor state",
+		);
+		const state = normalizeState(legacy.value);
+
+		if (legacy.found) this.documents.set(configKey, state);
+
+		return state;
 	}
 
 	private save() {
-		fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-
-		const tempPath = `${this.filePath}.tmp`;
-		fs.writeFileSync(tempPath, JSON.stringify(this.state, null, 2), {
-			mode: 0o600,
-		});
-		fs.renameSync(tempPath, this.filePath);
-
-		if (process.platform !== "win32") {
-			fs.chmodSync(this.filePath, 0o600);
-		}
+		this.documents.set(configKey, this.state);
 	}
 }

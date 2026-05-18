@@ -72,37 +72,39 @@ export const serverConfig = {
 	port: numberFromEnv("PORT", 3101),
 	host: process.env.HOST || "127.0.0.1",
 	version: process.env.npm_package_version || "0.1.0",
-	dataFile: path.resolve(
+	legacyMonitorStateFile: path.resolve(
 		process.cwd(),
-		process.env.DATA_FILE || "./data/monitor-state.json",
+		process.env.MONITOR_STATE_FILE ||
+			process.env.DATA_FILE ||
+			"./data/monitor-state.json",
 	),
-	sshTargetsFile: path.resolve(
+	legacySshTargetsFile: path.resolve(
 		process.cwd(),
 		process.env.SSH_TARGETS_FILE || "./data/ssh-targets.json",
 	),
-	httpChecksFile: path.resolve(
+	legacyHttpChecksFile: path.resolve(
 		process.cwd(),
 		process.env.HTTP_CHECKS_FILE || "./data/http-checks.json",
 	),
-	appPoliciesFile: configFilePath({
+	legacyAppPoliciesFile: configFilePath({
 		defaultPath: "./data/app-policies.json",
 		envName: "APP_POLICIES_FILE",
 		legacyDefaultPath: "./data/app-monitor-rules.json",
 		legacyEnvName: "APP_MONITOR_RULES_FILE",
 	}),
-	serverAlertPolicyFile: configFilePath({
+	legacyServerAlertPolicyFile: configFilePath({
 		defaultPath: "./data/server-alert-policy.json",
 		envName: "SERVER_ALERT_POLICY_FILE",
 		legacyDefaultPath: "./data/alert-policy.json",
 		legacyEnvName: "ALERT_POLICY_FILE",
 	}),
-	incidentStateFile: configFilePath({
+	legacyIncidentStateFile: configFilePath({
 		defaultPath: "./data/incident-state.json",
 		envName: "INCIDENT_STATE_FILE",
 		legacyDefaultPath: "./data/incident-actions.json",
 		legacyEnvName: "INCIDENT_ACTIONS_FILE",
 	}),
-	monitorRuntimeFile: configFilePath({
+	legacyMonitorRuntimeFile: configFilePath({
 		defaultPath: "./data/monitor-runtime.json",
 		envName: "MONITOR_RUNTIME_FILE",
 		legacyDefaultPath: "./data/system-settings.json",

@@ -63,31 +63,34 @@ export const createServerServices = (): ServerServices => {
 	const configDocumentStore = new ConfigDocumentStore(
 		databaseStore.getDatabase(),
 	);
-	const monitorStateStore = new MonitorStateStore(serverConfig.dataFile);
+	const monitorStateStore = new MonitorStateStore(
+		configDocumentStore,
+		serverConfig.legacyMonitorStateFile,
+	);
 	const monitorRuntimeStore = new MonitorRuntimeStore(
 		configDocumentStore,
-		serverConfig.monitorRuntimeFile,
+		serverConfig.legacyMonitorRuntimeFile,
 		defaultMonitorRuntimeSettings,
 	);
 	const serverAlertPolicyStore = new ServerAlertPolicyStore(
 		configDocumentStore,
-		serverConfig.serverAlertPolicyFile,
+		serverConfig.legacyServerAlertPolicyFile,
 	);
 	const appPolicyStore = new AppPolicyStore(
 		configDocumentStore,
-		serverConfig.appPoliciesFile,
+		serverConfig.legacyAppPoliciesFile,
 	);
 	const incidentStateStore = new IncidentStateStore(
 		configDocumentStore,
-		serverConfig.incidentStateFile,
+		serverConfig.legacyIncidentStateFile,
 	);
 	const sshTargetConfigStore = new SshTargetConfigStore(
 		configDocumentStore,
-		serverConfig.sshTargetsFile,
+		serverConfig.legacySshTargetsFile,
 	);
 	const httpCheckConfigStore = new HttpCheckConfigStore(
 		configDocumentStore,
-		serverConfig.httpChecksFile,
+		serverConfig.legacyHttpChecksFile,
 	);
 	const databaseService = new DatabaseService(databaseStore, {
 		dataRetentionEnabled: serverConfig.dataRetentionEnabled,
@@ -149,7 +152,7 @@ export const createServerServices = (): ServerServices => {
 		serverConfig.version,
 	);
 	const healthService = new HealthService({
-		dataFile: serverConfig.dataFile,
+		databaseFile: serverConfig.databaseFile,
 		version: serverConfig.version,
 	});
 	const appLogsService = new AppLogsService(
