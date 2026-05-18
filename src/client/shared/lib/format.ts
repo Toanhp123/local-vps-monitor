@@ -40,3 +40,9 @@ export const relativeTime = (value: string, now = Date.now()) => {
 
 	return `${Math.round(hours / 24)}d ago`;
 };
+
+export const summaryMonitoredApps = (
+	summary: { monitoredApps?: number; totalApps?: number } | undefined,
+) => {
+	return summary?.monitoredApps ?? summary?.totalApps ?? 0;
+};

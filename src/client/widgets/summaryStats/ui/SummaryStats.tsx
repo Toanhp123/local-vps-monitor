@@ -7,7 +7,7 @@ import {
 	WifiOff,
 } from "lucide-react";
 import type { OverviewResponse } from "@shared/types";
-import { summaryMonitoredApps } from "@/entities/application";
+import { summaryMonitoredApps } from "@/shared/lib/format";
 import { StatCard } from "@/shared/ui/StatCard";
 
 export function SummaryStats({

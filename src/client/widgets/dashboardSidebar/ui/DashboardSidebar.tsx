@@ -8,10 +8,8 @@ import {
 	Settings,
 } from "lucide-react";
 import type { OverviewResponse, StoredServer } from "@shared/types";
-import {
-	serverAppCounts,
-	summaryMonitoredApps,
-} from "@/entities/application";
+import { serverAppCounts } from "@/entities/server";
+import { summaryMonitoredApps } from "@/shared/lib/format";
 import type { RealtimeStatus } from "@/shared/api/realtime";
 import { Badge } from "@/shared/ui/Badge";
 import { StatusBadge } from "@/shared/ui/StatusBadge";

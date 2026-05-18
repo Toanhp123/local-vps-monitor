@@ -3,8 +3,6 @@ export {
 	appImportance,
 	isIgnoredApp,
 	monitoredApps,
-	serverAppCounts,
-	summaryMonitoredApps,
 } from "./model/appPolicy";
 export {
 	appGroupSourceLabels,

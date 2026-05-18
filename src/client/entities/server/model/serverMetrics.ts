@@ -1,4 +1,5 @@
 import type { StoredServer } from "@shared/types";
+import { monitoredApps } from "@/entities/application";
 
 export const serverMemory = (server: StoredServer) => {
 	const used = Math.max(
@@ -21,5 +22,15 @@ export const serverDisk = (server: StoredServer) => {
 		percent: Math.round(disk.usedPercent),
 		total: disk.totalBytes,
 		used: disk.usedBytes,
+	};
+};
+
+export const serverAppCounts = (server: StoredServer) => {
+	const monitored = monitoredApps(server.apps).length;
+
+	return {
+		ignored: server.apps.length - monitored,
+		monitored,
+		total: server.apps.length,
 	};
 };

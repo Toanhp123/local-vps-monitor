@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Server, WifiOff } from "lucide-react";
 import type { StoredServer } from "@shared/types";
-import { serverAppCounts } from "@/entities/application/@x/server";
 import { formatBytes, relativeTime } from "@/shared/lib/format";
 import {
 	DataTableActionsCell,
@@ -10,7 +9,7 @@ import {
 	DataTableTitle,
 } from "@/shared/ui/DataTable";
 import { ServerStatusBadge } from "@/shared/ui/ServerStatusBadge";
-import { serverDisk, serverMemory } from "../model/serverMetrics";
+import { serverAppCounts, serverDisk, serverMemory } from "../model/serverMetrics";
 
 export function ServerTableRow({
 	actions,

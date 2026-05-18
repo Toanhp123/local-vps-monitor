@@ -6,7 +6,7 @@ import type {
 	ServerAlertPolicyUpdateInput,
 	StoredServer,
 } from "@shared/types";
-import { serverAppCounts } from "@/entities/application";
+import { serverAppCounts } from "@/entities/server";
 import {
 	buildServerQuickActions,
 	type QuickActionDefinition,
