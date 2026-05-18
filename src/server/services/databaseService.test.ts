@@ -63,7 +63,7 @@ test("stores metrics and incidents in sqlite", () => {
 		assert.deepEqual(service.getStats(), {
 			incidentsCount: 1,
 			metricsCount: 1,
-			schemaVersion: "2",
+			schemaVersion: "3",
 		});
 		assert.equal(service.getServerMetrics("server-1")[0]?.memoryUsedBytes, 50);
 		assert.equal(service.getServerIncidents("server-1")[0]?.previousValue, 1);
@@ -127,7 +127,7 @@ test("cleans up old metrics and resolved incidents", () => {
 		assert.deepEqual(service.getStats(), {
 			incidentsCount: 1,
 			metricsCount: 1,
-			schemaVersion: "2",
+			schemaVersion: "3",
 		});
 	} finally {
 		close();

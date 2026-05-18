@@ -22,6 +22,7 @@ import { IncidentStateStore } from "./stores/incidentStateStore";
 import { SshTargetConfigStore } from "./stores/sshTargetConfigStore";
 import { MonitorRuntimeStore } from "./stores/monitorRuntimeStore";
 import { DatabaseStore } from "./stores/databaseStore";
+import { ConfigDocumentStore } from "./stores/database/configDocumentStore";
 
 export interface ServerServices {
 	serverAlertPolicyService: ServerAlertPolicyService;
@@ -56,29 +57,38 @@ export const createServerServices = (): ServerServices => {
 		sshCommandTimeoutMs: serverConfig.sshCommandTimeoutMs,
 		sshScanConcurrency: serverConfig.sshScanConcurrency,
 	};
+	const databaseStore = new DatabaseStore({
+		databasePath: serverConfig.databaseFile,
+	});
+	const configDocumentStore = new ConfigDocumentStore(
+		databaseStore.getDatabase(),
+	);
 	const monitorStateStore = new MonitorStateStore(serverConfig.dataFile);
 	const monitorRuntimeStore = new MonitorRuntimeStore(
+		configDocumentStore,
 		serverConfig.monitorRuntimeFile,
 		defaultMonitorRuntimeSettings,
 	);
 	const serverAlertPolicyStore = new ServerAlertPolicyStore(
+		configDocumentStore,
 		serverConfig.serverAlertPolicyFile,
 	);
 	const appPolicyStore = new AppPolicyStore(
+		configDocumentStore,
 		serverConfig.appPoliciesFile,
 	);
 	const incidentStateStore = new IncidentStateStore(
+		configDocumentStore,
 		serverConfig.incidentStateFile,
 	);
 	const sshTargetConfigStore = new SshTargetConfigStore(
+		configDocumentStore,
 		serverConfig.sshTargetsFile,
 	);
 	const httpCheckConfigStore = new HttpCheckConfigStore(
+		configDocumentStore,
 		serverConfig.httpChecksFile,
 	);
-	const databaseStore = new DatabaseStore({
-		databasePath: serverConfig.databaseFile,
-	});
 	const databaseService = new DatabaseService(databaseStore, {
 		dataRetentionEnabled: serverConfig.dataRetentionEnabled,
 		incidentsRetentionDays: serverConfig.incidentsRetentionDays,

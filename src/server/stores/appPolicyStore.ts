@@ -1,19 +1,32 @@
 import crypto from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
 import type {
 	AppPolicyOverrideInput,
 	AppPolicy,
 	AppPolicyCreateInput,
 	AppPolicyUpdateInput,
 } from "../../shared/types";
+import {
+	ConfigDocumentStore,
+	readLegacyConfigDocument,
+} from "./database/configDocumentStore";
 
 interface AppPolicyState {
 	policies: Record<string, AppPolicy>;
 	rules?: Record<string, AppPolicy>;
 }
 
+const configKey = "app_policies";
 const emptyState = (): AppPolicyState => ({ policies: {} });
+
+const normalizeState = (state: unknown): AppPolicyState => {
+	if (!state || typeof state !== "object") return emptyState();
+
+	const parsed = state as AppPolicyState;
+	if (parsed.policies) return { policies: parsed.policies };
+	if (parsed.rules) return { policies: parsed.rules };
+
+	return emptyState();
+};
 
 const normalizeText = (value: string | undefined) => {
 	const trimmed = value?.trim();
@@ -57,7 +70,10 @@ const isDirectAppOverride = (
 export class AppPolicyStore {
 	private state: AppPolicyState;
 
-	constructor(private readonly filePath: string) {
+	constructor(
+		private readonly documents: ConfigDocumentStore,
+		private readonly legacyFilePath: string,
+	) {
 		this.state = this.load();
 	}
 
@@ -148,35 +164,21 @@ export class AppPolicyStore {
 	}
 
 	private load(): AppPolicyState {
-		if (!fs.existsSync(this.filePath)) return emptyState();
+		const persisted = this.documents.get<AppPolicyState>(configKey);
+		if (persisted) return normalizeState(persisted);
 
-		try {
-			const raw = fs.readFileSync(this.filePath, "utf8");
-			const parsed = JSON.parse(raw) as AppPolicyState;
-			if (!parsed) return emptyState();
-			if (parsed.policies) return { policies: parsed.policies };
-			if (parsed.rules) return { policies: parsed.rules };
-			return emptyState();
-		} catch (error) {
-			console.warn(
-				`Cannot read app policies at ${this.filePath}:`,
-				error,
-			);
-			return emptyState();
-		}
+		const legacy = readLegacyConfigDocument(
+			this.legacyFilePath,
+			"app policies",
+		);
+		const state = normalizeState(legacy.value);
+
+		if (legacy.found) this.documents.set(configKey, state);
+
+		return state;
 	}
 
 	private save() {
-		fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-
-		const tempPath = `${this.filePath}.tmp`;
-		fs.writeFileSync(tempPath, JSON.stringify(this.state, null, 2), {
-			mode: 0o600,
-		});
-		fs.renameSync(tempPath, this.filePath);
-
-		if (process.platform !== "win32") {
-			fs.chmodSync(this.filePath, 0o600);
-		}
+		this.documents.set(configKey, this.state);
 	}
 }

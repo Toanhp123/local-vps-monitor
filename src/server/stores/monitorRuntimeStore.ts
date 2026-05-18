@@ -1,11 +1,15 @@
-import fs from "node:fs";
-import path from "node:path";
 import type {
 	MonitorRuntimeSettings,
 	MonitorRuntimeSettingsUpdateInput,
 	ServerMonitorRuntimeOverrides,
 	ServerMonitorRuntimeSettings,
 } from "../../shared/types";
+import {
+	ConfigDocumentStore,
+	readLegacyConfigDocument,
+} from "./database/configDocumentStore";
+
+const configKey = "monitor_runtime";
 
 const clampNumber = (value: unknown, fallback: number, min: number, max: number) => {
 	if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
@@ -167,7 +171,8 @@ export class MonitorRuntimeStore {
 	private settings: MonitorRuntimeSettings;
 
 	constructor(
-		private readonly filePath: string,
+		private readonly documents: ConfigDocumentStore,
+		private readonly legacyFilePath: string,
 		private readonly defaults: MonitorRuntimeSettings,
 	) {
 		this.settings = this.load();
@@ -202,34 +207,25 @@ export class MonitorRuntimeStore {
 	}
 
 	private load(): MonitorRuntimeSettings {
-		if (!fs.existsSync(this.filePath)) return this.defaults;
+		const persisted =
+			this.documents.get<Partial<MonitorRuntimeSettings>>(configKey);
+		if (persisted) return normalizeSettings(persisted, this.defaults);
 
-		try {
-			const raw = fs.readFileSync(this.filePath, "utf8");
-			return normalizeSettings(
-				JSON.parse(raw) as Partial<MonitorRuntimeSettings>,
-				this.defaults,
-			);
-		} catch (error) {
-			console.warn(
-				`Cannot read monitor runtime settings at ${this.filePath}:`,
-				error,
-			);
-			return this.defaults;
-		}
+		const legacy = readLegacyConfigDocument(
+			this.legacyFilePath,
+			"monitor runtime settings",
+		);
+		const settings = normalizeSettings(
+			legacy.value as Partial<MonitorRuntimeSettings>,
+			this.defaults,
+		);
+
+		if (legacy.found) this.documents.set(configKey, settings);
+
+		return settings;
 	}
 
 	private save() {
-		fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-
-		const tempPath = `${this.filePath}.tmp`;
-		fs.writeFileSync(tempPath, JSON.stringify(this.settings, null, 2), {
-			mode: 0o600,
-		});
-		fs.renameSync(tempPath, this.filePath);
-
-		if (process.platform !== "win32") {
-			fs.chmodSync(this.filePath, 0o600);
-		}
+		this.documents.set(configKey, this.settings);
 	}
 }

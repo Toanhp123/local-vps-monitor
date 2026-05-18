@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import type { MonitorRuntimeSettings } from "../../shared/types";
+import { ConfigDocumentStore } from "./database/configDocumentStore";
+import { DatabaseStore } from "./databaseStore";
 import { MonitorRuntimeStore } from "./monitorRuntimeStore";
 
 const defaults: MonitorRuntimeSettings = {
@@ -20,22 +22,35 @@ const defaults: MonitorRuntimeSettings = {
 	sshScanConcurrency: 4,
 };
 
-const withTempSettingsFile = (settings: unknown, run: (filePath: string) => void) => {
+const withTempSettingsStore = (
+	settings: unknown,
+	run: (store: MonitorRuntimeStore) => void,
+) => {
 	const tempDir = fs.mkdtempSync(
 		path.join(os.tmpdir(), "monitor-runtime-store-"),
 	);
+	const dbStore = new DatabaseStore({
+		databasePath: path.join(tempDir, "monitor.db"),
+	});
 
 	try {
 		const filePath = path.join(tempDir, "runtime.json");
 		fs.writeFileSync(filePath, JSON.stringify(settings), "utf8");
-		run(filePath);
+		run(
+			new MonitorRuntimeStore(
+				new ConfigDocumentStore(dbStore.getDatabase()),
+				filePath,
+				defaults,
+			),
+		);
 	} finally {
+		dbStore.close();
 		fs.rmSync(tempDir, { force: true, recursive: true });
 	}
 };
 
 test("resolves server runtime overrides over global defaults", () => {
-	withTempSettingsFile(
+	withTempSettingsStore(
 		{
 			...defaults,
 			serverOverrides: {
@@ -53,9 +68,7 @@ test("resolves server runtime overrides over global defaults", () => {
 				},
 			},
 		},
-		(filePath) => {
-			const store = new MonitorRuntimeStore(filePath, defaults);
-
+		(store) => {
 			assert.deepEqual(store.getServerSettings("server-1"), {
 				autoScanIntervalMs: 30_000,
 				defaultAppLogLines: 500,
@@ -82,7 +95,7 @@ test("resolves server runtime overrides over global defaults", () => {
 });
 
 test("drops invalid server runtime override values when loading settings", () => {
-	withTempSettingsFile(
+	withTempSettingsStore(
 		{
 			...defaults,
 			serverOverrides: {
@@ -95,9 +108,7 @@ test("drops invalid server runtime override values when loading settings", () =>
 				"server-2": null,
 			},
 		},
-		(filePath) => {
-			const store = new MonitorRuntimeStore(filePath, defaults);
-
+		(store) => {
 			assert.deepEqual(store.get().serverOverrides, {
 				"server-1": {
 					autoScanIntervalMs: 3_600_000,
@@ -114,4 +125,56 @@ test("drops invalid server runtime override values when loading settings", () =>
 			});
 		},
 	);
+});
+
+test("uses sqlite config document after migrating legacy runtime settings", () => {
+	const tempDir = fs.mkdtempSync(
+		path.join(os.tmpdir(), "monitor-runtime-store-"),
+	);
+	const dbStore = new DatabaseStore({
+		databasePath: path.join(tempDir, "monitor.db"),
+	});
+
+	try {
+		const filePath = path.join(tempDir, "runtime.json");
+		fs.writeFileSync(
+			filePath,
+			JSON.stringify({
+				...defaults,
+				autoScanIntervalMs: 45_000,
+			}),
+			"utf8",
+		);
+
+		const first = new MonitorRuntimeStore(
+			new ConfigDocumentStore(dbStore.getDatabase()),
+			filePath,
+			defaults,
+		);
+
+		first.replace({
+			...first.get(),
+			autoScanIntervalMs: 120_000,
+		});
+
+		fs.writeFileSync(
+			filePath,
+			JSON.stringify({
+				...defaults,
+				autoScanIntervalMs: 10_000,
+			}),
+			"utf8",
+		);
+
+		const second = new MonitorRuntimeStore(
+			new ConfigDocumentStore(dbStore.getDatabase()),
+			filePath,
+			defaults,
+		);
+
+		assert.equal(second.get().autoScanIntervalMs, 120_000);
+	} finally {
+		dbStore.close();
+		fs.rmSync(tempDir, { force: true, recursive: true });
+	}
 });

@@ -1,5 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
 import type {
 	ServerAlertPolicy,
 	ServerAlertPolicyUpdateInput,
@@ -9,9 +7,15 @@ import {
 	defaultServerAlertPolicy,
 	defaultServerAlertThresholds,
 } from "../domain/monitoring/policies/serverResourcePolicy";
+import {
+	ConfigDocumentStore,
+	readLegacyConfigDocument,
+} from "./database/configDocumentStore";
 
 type LegacyServerAlertPolicy = Partial<ServerAlertThresholds> &
 	Partial<ServerAlertPolicy>;
+
+const configKey = "server_alert_policy";
 
 const isThresholdInput = (
 	value: unknown,
@@ -126,7 +130,10 @@ const normalizePolicy = (policy: LegacyServerAlertPolicy | undefined) => {
 export class ServerAlertPolicyStore {
 	private policy: ServerAlertPolicy;
 
-	constructor(private readonly filePath: string) {
+	constructor(
+		private readonly documents: ConfigDocumentStore,
+		private readonly legacyFilePath: string,
+	) {
 		this.policy = this.load();
 	}
 
@@ -142,31 +149,22 @@ export class ServerAlertPolicyStore {
 	}
 
 	private load(): ServerAlertPolicy {
-		if (!fs.existsSync(this.filePath)) return defaultServerAlertPolicy;
+		const persisted =
+			this.documents.get<LegacyServerAlertPolicy>(configKey);
+		if (persisted) return normalizePolicy(persisted);
 
-		try {
-			const raw = fs.readFileSync(this.filePath, "utf8");
-			return normalizePolicy(JSON.parse(raw) as LegacyServerAlertPolicy);
-		} catch (error) {
-			console.warn(
-				`Cannot read alert policy at ${this.filePath}:`,
-				error,
-			);
-			return defaultServerAlertPolicy;
-		}
+		const legacy = readLegacyConfigDocument(
+			this.legacyFilePath,
+			"alert policy",
+		);
+		const policy = normalizePolicy(legacy.value as LegacyServerAlertPolicy);
+
+		if (legacy.found) this.documents.set(configKey, policy);
+
+		return policy;
 	}
 
 	private save() {
-		fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-
-		const tempPath = `${this.filePath}.tmp`;
-		fs.writeFileSync(tempPath, JSON.stringify(this.policy, null, 2), {
-			mode: 0o600,
-		});
-		fs.renameSync(tempPath, this.filePath);
-
-		if (process.platform !== "win32") {
-			fs.chmodSync(this.filePath, 0o600);
-		}
+		this.documents.set(configKey, this.policy);
 	}
 }

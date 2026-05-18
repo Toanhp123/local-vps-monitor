@@ -87,7 +87,7 @@ Use this if the VPS still allows SSH password login. Open the dashboard, go to `
 - Auth: `Password`
 - Setup password: the SSH password for that VPS
 
-The password is only used for this setup request. After the monitor key is installed, the app discards the password and does not write it to `data/ssh-targets.json`.
+The password is only used for this setup request. After the monitor key is installed, the app discards the password and never stores it. SSH target config is persisted in SQLite.
 
 During setup, the app will:
 
@@ -233,7 +233,7 @@ Then click `Scan Docker` in the dashboard, or wait for the automatic scan loop.
 npm run reset:data
 ```
 
-This resets the monitor state file. SSH targets are stored separately in `SSH_TARGETS_FILE`.
+This resets the monitor state file. SSH targets and other config documents are stored in SQLite.
 
 ## Manual Build
 
@@ -247,12 +247,13 @@ npm start
 - `HOST`: API bind host. Defaults to `127.0.0.1`.
 - `PORT`: API port, and dashboard port when using `npm start`. Defaults to `3101`.
 - `DASHBOARD_PORT`: dashboard dev server port for `npm run dev`. Defaults to `5173`.
-- `DATA_FILE`: local monitor state file. Defaults to `./data/monitor-state.json`.
-- `SSH_TARGETS_FILE`: local SSH target config file. Defaults to `./data/ssh-targets.json`.
-- `HTTP_CHECKS_FILE`: local HTTP health check config file. Defaults to `./data/http-checks.json`.
-- `APP_POLICIES_FILE`: app policy config file. Defaults to `./data/app-policies.json`. Legacy `APP_MONITOR_RULES_FILE` is still accepted.
-- `SERVER_ALERT_POLICY_FILE`: server alert policy file. Defaults to `./data/server-alert-policy.json`.
-- `INCIDENT_STATE_FILE`: incident state file. Defaults to `./data/incident-state.json`.
-- `MONITOR_RUNTIME_FILE`: monitor runtime settings file. Defaults to `./data/monitor-runtime.json`.
+- `DATABASE_FILE`: SQLite database file. Defaults to `./data/monitor.db`.
+- `DATA_FILE`: local current monitor state file. Defaults to `./data/monitor-state.json`.
+- `SSH_TARGETS_FILE`: legacy SSH target import file. Defaults to `./data/ssh-targets.json`.
+- `HTTP_CHECKS_FILE`: legacy HTTP health check import file. Defaults to `./data/http-checks.json`.
+- `APP_POLICIES_FILE`: legacy app policy import file. Defaults to `./data/app-policies.json`. Legacy `APP_MONITOR_RULES_FILE` is still accepted.
+- `SERVER_ALERT_POLICY_FILE`: legacy server alert policy import file. Defaults to `./data/server-alert-policy.json`.
+- `INCIDENT_STATE_FILE`: legacy incident state import file. Defaults to `./data/incident-state.json`.
+- `MONITOR_RUNTIME_FILE`: legacy monitor runtime settings import file. Defaults to `./data/monitor-runtime.json`.
 
-Runtime behavior such as scan interval, command timeouts, concurrency, offline detection, retention limits, and app log defaults is managed from Settings and persisted in `MONITOR_RUNTIME_FILE`.
+Runtime behavior such as scan interval, command timeouts, concurrency, offline detection, retention limits, and app log defaults is managed from Settings and persisted in SQLite.

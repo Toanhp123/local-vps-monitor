@@ -77,5 +77,12 @@ CREATE TABLE IF NOT EXISTS db_metadata (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-INSERT OR IGNORE INTO db_metadata (key, value) VALUES ('schema_version', '2');
+-- Application config documents migrated from legacy JSON files
+CREATE TABLE IF NOT EXISTS app_config (
+  key TEXT PRIMARY KEY,
+  value_json TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+INSERT OR IGNORE INTO db_metadata (key, value) VALUES ('schema_version', '3');
 INSERT OR IGNORE INTO db_metadata (key, value) VALUES ('created_at', datetime('now'));

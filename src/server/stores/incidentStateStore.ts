@@ -1,10 +1,13 @@
-import fs from "node:fs";
-import path from "node:path";
 import type {
 	IncidentStateSnapshot,
 	IncidentSnoozeState,
 } from "../../shared/types";
+import {
+	ConfigDocumentStore,
+	readLegacyConfigDocument,
+} from "./database/configDocumentStore";
 
+const configKey = "incident_state";
 const maxStoredIncidentStateIds = 500;
 
 const emptyState = (): IncidentStateSnapshot => ({
@@ -74,7 +77,10 @@ const normalizeState = (state: unknown): IncidentStateSnapshot => {
 export class IncidentStateStore {
 	private state: IncidentStateSnapshot;
 
-	constructor(private readonly filePath: string) {
+	constructor(
+		private readonly documents: ConfigDocumentStore,
+		private readonly legacyFilePath: string,
+	) {
 		this.state = this.load();
 	}
 
@@ -90,31 +96,22 @@ export class IncidentStateStore {
 	}
 
 	private load(): IncidentStateSnapshot {
-		if (!fs.existsSync(this.filePath)) return emptyState();
+		const persisted =
+			this.documents.get<IncidentStateSnapshot>(configKey);
+		if (persisted) return normalizeState(persisted);
 
-		try {
-			const raw = fs.readFileSync(this.filePath, "utf8");
-			return normalizeState(JSON.parse(raw));
-		} catch (error) {
-			console.warn(
-				`Cannot read incident state at ${this.filePath}:`,
-				error,
-			);
-			return emptyState();
-		}
+		const legacy = readLegacyConfigDocument(
+			this.legacyFilePath,
+			"incident state",
+		);
+		const state = normalizeState(legacy.value);
+
+		if (legacy.found) this.documents.set(configKey, state);
+
+		return state;
 	}
 
 	private save() {
-		fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-
-		const tempPath = `${this.filePath}.tmp`;
-		fs.writeFileSync(tempPath, JSON.stringify(this.state, null, 2), {
-			mode: 0o600,
-		});
-		fs.renameSync(tempPath, this.filePath);
-
-		if (process.platform !== "win32") {
-			fs.chmodSync(this.filePath, 0o600);
-		}
+		this.documents.set(configKey, this.state);
 	}
 }

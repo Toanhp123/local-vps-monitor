@@ -1,17 +1,20 @@
 import crypto from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
 import type {
 	HttpCheck,
 	HttpCheckCreateInput,
 	HttpCheckResult,
 	HttpCheckUpdateInput,
 } from "../../shared/types";
+import {
+	ConfigDocumentStore,
+	readLegacyConfigDocument,
+} from "./database/configDocumentStore";
 
 interface HttpCheckState {
 	checks: Record<string, HttpCheck>;
 }
 
+const configKey = "http_checks";
 const emptyState = (): HttpCheckState => ({ checks: {} });
 
 const defaultMethod = "GET";
@@ -61,7 +64,10 @@ const normalizeUpdateInput = (input: HttpCheckUpdateInput) => ({
 export class HttpCheckConfigStore {
 	private state: HttpCheckState;
 
-	constructor(private readonly filePath: string) {
+	constructor(
+		private readonly documents: ConfigDocumentStore,
+		private readonly legacyFilePath: string,
+	) {
 		this.state = this.load();
 	}
 
@@ -132,29 +138,26 @@ export class HttpCheckConfigStore {
 	}
 
 	private load(): HttpCheckState {
-		if (!fs.existsSync(this.filePath)) return emptyState();
+		const persisted = this.documents.get<HttpCheckState>(configKey);
+		if (persisted?.checks) return persisted;
 
-		try {
-			const raw = fs.readFileSync(this.filePath, "utf8");
-			const parsed = JSON.parse(raw) as HttpCheckState;
-			return parsed && parsed.checks ? parsed : emptyState();
-		} catch (error) {
-			console.warn(`Cannot read HTTP checks at ${this.filePath}:`, error);
-			return emptyState();
-		}
+		const legacy = readLegacyConfigDocument(
+			this.legacyFilePath,
+			"HTTP checks",
+		);
+		const state =
+			legacy.value &&
+			typeof legacy.value === "object" &&
+			"checks" in legacy.value
+				? (legacy.value as HttpCheckState)
+				: emptyState();
+
+		if (legacy.found) this.documents.set(configKey, state);
+
+		return state;
 	}
 
 	private save() {
-		fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-
-		const tempPath = `${this.filePath}.tmp`;
-		fs.writeFileSync(tempPath, JSON.stringify(this.state, null, 2), {
-			mode: 0o600,
-		});
-		fs.renameSync(tempPath, this.filePath);
-
-		if (process.platform !== "win32") {
-			fs.chmodSync(this.filePath, 0o600);
-		}
+		this.documents.set(configKey, this.state);
 	}
 }

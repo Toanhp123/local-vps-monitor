@@ -40,7 +40,7 @@ export class DatabaseStore {
 			: databaseSchemaSql;
 		this.db.exec(schema);
 		this.ensureColumn("incidents", "previous_value", "previous_value REAL");
-		this.setMetadata("schema_version", "2");
+		this.setMetadata("schema_version", "3");
 	}
 
 	private ensureColumn(table: string, column: string, definition: string) {
