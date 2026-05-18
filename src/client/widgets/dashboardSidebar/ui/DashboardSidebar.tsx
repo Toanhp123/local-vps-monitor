@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import type { OverviewResponse, StoredServer } from "@shared/types";
 import { serverAppCounts } from "@/entities/server";
-import { summaryMonitoredApps } from "@/shared/lib/format";
 import type { RealtimeStatus } from "@/shared/api/realtime";
 import { Badge } from "@/shared/ui/Badge";
 import { StatusBadge } from "@/shared/ui/StatusBadge";
