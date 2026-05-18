@@ -220,6 +220,17 @@ export const validateMonitorRuntimeForm = (form: MonitorRuntimeFormState) => {
 		}
 	}
 
+	const autoScanSeconds = Number(form.autoScanIntervalMs);
+	const offlineAfterSeconds = Number(form.offlineAfterMs);
+
+	if (
+		Number.isFinite(autoScanSeconds) &&
+		Number.isFinite(offlineAfterSeconds) &&
+		offlineAfterSeconds < autoScanSeconds * 1.5
+	) {
+		return "Offline timeout must be at least 1.5x the auto scan interval to prevent false offline detection.";
+	}
+
 	return "";
 };
 
@@ -364,6 +375,7 @@ export const parseServerMonitorRuntimeForm = (
 export const validateServerMonitorRuntimeForm = (
 	form: ServerMonitorRuntimeFormState,
 	fields: ServerMonitorRuntimeFieldConfig[],
+	defaults: ServerMonitorRuntimeSettings,
 ) => {
 	for (const field of fields) {
 		const value = Number(form[field.key]);
@@ -374,6 +386,19 @@ export const validateServerMonitorRuntimeForm = (
 		if (value < field.min || value > field.max) {
 			return `${field.label} must be between ${field.min} and ${field.max} ${field.unit}.`;
 		}
+	}
+
+	const autoScanSeconds = Number(form.autoScanIntervalMs);
+	const offlineAfterSeconds = Number(form.offlineAfterMs);
+	const effectiveAutoScan = Number.isFinite(autoScanSeconds)
+		? autoScanSeconds
+		: defaults.autoScanIntervalMs / 1000;
+	const effectiveOffline = Number.isFinite(offlineAfterSeconds)
+		? offlineAfterSeconds
+		: defaults.offlineAfterMs / 1000;
+
+	if (effectiveOffline < effectiveAutoScan * 1.5) {
+		return "Offline timeout must be at least 1.5x the auto scan interval to prevent false offline detection.";
 	}
 
 	return "";

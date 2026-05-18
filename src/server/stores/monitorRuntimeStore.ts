@@ -196,7 +196,30 @@ export class MonitorRuntimeStore {
 	}
 
 	replace(input: MonitorRuntimeSettingsUpdateInput) {
-		this.settings = normalizeSettings(input, this.defaults);
+		const normalized = normalizeSettings(input, this.defaults);
+
+		if (normalized.offlineAfterMs < normalized.autoScanIntervalMs * 1.5) {
+			throw new Error(
+				"Offline timeout must be at least 1.5x the auto scan interval to prevent false offline detection",
+			);
+		}
+
+		for (const [serverId, override] of Object.entries(
+			normalized.serverOverrides,
+		)) {
+			const effectiveAutoScan =
+				override.autoScanIntervalMs ?? normalized.autoScanIntervalMs;
+			const effectiveOffline =
+				override.offlineAfterMs ?? normalized.offlineAfterMs;
+
+			if (effectiveOffline < effectiveAutoScan * 1.5) {
+				throw new Error(
+					`Server ${serverId}: Offline timeout must be at least 1.5x the auto scan interval`,
+				);
+			}
+		}
+
+		this.settings = normalized;
 		this.save();
 
 		return this.settings;

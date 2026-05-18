@@ -36,4 +36,12 @@ export const monitorRuntimeUpdateSchema = z
 		sshCommandTimeoutMs: z.number().int().min(1_000).max(120_000),
 		sshScanConcurrency: z.number().int().min(1).max(32),
 	})
-	.strict();
+	.strict()
+	.refine(
+		(data) => data.offlineAfterMs >= data.autoScanIntervalMs * 1.5,
+		{
+			message:
+				"Offline timeout must be at least 1.5x the auto scan interval to prevent false offline detection",
+			path: ["offlineAfterMs"],
+		},
+	);

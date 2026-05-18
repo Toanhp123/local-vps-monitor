@@ -78,7 +78,9 @@ export function ServerMonitorRuntimeDialog({
 		return parseServerMonitorRuntimeForm(form, fields);
 	}, [fields, form]);
 	const validationError =
-		isCustom && form ? validateServerMonitorRuntimeForm(form, fields) : "";
+		isCustom && form && defaultValues
+			? validateServerMonitorRuntimeForm(form, fields, defaultValues)
+			: "";
 	const currentMode = hasCurrentOverride ? "custom" : "default";
 	const draftMode = isCustom ? "custom" : "default";
 	const isDirty =
