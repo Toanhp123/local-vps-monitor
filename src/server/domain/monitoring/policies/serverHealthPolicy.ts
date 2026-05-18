@@ -62,11 +62,18 @@ export const withRuntimeStatus = (
 		Number.isFinite(lastSeenMs) &&
 		now.getTime() - lastSeenMs <= offlineAfterMs;
 
+	if (!online) {
+		return {
+			...server,
+			online: false,
+			status: "down",
+			apps: server.apps.map((app) => ({ ...app, health: "down" as const })),
+		};
+	}
+
 	return {
 		...server,
 		online,
-		status: online
-			? serverHealthStatus(server.apps, server.host, thresholds)
-			: "down",
+		status: serverHealthStatus(server.apps, server.host, thresholds),
 	};
 };
