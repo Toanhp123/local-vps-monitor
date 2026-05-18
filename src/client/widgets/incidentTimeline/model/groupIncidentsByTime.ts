@@ -1,9 +1,26 @@
 import type { IncidentEvent } from "@shared/types";
 
 interface TimelineGroup {
-	hour: string;
+	id: string;
 	incidents: IncidentEvent[];
+	label: string;
+	startedAt: number;
 }
+
+const pad = (value: number) => value.toString().padStart(2, "0");
+
+const timelineHourStart = (value: string) => {
+	const date = new Date(value);
+	date.setMinutes(0, 0, 0);
+	return date.getTime();
+};
+
+const formatTimelineHourLabel = (timestamp: number) => {
+	const date = new Date(timestamp);
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+		date.getDate(),
+	)} ${pad(date.getHours())}:00`;
+};
 
 export const groupIncidentsByHour = (
 	incidents: IncidentEvent[],
@@ -11,16 +28,29 @@ export const groupIncidentsByHour = (
 	const groups = new Map<string, IncidentEvent[]>();
 
 	for (const incident of incidents) {
-		const date = new Date(incident.occurredAt);
-		const hour = `${date.getHours().toString().padStart(2, "0")}:00`;
+		const startedAt = timelineHourStart(incident.occurredAt);
+		const groupId = String(startedAt);
 
-		if (!groups.has(hour)) {
-			groups.set(hour, []);
+		if (!groups.has(groupId)) {
+			groups.set(groupId, []);
 		}
-		groups.get(hour)!.push(incident);
+		groups.get(groupId)!.push(incident);
 	}
 
 	return Array.from(groups.entries())
-		.map(([hour, incidents]) => ({ hour, incidents }))
-		.sort((a, b) => a.hour.localeCompare(b.hour));
+		.map(([id, incidents]) => {
+			const startedAt = Number(id);
+
+			return {
+				id,
+				incidents: [...incidents].sort(
+					(first, second) =>
+						new Date(second.occurredAt).getTime() -
+						new Date(first.occurredAt).getTime(),
+				),
+				label: formatTimelineHourLabel(startedAt),
+				startedAt,
+			};
+		})
+		.sort((first, second) => second.startedAt - first.startedAt);
 };

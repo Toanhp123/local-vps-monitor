@@ -29,9 +29,9 @@ export function IncidentTimeline({
 	return (
 		<div className="space-y-6 p-6">
 			{groups.map((group) => (
-				<div key={group.hour}>
+				<div key={group.id}>
 					<div className="mb-2 text-xs font-bold text-slate-500">
-						{group.hour}
+						{group.label}
 					</div>
 					<div className="space-y-2">
 						{group.incidents.map((incident) => (
