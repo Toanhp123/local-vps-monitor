@@ -1,7 +1,22 @@
-import { useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export const useBulkSelection = (incidentIds: string[]) => {
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+	const incidentIdSet = useMemo(() => new Set(incidentIds), [incidentIds]);
+
+	useEffect(() => {
+		setSelectedIds((current) => {
+			if (current.size === 0) return current;
+
+			const retainedIds = Array.from(current).filter((id) =>
+				incidentIdSet.has(id),
+			);
+
+			return retainedIds.length === current.size
+				? current
+				: new Set(retainedIds);
+		});
+	}, [incidentIdSet]);
 
 	const toggleSelection = useCallback((id: string) => {
 		setSelectedIds((prev) => {
@@ -33,7 +48,8 @@ export const useBulkSelection = (incidentIds: string[]) => {
 		[selectedIds],
 	);
 
-	const isAllSelected = selectedIds.size === incidentIds.length && incidentIds.length > 0;
+	const isAllSelected =
+		selectedIds.size === incidentIds.length && incidentIds.length > 0;
 	const isSomeSelected = selectedIds.size > 0 && selectedIds.size < incidentIds.length;
 
 	return {

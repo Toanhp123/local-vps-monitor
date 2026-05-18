@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { SearchInput } from "@/shared/ui/SearchInput";
 import { Button } from "@/shared/ui/Button";
 import type { IncidentFilters } from "@/entities/incident/model/incidentFilters";
@@ -61,10 +62,15 @@ export function IncidentFilterSidebar({
 }) {
 	return (
 		<aside className="space-y-4">
-			<div>
-				<h3 className="mb-3 text-sm font-extrabold text-slate-900">
-					Search
-				</h3>
+			<div className="sticky top-0 z-10 space-y-3 border-b border-slate-200 bg-white pb-4">
+				<div className="flex items-center justify-between gap-3">
+					<h3 className="text-sm font-extrabold text-slate-900">
+						Filters
+					</h3>
+					<Button onClick={onClearFilters} size="sm" icon={X}>
+						Clear all
+					</Button>
+				</div>
 				<SearchInput
 					ariaLabel="Incident search"
 					value={filters.textSearch}
@@ -220,9 +226,6 @@ export function IncidentFilterSidebar({
 				</div>
 			</div>
 
-			<Button onClick={onClearFilters} size="sm" className="w-full">
-				Clear all filters
-			</Button>
 		</aside>
 	);
 }

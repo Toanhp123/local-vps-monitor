@@ -231,6 +231,31 @@ export const useIncidentDrawerState = (
 	);
 
 	useEffect(() => {
+		const expiredSnoozedIncidentIds = incidents
+			.filter((incident) => {
+				const snoozedUntil =
+					incidentState.snoozedUntilByIncidentId.get(incident.id);
+
+				return snoozedUntil !== undefined && snoozedUntil <= now;
+			})
+			.map((incident) => incident.id);
+
+		if (expiredSnoozedIncidentIds.length === 0) return;
+
+		markIncidentsUnread(expiredSnoozedIncidentIds);
+
+		for (const incidentId of expiredSnoozedIncidentIds) {
+			clearIncidentState(incidentId);
+		}
+	}, [
+		incidentState.snoozedUntilByIncidentId,
+		clearIncidentState,
+		incidents,
+		markIncidentsUnread,
+		now,
+	]);
+
+	useEffect(() => {
 		if (incidents.length === 0) return;
 
 		commitActionState((current) => {
