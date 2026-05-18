@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS db_metadata (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- Application config documents migrated from legacy JSON files
+-- Application config documents
 CREATE TABLE IF NOT EXISTS app_config (
   key TEXT PRIMARY KEY,
   value_json TEXT NOT NULL,

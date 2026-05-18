@@ -123,6 +123,15 @@ export interface IncidentStateResponse {
 	state: IncidentStateSnapshot;
 }
 
+export interface PinnedItemsSnapshot {
+	appGroupIdsByServerId: Record<string, string[]>;
+	serverIds: string[];
+}
+
+export interface PinnedItemsResponse {
+	pinnedItems: PinnedItemsSnapshot;
+}
+
 export interface DatabaseStats {
   incidentsCount: number;
   metricsCount: number;

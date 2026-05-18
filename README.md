@@ -233,7 +233,7 @@ Then click `Scan Docker` in the dashboard, or wait for the automatic scan loop.
 npm run reset:data
 ```
 
-This removes the local SQLite database and any legacy JSON import files. The next start recreates the database with default settings.
+This removes the local SQLite database. The next start recreates the database with default settings.
 
 ## Manual Build
 

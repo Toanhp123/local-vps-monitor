@@ -1,10 +1,4 @@
-import fs from "node:fs";
 import type Database from "better-sqlite3";
-
-export interface LegacyConfigDocument {
-	found: boolean;
-	value?: unknown;
-}
 
 export class ConfigDocumentStore {
 	private getStmt: Database.Statement;
@@ -44,20 +38,3 @@ export class ConfigDocumentStore {
 		this.setStmt.run(key, JSON.stringify(value));
 	}
 }
-
-export const readLegacyConfigDocument = (
-	filePath: string,
-	label: string,
-): LegacyConfigDocument => {
-	if (!fs.existsSync(filePath)) return { found: false };
-
-	try {
-		return {
-			found: true,
-			value: JSON.parse(fs.readFileSync(filePath, "utf8")),
-		};
-	} catch (error) {
-		console.warn(`Cannot read ${label} at ${filePath}:`, error);
-		return { found: false };
-	}
-};

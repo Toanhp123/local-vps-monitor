@@ -5,10 +5,7 @@ import type {
 	HttpCheckResult,
 	HttpCheckUpdateInput,
 } from "../../shared/types";
-import {
-	ConfigDocumentStore,
-	readLegacyConfigDocument,
-} from "./database/configDocumentStore";
+import { ConfigDocumentStore } from "./database/configDocumentStore";
 
 interface HttpCheckState {
 	checks: Record<string, HttpCheck>;
@@ -64,10 +61,7 @@ const normalizeUpdateInput = (input: HttpCheckUpdateInput) => ({
 export class HttpCheckConfigStore {
 	private state: HttpCheckState;
 
-	constructor(
-		private readonly documents: ConfigDocumentStore,
-		private readonly legacyFilePath: string,
-	) {
+	constructor(private readonly documents: ConfigDocumentStore) {
 		this.state = this.load();
 	}
 
@@ -141,19 +135,8 @@ export class HttpCheckConfigStore {
 		const persisted = this.documents.get<HttpCheckState>(configKey);
 		if (persisted?.checks) return persisted;
 
-		const legacy = readLegacyConfigDocument(
-			this.legacyFilePath,
-			"HTTP checks",
-		);
-		const state =
-			legacy.value &&
-			typeof legacy.value === "object" &&
-			"checks" in legacy.value
-				? (legacy.value as HttpCheckState)
-				: emptyState();
-
-		if (legacy.found) this.documents.set(configKey, state);
-
+		const state = emptyState();
+		this.documents.set(configKey, state);
 		return state;
 	}
 

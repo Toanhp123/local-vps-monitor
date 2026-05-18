@@ -2,10 +2,7 @@ import type {
 	IncidentStateSnapshot,
 	IncidentSnoozeState,
 } from "../../shared/types";
-import {
-	ConfigDocumentStore,
-	readLegacyConfigDocument,
-} from "./database/configDocumentStore";
+import { ConfigDocumentStore } from "./database/configDocumentStore";
 
 const configKey = "incident_state";
 const maxStoredIncidentStateIds = 500;
@@ -77,10 +74,7 @@ const normalizeState = (state: unknown): IncidentStateSnapshot => {
 export class IncidentStateStore {
 	private state: IncidentStateSnapshot;
 
-	constructor(
-		private readonly documents: ConfigDocumentStore,
-		private readonly legacyFilePath: string,
-	) {
+	constructor(private readonly documents: ConfigDocumentStore) {
 		this.state = this.load();
 	}
 
@@ -100,14 +94,8 @@ export class IncidentStateStore {
 			this.documents.get<IncidentStateSnapshot>(configKey);
 		if (persisted) return normalizeState(persisted);
 
-		const legacy = readLegacyConfigDocument(
-			this.legacyFilePath,
-			"incident state",
-		);
-		const state = normalizeState(legacy.value);
-
-		if (legacy.found) this.documents.set(configKey, state);
-
+		const state = emptyState();
+		this.documents.set(configKey, state);
 		return state;
 	}
 

@@ -64,7 +64,6 @@ test("persists snapshot metrics and new incidents through callbacks", () => {
 		const service = new MonitorOverviewService(
 			new MonitorStateStore(
 				new ConfigDocumentStore(dbStore.getDatabase()),
-				path.join(dir, "state.json"),
 			),
 			() => 60_000,
 			() => [],
@@ -93,7 +92,6 @@ test("persists snapshot metrics and new incidents through callbacks", () => {
 
 		const reloadedState = new MonitorStateStore(
 			new ConfigDocumentStore(dbStore.getDatabase()),
-			path.join(dir, "state.json"),
 		);
 		assert.equal(reloadedState.getServer("server-1")?.serverName, "Server 1");
 	} finally {

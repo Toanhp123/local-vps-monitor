@@ -3,10 +3,7 @@ import type {
 	ServerMetricPoint,
 	StoredServer,
 } from "../../shared/types";
-import {
-	ConfigDocumentStore,
-	readLegacyConfigDocument,
-} from "./database/configDocumentStore";
+import { ConfigDocumentStore } from "./database/configDocumentStore";
 
 interface MonitorState {
 	servers: Record<string, StoredServer>;
@@ -67,10 +64,7 @@ const normalizeState = (state: unknown): MonitorState => {
 export class MonitorStateStore {
 	private state: MonitorState;
 
-	constructor(
-		private readonly documents: ConfigDocumentStore,
-		private readonly legacyFilePath: string,
-	) {
+	constructor(private readonly documents: ConfigDocumentStore) {
 		this.state = this.load();
 	}
 
@@ -93,14 +87,8 @@ export class MonitorStateStore {
 		const persisted = this.documents.get<MonitorState>(configKey);
 		if (persisted) return normalizeState(persisted);
 
-		const legacy = readLegacyConfigDocument(
-			this.legacyFilePath,
-			"monitor state",
-		);
-		const state = normalizeState(legacy.value);
-
-		if (legacy.found) this.documents.set(configKey, state);
-
+		const state = emptyState();
+		this.documents.set(configKey, state);
 		return state;
 	}
 

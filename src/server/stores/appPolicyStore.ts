@@ -5,10 +5,7 @@ import type {
 	AppPolicyCreateInput,
 	AppPolicyUpdateInput,
 } from "../../shared/types";
-import {
-	ConfigDocumentStore,
-	readLegacyConfigDocument,
-} from "./database/configDocumentStore";
+import { ConfigDocumentStore } from "./database/configDocumentStore";
 
 interface AppPolicyState {
 	policies: Record<string, AppPolicy>;
@@ -70,10 +67,7 @@ const isDirectAppOverride = (
 export class AppPolicyStore {
 	private state: AppPolicyState;
 
-	constructor(
-		private readonly documents: ConfigDocumentStore,
-		private readonly legacyFilePath: string,
-	) {
+	constructor(private readonly documents: ConfigDocumentStore) {
 		this.state = this.load();
 	}
 
@@ -167,14 +161,8 @@ export class AppPolicyStore {
 		const persisted = this.documents.get<AppPolicyState>(configKey);
 		if (persisted) return normalizeState(persisted);
 
-		const legacy = readLegacyConfigDocument(
-			this.legacyFilePath,
-			"app policies",
-		);
-		const state = normalizeState(legacy.value);
-
-		if (legacy.found) this.documents.set(configKey, state);
-
+		const state = emptyState();
+		this.documents.set(configKey, state);
 		return state;
 	}
 

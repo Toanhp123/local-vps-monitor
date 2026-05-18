@@ -7,10 +7,7 @@ import {
 	defaultServerAlertPolicy,
 	defaultServerAlertThresholds,
 } from "../domain/monitoring/policies/serverResourcePolicy";
-import {
-	ConfigDocumentStore,
-	readLegacyConfigDocument,
-} from "./database/configDocumentStore";
+import { ConfigDocumentStore } from "./database/configDocumentStore";
 
 type LegacyServerAlertPolicy = Partial<ServerAlertThresholds> &
 	Partial<ServerAlertPolicy>;
@@ -130,10 +127,7 @@ const normalizePolicy = (policy: LegacyServerAlertPolicy | undefined) => {
 export class ServerAlertPolicyStore {
 	private policy: ServerAlertPolicy;
 
-	constructor(
-		private readonly documents: ConfigDocumentStore,
-		private readonly legacyFilePath: string,
-	) {
+	constructor(private readonly documents: ConfigDocumentStore) {
 		this.policy = this.load();
 	}
 
@@ -153,14 +147,8 @@ export class ServerAlertPolicyStore {
 			this.documents.get<LegacyServerAlertPolicy>(configKey);
 		if (persisted) return normalizePolicy(persisted);
 
-		const legacy = readLegacyConfigDocument(
-			this.legacyFilePath,
-			"alert policy",
-		);
-		const policy = normalizePolicy(legacy.value as LegacyServerAlertPolicy);
-
-		if (legacy.found) this.documents.set(configKey, policy);
-
+		const policy = defaultServerAlertPolicy;
+		this.documents.set(configKey, policy);
 		return policy;
 	}
 

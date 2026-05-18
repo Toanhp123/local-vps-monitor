@@ -14,6 +14,7 @@ import type { SshTargetConfigService } from "../services/sshTargetConfigService"
 import type { SshTargetImportService } from "../services/sshTargetImportService";
 import type { MonitorRuntimeService } from "../services/monitorRuntimeService";
 import type { DatabaseService } from "../services/databaseService";
+import type { PinnedItemsService } from "../services/pinnedItemsService";
 import { createServerAlertPolicyRouter } from "./serverAlertPolicyRoutes";
 import { createAppPolicyRouter } from "./appPolicyRoutes";
 import { createHealthRouter } from "./healthRoutes";
@@ -26,63 +27,67 @@ import { createQuickActionsRouter } from "./quickActionsRoutes";
 import { createSshTargetRouter } from "./sshTargetRoutes";
 import { createMonitorRuntimeRouter } from "./monitorRuntimeRoutes";
 import { createDatabaseRouter } from "./databaseRoutes";
+import { createPinnedItemsRouter } from "./pinnedItemsRoutes";
 
 interface ApiRouterDependencies {
-  serverAlertPolicyService: ServerAlertPolicyService;
-  appPolicyService: AppPolicyService;
-  appLogsService: AppLogsService;
-  healthService: HealthService;
-  httpCheckService: HttpCheckService;
-  incidentStateService: IncidentStateService;
-  localDockerScanService: LocalDockerScanService;
-  monitorOverviewService: MonitorOverviewService;
-  quickActionService: QuickActionService;
-  sshScanService: SshScanService;
-  sshTargetBootstrapService: SshTargetBootstrapService;
-  sshTargetConfigService: SshTargetConfigService;
-  sshTargetImportService: SshTargetImportService;
-  monitorRuntimeService: MonitorRuntimeService;
-  databaseService: DatabaseService;
+	serverAlertPolicyService: ServerAlertPolicyService;
+	appPolicyService: AppPolicyService;
+	appLogsService: AppLogsService;
+	healthService: HealthService;
+	httpCheckService: HttpCheckService;
+	incidentStateService: IncidentStateService;
+	localDockerScanService: LocalDockerScanService;
+	monitorOverviewService: MonitorOverviewService;
+	quickActionService: QuickActionService;
+	sshScanService: SshScanService;
+	sshTargetBootstrapService: SshTargetBootstrapService;
+	sshTargetConfigService: SshTargetConfigService;
+	sshTargetImportService: SshTargetImportService;
+	monitorRuntimeService: MonitorRuntimeService;
+	databaseService: DatabaseService;
+	pinnedItemsService: PinnedItemsService;
 }
 
 export const createApiRouter = ({
-  serverAlertPolicyService,
-  appPolicyService,
-  appLogsService,
-  healthService,
-  httpCheckService,
-  incidentStateService,
-  localDockerScanService,
-  monitorOverviewService,
-  quickActionService,
-  sshScanService,
-  sshTargetBootstrapService,
-  sshTargetConfigService,
-  sshTargetImportService,
-  monitorRuntimeService,
-  databaseService
+	serverAlertPolicyService,
+	appPolicyService,
+	appLogsService,
+	healthService,
+	httpCheckService,
+	incidentStateService,
+	localDockerScanService,
+	monitorOverviewService,
+	quickActionService,
+	sshScanService,
+	sshTargetBootstrapService,
+	sshTargetConfigService,
+	sshTargetImportService,
+	monitorRuntimeService,
+	databaseService,
+	pinnedItemsService,
 }: ApiRouterDependencies) => {
-  const router = Router();
+	const router = Router();
 
-  router.use(createServerAlertPolicyRouter(serverAlertPolicyService));
-  router.use(createAppPolicyRouter(appPolicyService));
-  router.use(createAppLogsRouter(appLogsService));
-  router.use(createHealthRouter(healthService));
-  router.use(createHttpCheckRouter(httpCheckService));
-  router.use(createIncidentStateRouter(incidentStateService));
-  router.use(createLocalDockerRouter(localDockerScanService));
-  router.use(createOverviewRouter(monitorOverviewService));
-  router.use(createQuickActionsRouter(quickActionService));
-  router.use(
-    createSshTargetRouter(
-      sshTargetConfigService,
-      sshScanService,
-      sshTargetBootstrapService,
-      sshTargetImportService
-    )
-  );
-  router.use(createMonitorRuntimeRouter(monitorRuntimeService));
-  router.use("/database", createDatabaseRouter(databaseService));
+	router.use(createServerAlertPolicyRouter(serverAlertPolicyService));
+	router.use(createAppPolicyRouter(appPolicyService));
+	router.use(createAppLogsRouter(appLogsService));
+	router.use(createHealthRouter(healthService));
+	router.use(createHttpCheckRouter(httpCheckService));
+	router.use(createIncidentStateRouter(incidentStateService));
+	router.use(createLocalDockerRouter(localDockerScanService));
+	router.use(createOverviewRouter(monitorOverviewService));
+	router.use(createQuickActionsRouter(quickActionService));
+	router.use(
+		createSshTargetRouter(
+			sshTargetConfigService,
+			sshScanService,
+			sshTargetBootstrapService,
+			sshTargetImportService,
+		),
+	);
+	router.use(createMonitorRuntimeRouter(monitorRuntimeService));
+	router.use("/database", createDatabaseRouter(databaseService));
+	router.use(createPinnedItemsRouter(pinnedItemsService));
 
-  return router;
+	return router;
 };

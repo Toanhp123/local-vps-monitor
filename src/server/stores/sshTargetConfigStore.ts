@@ -4,10 +4,7 @@ import type {
 	SshTargetCreateInput,
 	SshTargetUpdateInput,
 } from "../../shared/types";
-import {
-	ConfigDocumentStore,
-	readLegacyConfigDocument,
-} from "./database/configDocumentStore";
+import { ConfigDocumentStore } from "./database/configDocumentStore";
 
 interface SshTargetState {
 	targets: Record<string, SshTarget>;
@@ -41,10 +38,7 @@ const normalizeTargetUpdateInput = (input: SshTargetUpdateInput) => ({
 export class SshTargetConfigStore {
 	private state: SshTargetState;
 
-	constructor(
-		private readonly documents: ConfigDocumentStore,
-		private readonly legacyFilePath: string,
-	) {
+	constructor(private readonly documents: ConfigDocumentStore) {
 		this.state = this.load();
 	}
 
@@ -125,19 +119,8 @@ export class SshTargetConfigStore {
 		const persisted = this.documents.get<SshTargetState>(configKey);
 		if (persisted?.targets) return persisted;
 
-		const legacy = readLegacyConfigDocument(
-			this.legacyFilePath,
-			"SSH targets",
-		);
-		const state =
-			legacy.value &&
-			typeof legacy.value === "object" &&
-			"targets" in legacy.value
-				? (legacy.value as SshTargetState)
-				: emptyState();
-
-		if (legacy.found) this.documents.set(configKey, state);
-
+		const state = emptyState();
+		this.documents.set(configKey, state);
 		return state;
 	}
 

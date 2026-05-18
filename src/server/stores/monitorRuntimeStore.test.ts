@@ -34,12 +34,11 @@ const withTempSettingsStore = (
 	});
 
 	try {
-		const filePath = path.join(tempDir, "runtime.json");
-		fs.writeFileSync(filePath, JSON.stringify(settings), "utf8");
+		const documents = new ConfigDocumentStore(dbStore.getDatabase());
+		documents.set("monitor_runtime", settings);
 		run(
 			new MonitorRuntimeStore(
-				new ConfigDocumentStore(dbStore.getDatabase()),
-				filePath,
+				documents,
 				defaults,
 			),
 		);
@@ -127,7 +126,7 @@ test("drops invalid server runtime override values when loading settings", () =>
 	);
 });
 
-test("uses sqlite config document after migrating legacy runtime settings", () => {
+test("persists runtime settings in sqlite config document", () => {
 	const tempDir = fs.mkdtempSync(
 		path.join(os.tmpdir(), "monitor-runtime-store-"),
 	);
@@ -136,39 +135,17 @@ test("uses sqlite config document after migrating legacy runtime settings", () =
 	});
 
 	try {
-		const filePath = path.join(tempDir, "runtime.json");
-		fs.writeFileSync(
-			filePath,
-			JSON.stringify({
-				...defaults,
-				autoScanIntervalMs: 45_000,
-			}),
-			"utf8",
-		);
+		const documents = new ConfigDocumentStore(dbStore.getDatabase());
 
-		const first = new MonitorRuntimeStore(
-			new ConfigDocumentStore(dbStore.getDatabase()),
-			filePath,
-			defaults,
-		);
+		const first = new MonitorRuntimeStore(documents, defaults);
 
 		first.replace({
 			...first.get(),
 			autoScanIntervalMs: 120_000,
 		});
 
-		fs.writeFileSync(
-			filePath,
-			JSON.stringify({
-				...defaults,
-				autoScanIntervalMs: 10_000,
-			}),
-			"utf8",
-		);
-
 		const second = new MonitorRuntimeStore(
 			new ConfigDocumentStore(dbStore.getDatabase()),
-			filePath,
 			defaults,
 		);
 

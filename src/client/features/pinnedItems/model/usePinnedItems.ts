@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { StoredServer } from "@shared/types";
-
-const pinnedItemsStorageKey = "vps-monitor.pinnedItems.v1";
-
-interface StoredPinnedItems {
-	appGroupIdsByServerId?: Record<string, string[]>;
-	serverIds?: string[];
-}
+import type { PinnedItemsSnapshot, StoredServer } from "@shared/types";
+import {
+	fetchPinnedItems,
+	savePinnedItems,
+} from "@/shared/api/pinnedItemsApi";
 
 interface PinnedItemsState {
 	appGroupIdsByServerId: Map<string, Set<string>>;
@@ -24,58 +21,39 @@ const stringArray = (value: unknown) => {
 		: [];
 };
 
-const readPinnedItemsFromStorage = (): PinnedItemsState => {
-	if (typeof window === "undefined") return emptyPinnedItems();
+const stateFromSnapshot = (
+	snapshot: PinnedItemsSnapshot,
+): PinnedItemsState => {
+	const appGroupIdsByServerId = new Map<string, Set<string>>();
 
-	try {
-		const parsed = JSON.parse(
-			window.localStorage.getItem(pinnedItemsStorageKey) || "{}",
-		) as StoredPinnedItems;
-		const appGroupIdsByServerId = new Map<string, Set<string>>();
-
-		if (
-			parsed.appGroupIdsByServerId &&
-			typeof parsed.appGroupIdsByServerId === "object"
-		) {
-			for (const [serverId, groupIds] of Object.entries(
-				parsed.appGroupIdsByServerId,
-			)) {
-				const validGroupIds = stringArray(groupIds);
-				if (validGroupIds.length > 0) {
-					appGroupIdsByServerId.set(serverId, new Set(validGroupIds));
-				}
-			}
+	for (const [serverId, groupIds] of Object.entries(
+		snapshot.appGroupIdsByServerId,
+	)) {
+		const validGroupIds = stringArray(groupIds);
+		if (validGroupIds.length > 0) {
+			appGroupIdsByServerId.set(serverId, new Set(validGroupIds));
 		}
-
-		return {
-			appGroupIdsByServerId,
-			serverIds: new Set(stringArray(parsed.serverIds)),
-		};
-	} catch {
-		return emptyPinnedItems();
 	}
+
+	return {
+		appGroupIdsByServerId,
+		serverIds: new Set(stringArray(snapshot.serverIds)),
+	};
 };
 
-const writePinnedItemsToStorage = (pinnedItems: PinnedItemsState) => {
-	if (typeof window === "undefined") return;
+const snapshotFromState = (
+	pinnedItems: PinnedItemsState,
+): PinnedItemsSnapshot => {
+	const appGroupIdsByServerId = Object.fromEntries(
+		Array.from(pinnedItems.appGroupIdsByServerId.entries())
+			.map(([serverId, groupIds]) => [serverId, Array.from(groupIds)] as const)
+			.filter(([, groupIds]) => groupIds.length > 0),
+	);
 
-	try {
-		const appGroupIdsByServerId = Object.fromEntries(
-			Array.from(pinnedItems.appGroupIdsByServerId.entries())
-				.map(([serverId, groupIds]) => [serverId, Array.from(groupIds)] as const)
-				.filter(([, groupIds]) => groupIds.length > 0),
-		);
-
-		window.localStorage.setItem(
-			pinnedItemsStorageKey,
-			JSON.stringify({
-				appGroupIdsByServerId,
-				serverIds: Array.from(pinnedItems.serverIds),
-			}),
-		);
-	} catch {
-		// Pinning still works in memory when localStorage is unavailable.
-	}
+	return {
+		appGroupIdsByServerId,
+		serverIds: Array.from(pinnedItems.serverIds),
+	};
 };
 
 const sortPinnedFirst = <T,>(
@@ -96,7 +74,39 @@ const sortPinnedFirst = <T,>(
 
 export const usePinnedItems = () => {
 	const [pinnedItems, setPinnedItems] = useState<PinnedItemsState>(() =>
-		readPinnedItemsFromStorage(),
+		emptyPinnedItems(),
+	);
+
+	useEffect(() => {
+		let isMounted = true;
+
+		void fetchPinnedItems()
+			.then((snapshot) => {
+				if (isMounted) setPinnedItems(stateFromSnapshot(snapshot));
+			})
+			.catch(() => {
+				// Pinning still works in memory if the local API is unavailable.
+			});
+
+		return () => {
+			isMounted = false;
+		};
+	}, []);
+
+	const commitPinnedItems = useCallback(
+		(update: (current: PinnedItemsState) => PinnedItemsState) => {
+			setPinnedItems((current) => {
+				const next = update(current);
+				if (next === current) return current;
+
+				void savePinnedItems(snapshotFromState(next)).catch(() => {
+					// Keep UI responsive; the next pin action can retry persistence.
+				});
+
+				return next;
+			});
+		},
+		[],
 	);
 
 	const isServerPinned = useCallback(
@@ -105,7 +115,7 @@ export const usePinnedItems = () => {
 	);
 
 	const toggleServerPin = useCallback((serverId: string) => {
-		setPinnedItems((current) => {
+		commitPinnedItems((current) => {
 			const serverIds = new Set(current.serverIds);
 
 			if (!serverIds.delete(serverId)) {
@@ -117,7 +127,7 @@ export const usePinnedItems = () => {
 				serverIds,
 			};
 		});
-	}, []);
+	}, [commitPinnedItems]);
 
 	const isAppGroupPinned = useCallback(
 		(serverId: string, groupId: string) => {
@@ -129,7 +139,7 @@ export const usePinnedItems = () => {
 	);
 
 	const toggleAppGroupPin = useCallback((serverId: string, groupId: string) => {
-		setPinnedItems((current) => {
+		commitPinnedItems((current) => {
 			const appGroupIdsByServerId = new Map(current.appGroupIdsByServerId);
 			const groupIds = new Set(appGroupIdsByServerId.get(serverId) || []);
 
@@ -148,7 +158,7 @@ export const usePinnedItems = () => {
 				appGroupIdsByServerId,
 			};
 		});
-	}, []);
+	}, [commitPinnedItems]);
 
 	const sortServers = useCallback(
 		(servers: StoredServer[]) => {
@@ -169,10 +179,6 @@ export const usePinnedItems = () => {
 		},
 		[pinnedItems.appGroupIdsByServerId],
 	);
-
-	useEffect(() => {
-		writePinnedItemsToStorage(pinnedItems);
-	}, [pinnedItems]);
 
 	return useMemo(
 		() => ({

@@ -59,6 +59,7 @@ export const createApp = (services = createServerServices()) => {
 			sshTargetImportService: services.sshTargetImportService,
 			monitorRuntimeService: services.monitorRuntimeService,
 			databaseService: services.databaseService,
+			pinnedItemsService: services.pinnedItemsService,
 		}),
 	);
 	app.use("/api", apiErrorHandler());

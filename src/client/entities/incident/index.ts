@@ -23,7 +23,6 @@ export {
 	type UnreadIncidentStats,
 } from "./model/incidentGroups";
 export { useIncidentDrawerState } from "./model/useIncidentDrawerState";
-export { useIncidentReadState } from "./model/useIncidentReadState";
 export { IncidentDrawer } from "./ui/IncidentDrawer";
 export { IncidentListItem } from "./ui/IncidentListItem";
 export { IncidentNotificationCenter } from "./ui/IncidentNotificationCenter";

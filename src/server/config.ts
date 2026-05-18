@@ -38,78 +38,10 @@ const numberFromEnv = (name: string, fallback: number) => {
 	return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const configFilePath = ({
-	defaultPath,
-	envName,
-	legacyDefaultPath,
-	legacyEnvName,
-}: {
-	defaultPath: string;
-	envName: string;
-	legacyDefaultPath?: string;
-	legacyEnvName?: string;
-}) => {
-	const configuredPath =
-		process.env[envName] ||
-		(legacyEnvName ? process.env[legacyEnvName] : undefined);
-
-	if (configuredPath) return path.resolve(process.cwd(), configuredPath);
-
-	const resolvedDefaultPath = path.resolve(process.cwd(), defaultPath);
-	if (!legacyDefaultPath) return resolvedDefaultPath;
-
-	const resolvedLegacyDefaultPath = path.resolve(
-		process.cwd(),
-		legacyDefaultPath,
-	);
-	return !fs.existsSync(resolvedDefaultPath) &&
-		fs.existsSync(resolvedLegacyDefaultPath)
-		? resolvedLegacyDefaultPath
-		: resolvedDefaultPath;
-};
-
 export const serverConfig = {
 	port: numberFromEnv("PORT", 3101),
 	host: process.env.HOST || "127.0.0.1",
 	version: process.env.npm_package_version || "0.1.0",
-	legacyMonitorStateFile: path.resolve(
-		process.cwd(),
-		process.env.MONITOR_STATE_FILE ||
-			process.env.DATA_FILE ||
-			"./data/monitor-state.json",
-	),
-	legacySshTargetsFile: path.resolve(
-		process.cwd(),
-		process.env.SSH_TARGETS_FILE || "./data/ssh-targets.json",
-	),
-	legacyHttpChecksFile: path.resolve(
-		process.cwd(),
-		process.env.HTTP_CHECKS_FILE || "./data/http-checks.json",
-	),
-	legacyAppPoliciesFile: configFilePath({
-		defaultPath: "./data/app-policies.json",
-		envName: "APP_POLICIES_FILE",
-		legacyDefaultPath: "./data/app-monitor-rules.json",
-		legacyEnvName: "APP_MONITOR_RULES_FILE",
-	}),
-	legacyServerAlertPolicyFile: configFilePath({
-		defaultPath: "./data/server-alert-policy.json",
-		envName: "SERVER_ALERT_POLICY_FILE",
-		legacyDefaultPath: "./data/alert-policy.json",
-		legacyEnvName: "ALERT_POLICY_FILE",
-	}),
-	legacyIncidentStateFile: configFilePath({
-		defaultPath: "./data/incident-state.json",
-		envName: "INCIDENT_STATE_FILE",
-		legacyDefaultPath: "./data/incident-actions.json",
-		legacyEnvName: "INCIDENT_ACTIONS_FILE",
-	}),
-	legacyMonitorRuntimeFile: configFilePath({
-		defaultPath: "./data/monitor-runtime.json",
-		envName: "MONITOR_RUNTIME_FILE",
-		legacyDefaultPath: "./data/system-settings.json",
-		legacyEnvName: "SYSTEM_SETTINGS_FILE",
-	}),
 	offlineAfterMs: numberFromEnv("OFFLINE_AFTER_MS", 60_000),
 	realtimeBroadcastMs: numberFromEnv("REALTIME_BROADCAST_MS", 5_000),
 	autoScanIntervalMs: numberFromEnv("AUTO_SCAN_INTERVAL_MS", 60_000),

@@ -4,10 +4,7 @@ import type {
 	ServerMonitorRuntimeOverrides,
 	ServerMonitorRuntimeSettings,
 } from "../../shared/types";
-import {
-	ConfigDocumentStore,
-	readLegacyConfigDocument,
-} from "./database/configDocumentStore";
+import { ConfigDocumentStore } from "./database/configDocumentStore";
 
 const configKey = "monitor_runtime";
 
@@ -172,7 +169,6 @@ export class MonitorRuntimeStore {
 
 	constructor(
 		private readonly documents: ConfigDocumentStore,
-		private readonly legacyFilePath: string,
 		private readonly defaults: MonitorRuntimeSettings,
 	) {
 		this.settings = this.load();
@@ -211,17 +207,8 @@ export class MonitorRuntimeStore {
 			this.documents.get<Partial<MonitorRuntimeSettings>>(configKey);
 		if (persisted) return normalizeSettings(persisted, this.defaults);
 
-		const legacy = readLegacyConfigDocument(
-			this.legacyFilePath,
-			"monitor runtime settings",
-		);
-		const settings = normalizeSettings(
-			legacy.value as Partial<MonitorRuntimeSettings>,
-			this.defaults,
-		);
-
-		if (legacy.found) this.documents.set(configKey, settings);
-
+		const settings = normalizeSettings(undefined, this.defaults);
+		this.documents.set(configKey, settings);
 		return settings;
 	}
 

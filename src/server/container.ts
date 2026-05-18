@@ -14,6 +14,7 @@ import { SshTargetConfigService } from "./services/sshTargetConfigService";
 import { SshTargetImportService } from "./services/sshTargetImportService";
 import { MonitorRuntimeService } from "./services/monitorRuntimeService";
 import { DatabaseService } from "./services/databaseService";
+import { PinnedItemsService } from "./services/pinnedItemsService";
 import { ServerAlertPolicyStore } from "./stores/serverAlertPolicyStore";
 import { AppPolicyStore } from "./stores/appPolicyStore";
 import { MonitorStateStore } from "./stores/monitorStateStore";
@@ -23,6 +24,7 @@ import { SshTargetConfigStore } from "./stores/sshTargetConfigStore";
 import { MonitorRuntimeStore } from "./stores/monitorRuntimeStore";
 import { DatabaseStore } from "./stores/databaseStore";
 import { ConfigDocumentStore } from "./stores/database/configDocumentStore";
+import { PinnedItemsStore } from "./stores/pinnedItemsStore";
 
 export interface ServerServices {
 	serverAlertPolicyService: ServerAlertPolicyService;
@@ -40,6 +42,7 @@ export interface ServerServices {
 	sshTargetImportService: SshTargetImportService;
 	monitorRuntimeService: MonitorRuntimeService;
 	databaseService: DatabaseService;
+	pinnedItemsService: PinnedItemsService;
 }
 
 export const createServerServices = (): ServerServices => {
@@ -63,35 +66,17 @@ export const createServerServices = (): ServerServices => {
 	const configDocumentStore = new ConfigDocumentStore(
 		databaseStore.getDatabase(),
 	);
-	const monitorStateStore = new MonitorStateStore(
-		configDocumentStore,
-		serverConfig.legacyMonitorStateFile,
-	);
+	const monitorStateStore = new MonitorStateStore(configDocumentStore);
 	const monitorRuntimeStore = new MonitorRuntimeStore(
 		configDocumentStore,
-		serverConfig.legacyMonitorRuntimeFile,
 		defaultMonitorRuntimeSettings,
 	);
-	const serverAlertPolicyStore = new ServerAlertPolicyStore(
-		configDocumentStore,
-		serverConfig.legacyServerAlertPolicyFile,
-	);
-	const appPolicyStore = new AppPolicyStore(
-		configDocumentStore,
-		serverConfig.legacyAppPoliciesFile,
-	);
-	const incidentStateStore = new IncidentStateStore(
-		configDocumentStore,
-		serverConfig.legacyIncidentStateFile,
-	);
-	const sshTargetConfigStore = new SshTargetConfigStore(
-		configDocumentStore,
-		serverConfig.legacySshTargetsFile,
-	);
-	const httpCheckConfigStore = new HttpCheckConfigStore(
-		configDocumentStore,
-		serverConfig.legacyHttpChecksFile,
-	);
+	const serverAlertPolicyStore = new ServerAlertPolicyStore(configDocumentStore);
+	const appPolicyStore = new AppPolicyStore(configDocumentStore);
+	const incidentStateStore = new IncidentStateStore(configDocumentStore);
+	const sshTargetConfigStore = new SshTargetConfigStore(configDocumentStore);
+	const httpCheckConfigStore = new HttpCheckConfigStore(configDocumentStore);
+	const pinnedItemsStore = new PinnedItemsStore(configDocumentStore);
 	const databaseService = new DatabaseService(databaseStore, {
 		dataRetentionEnabled: serverConfig.dataRetentionEnabled,
 		incidentsRetentionDays: serverConfig.incidentsRetentionDays,
@@ -125,6 +110,7 @@ export const createServerServices = (): ServerServices => {
 	const incidentStateService = new IncidentStateService(
 		incidentStateStore,
 	);
+	const pinnedItemsService = new PinnedItemsService(pinnedItemsStore);
 	const localDockerScanService = new LocalDockerScanService(
 		monitorOverviewService,
 		(serverId) =>
@@ -197,5 +183,6 @@ export const createServerServices = (): ServerServices => {
 		sshTargetImportService,
 		monitorRuntimeService,
 		databaseService,
+		pinnedItemsService,
 	};
 };
