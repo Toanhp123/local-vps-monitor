@@ -3,7 +3,9 @@ import type {
 	AppPolicy,
 	IncidentEvent,
 	OverviewResponse,
+	ServerMetricPoint,
 	ServerSnapshotPayload,
+	StoredServer,
 } from "../../shared/types";
 import { defaultServerAlertPolicy } from "../domain/monitoring/policies/serverResourcePolicy";
 import { appendIncidentTimeline } from "../domain/monitoring/incidents/incidentTimeline";
@@ -14,6 +16,15 @@ import {
 import type { MonitorStateStore } from "../stores/monitorStateStore";
 
 type OverviewListener = (overview: OverviewResponse) => void;
+
+export interface MonitorOverviewPersistence {
+	recordIncident: (incident: IncidentEvent) => void;
+	recordServerMetric: (
+		server: StoredServer,
+		payload: ServerSnapshotPayload,
+		metric: ServerMetricPoint,
+	) => void;
+}
 
 export class MonitorOverviewService {
 	private readonly overviewListeners = new Set<OverviewListener>();
@@ -26,6 +37,7 @@ export class MonitorOverviewService {
 			defaultServerAlertPolicy,
 		private readonly metricHistoryLimit: () => number = () => 60,
 		private readonly incidentHistoryLimit: () => number = () => 100,
+		private readonly persistence?: MonitorOverviewPersistence,
 	) {}
 
 	ingestSnapshot(payload: ServerSnapshotPayload) {
@@ -45,6 +57,7 @@ export class MonitorOverviewService {
 		);
 
 		this.monitorStateStore.upsertServer(server);
+		this.recordSnapshotPersistence(server, payload, previousServer);
 		this.notifyOverviewUpdated();
 
 		return server;
@@ -80,6 +93,7 @@ export class MonitorOverviewService {
 		};
 
 		this.monitorStateStore.upsertServer(updatedServer);
+		this.recordIncident(incident);
 		this.notifyOverviewUpdated();
 
 		return updatedServer;
@@ -136,6 +150,41 @@ export class MonitorOverviewService {
 
 		for (const listener of this.overviewListeners) {
 			listener(overview);
+		}
+	}
+
+	private recordSnapshotPersistence(
+		server: StoredServer,
+		payload: ServerSnapshotPayload,
+		previousServer: StoredServer | undefined,
+	) {
+		if (!this.persistence) return;
+
+		const metric = server.metricsHistory.at(-1);
+		if (metric) {
+			try {
+				this.persistence.recordServerMetric(server, payload, metric);
+			} catch (error) {
+				console.error("Failed to persist server metric:", error);
+			}
+		}
+
+		const previousIncidentIds = new Set(
+			previousServer?.incidents.map((incident) => incident.id) ?? [],
+		);
+		for (const incident of server.incidents) {
+			if (previousIncidentIds.has(incident.id)) continue;
+			this.recordIncident(incident);
+		}
+	}
+
+	private recordIncident(incident: IncidentEvent) {
+		if (!this.persistence) return;
+
+		try {
+			this.persistence.recordIncident(incident);
+		} catch (error) {
+			console.error("Failed to persist incident:", error);
 		}
 	}
 }

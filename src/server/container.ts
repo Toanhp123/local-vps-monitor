@@ -13,6 +13,7 @@ import { SshTargetBootstrapService } from "./services/sshTargetBootstrapService"
 import { SshTargetConfigService } from "./services/sshTargetConfigService";
 import { SshTargetImportService } from "./services/sshTargetImportService";
 import { MonitorRuntimeService } from "./services/monitorRuntimeService";
+import { DatabaseService } from "./services/databaseService";
 import { ServerAlertPolicyStore } from "./stores/serverAlertPolicyStore";
 import { AppPolicyStore } from "./stores/appPolicyStore";
 import { MonitorStateStore } from "./stores/monitorStateStore";
@@ -20,6 +21,7 @@ import { HttpCheckConfigStore } from "./stores/httpCheckConfigStore";
 import { IncidentStateStore } from "./stores/incidentStateStore";
 import { SshTargetConfigStore } from "./stores/sshTargetConfigStore";
 import { MonitorRuntimeStore } from "./stores/monitorRuntimeStore";
+import { DatabaseStore } from "./stores/databaseStore";
 
 export interface ServerServices {
 	serverAlertPolicyService: ServerAlertPolicyService;
@@ -36,6 +38,7 @@ export interface ServerServices {
 	sshTargetConfigService: SshTargetConfigService;
 	sshTargetImportService: SshTargetImportService;
 	monitorRuntimeService: MonitorRuntimeService;
+	databaseService: DatabaseService;
 }
 
 export const createServerServices = (): ServerServices => {
@@ -73,6 +76,14 @@ export const createServerServices = (): ServerServices => {
 	const httpCheckConfigStore = new HttpCheckConfigStore(
 		serverConfig.httpChecksFile,
 	);
+	const databaseStore = new DatabaseStore({
+		databasePath: serverConfig.databaseFile,
+	});
+	const databaseService = new DatabaseService(databaseStore, {
+		dataRetentionEnabled: serverConfig.dataRetentionEnabled,
+		incidentsRetentionDays: serverConfig.incidentsRetentionDays,
+		metricsRetentionDays: serverConfig.metricsRetentionDays,
+	});
 	const monitorOverviewService = new MonitorOverviewService(
 		monitorStateStore,
 		(serverId) => monitorRuntimeStore.getServerSettings(serverId).offlineAfterMs,
@@ -80,6 +91,11 @@ export const createServerServices = (): ServerServices => {
 		() => serverAlertPolicyStore.get(),
 		() => monitorRuntimeStore.get().metricHistoryLimit,
 		() => monitorRuntimeStore.get().incidentHistoryLimit,
+		{
+			recordIncident: (incident) => databaseService.addIncident(incident),
+			recordServerMetric: (server, payload, metric) =>
+				databaseService.recordServerMetric(server, payload, metric),
+		},
 	);
 	const monitorRuntimeService = new MonitorRuntimeService(
 		monitorRuntimeStore,
@@ -167,5 +183,6 @@ export const createServerServices = (): ServerServices => {
 		sshTargetConfigService,
 		sshTargetImportService,
 		monitorRuntimeService,
+		databaseService,
 	};
 };

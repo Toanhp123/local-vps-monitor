@@ -13,6 +13,7 @@ import type { SshTargetBootstrapService } from "../services/sshTargetBootstrapSe
 import type { SshTargetConfigService } from "../services/sshTargetConfigService";
 import type { SshTargetImportService } from "../services/sshTargetImportService";
 import type { MonitorRuntimeService } from "../services/monitorRuntimeService";
+import type { DatabaseService } from "../services/databaseService";
 import { createServerAlertPolicyRouter } from "./serverAlertPolicyRoutes";
 import { createAppPolicyRouter } from "./appPolicyRoutes";
 import { createHealthRouter } from "./healthRoutes";
@@ -24,6 +25,7 @@ import { createOverviewRouter } from "./overviewRoutes";
 import { createQuickActionsRouter } from "./quickActionsRoutes";
 import { createSshTargetRouter } from "./sshTargetRoutes";
 import { createMonitorRuntimeRouter } from "./monitorRuntimeRoutes";
+import { createDatabaseRouter } from "./databaseRoutes";
 
 interface ApiRouterDependencies {
   serverAlertPolicyService: ServerAlertPolicyService;
@@ -40,6 +42,7 @@ interface ApiRouterDependencies {
   sshTargetConfigService: SshTargetConfigService;
   sshTargetImportService: SshTargetImportService;
   monitorRuntimeService: MonitorRuntimeService;
+  databaseService: DatabaseService;
 }
 
 export const createApiRouter = ({
@@ -56,7 +59,8 @@ export const createApiRouter = ({
   sshTargetBootstrapService,
   sshTargetConfigService,
   sshTargetImportService,
-  monitorRuntimeService
+  monitorRuntimeService,
+  databaseService
 }: ApiRouterDependencies) => {
   const router = Router();
 
@@ -78,6 +82,7 @@ export const createApiRouter = ({
     )
   );
   router.use(createMonitorRuntimeRouter(monitorRuntimeService));
+  router.use("/database", createDatabaseRouter(databaseService));
 
   return router;
 };

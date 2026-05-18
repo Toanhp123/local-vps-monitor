@@ -55,6 +55,7 @@ const shutdown = () => {
 	unsubscribeMonitorRuntimeSettings();
 	autoScanScheduler.stop();
 	httpServer.close(() => {
+		services.databaseService.close();
 		process.exit(0);
 	});
 };

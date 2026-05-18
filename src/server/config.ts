@@ -121,4 +121,14 @@ export const serverConfig = {
 		"LOCAL_DOCKER_COMMAND_TIMEOUT_MS",
 		12_000,
 	),
+	databaseFile: path.resolve(
+		process.cwd(),
+		process.env.DATABASE_FILE || "./data/monitor.db",
+	),
+	metricsRetentionDays: numberFromEnv("METRICS_RETENTION_DAYS", 30),
+	incidentsRetentionDays: numberFromEnv("INCIDENTS_RETENTION_DAYS", 90),
+	dataRetentionEnabled: process.env.DATA_RETENTION_ENABLED !== "false",
+	sshPoolMaxConnections: numberFromEnv("SSH_POOL_MAX_CONNECTIONS", 50),
+	sshPoolConnectionTimeout: numberFromEnv("SSH_POOL_CONNECTION_TIMEOUT", 10_000),
+	sshPoolIdleTimeout: numberFromEnv("SSH_POOL_IDLE_TIMEOUT", 60_000),
 };

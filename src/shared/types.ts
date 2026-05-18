@@ -123,6 +123,37 @@ export interface IncidentStateResponse {
 	state: IncidentStateSnapshot;
 }
 
+export interface DatabaseStats {
+  incidentsCount: number;
+  metricsCount: number;
+  schemaVersion: string | null;
+}
+
+export interface DataRetentionSettings {
+  dataRetentionEnabled: boolean;
+  incidentsRetentionDays: number;
+  metricsRetentionDays: number;
+}
+
+export interface DatabaseStatsResponse {
+  stats: DatabaseStats;
+}
+
+export interface DataRetentionSettingsResponse {
+  settings: DataRetentionSettings;
+}
+
+export type DataRetentionSettingsUpdateInput = DataRetentionSettings;
+
+export interface DatabaseCleanupResult {
+  incidentsDeleted: number;
+  metricsDeleted: number;
+}
+
+export interface DatabaseCleanupResponse {
+  result: DatabaseCleanupResult;
+}
+
 export interface ServerAlertThresholds {
 	cpuLoadCriticalPercent: number;
 	cpuLoadWarningPercent: number;
