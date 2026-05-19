@@ -130,12 +130,6 @@ const normalizeSettings = (
 			1_000,
 			120_000,
 		),
-		metricHistoryLimit: clampNumber(
-			settings?.metricHistoryLimit,
-			defaults.metricHistoryLimit,
-			10,
-			1_440,
-		),
 		offlineAfterMs: clampNumber(
 			settings?.offlineAfterMs,
 			defaults.offlineAfterMs,

@@ -14,8 +14,7 @@ const defaults: MonitorRuntimeSettings = {
 	httpCheckConcurrency: 8,
 	incidentHistoryLimit: 100,
 	localDockerCommandTimeoutMs: 12_000,
-	metricHistoryLimit: 60,
-	offlineAfterMs: 60_000,
+	offlineAfterMs: 90_000,
 	realtimeBroadcastMs: 5_000,
 	serverOverrides: {},
 	sshCommandTimeoutMs: 12_000,
@@ -79,7 +78,7 @@ test("resolves server runtime overrides over global defaults", () => {
 				autoScanIntervalMs: 60_000,
 				defaultAppLogLines: 200,
 				localDockerCommandTimeoutMs: 12_000,
-				offlineAfterMs: 60_000,
+				offlineAfterMs: 90_000,
 				sshCommandTimeoutMs: 12_000,
 			});
 			assert.deepEqual(store.getServerSettings("local-docker"), {
@@ -142,6 +141,7 @@ test("persists runtime settings in sqlite config document", () => {
 		first.replace({
 			...first.get(),
 			autoScanIntervalMs: 120_000,
+			offlineAfterMs: 180_000,
 		});
 
 		const second = new MonitorRuntimeStore(

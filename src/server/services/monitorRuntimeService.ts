@@ -25,8 +25,8 @@ export class MonitorRuntimeService {
 
 	updateSettings(input: MonitorRuntimeSettingsUpdateInput) {
 		const settings = this.monitorRuntimeStore.replace(input);
-		const didPruneHistory = this.monitorOverviewService.applyRetentionLimits();
-		if (!didPruneHistory) this.monitorOverviewService.refreshOverview();
+		const didPruneIncidents = this.monitorOverviewService.applyRetentionLimits();
+		if (!didPruneIncidents) this.monitorOverviewService.refreshOverview();
 		this.notifySettingsUpdated(settings);
 
 		return settings;
