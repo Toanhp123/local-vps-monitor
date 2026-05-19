@@ -53,7 +53,6 @@ export const createServerServices = (): ServerServices => {
 		incidentHistoryLimit: serverConfig.incidentHistoryLimit,
 		localDockerCommandTimeoutMs:
 			serverConfig.localDockerCommandTimeoutMs,
-		metricHistoryLimit: serverConfig.metricHistoryLimit,
 		offlineAfterMs: serverConfig.offlineAfterMs,
 		realtimeBroadcastMs: serverConfig.realtimeBroadcastMs,
 		serverOverrides: {},
@@ -87,7 +86,6 @@ export const createServerServices = (): ServerServices => {
 		(serverId) => monitorRuntimeStore.getServerSettings(serverId).offlineAfterMs,
 		() => appPolicyStore.list(),
 		() => serverAlertPolicyStore.get(),
-		() => monitorRuntimeStore.get().metricHistoryLimit,
 		() => monitorRuntimeStore.get().incidentHistoryLimit,
 		{
 			recordIncident: (incident) => databaseService.addIncident(incident),
