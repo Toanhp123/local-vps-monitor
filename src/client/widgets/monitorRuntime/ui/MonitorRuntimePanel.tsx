@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
 	Clock,
 	Database,
-	History,
 	RadioTower,
 	ServerCog,
 	Settings2,
@@ -122,8 +121,8 @@ export function MonitorRuntimePanel({
 					<Badge icon={Clock}>
 						Offline {msSummary(settings?.offlineAfterMs)}
 					</Badge>
-					<Badge icon={History}>
-						History {settings?.metricHistoryLimit ?? "--"}
+					<Badge icon={Database}>
+						Incidents {settings?.incidentHistoryLimit ?? "--"}
 					</Badge>
 				</>
 			}

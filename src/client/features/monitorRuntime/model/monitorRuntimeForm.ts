@@ -120,14 +120,6 @@ export const monitorRuntimeFieldSections: MonitorRuntimeFieldSection[] = [
 		title: "Retention",
 		fields: [
 			{
-				key: "metricHistoryLimit",
-				label: "Metric history",
-				max: 1440,
-				min: 10,
-				scale: 1,
-				unit: "points",
-			},
-			{
 				key: "incidentHistoryLimit",
 				label: "Incident history",
 				max: 1000,
@@ -146,7 +138,6 @@ export const emptyMonitorRuntimeForm = (): MonitorRuntimeFormState => ({
 	httpCheckConcurrency: "",
 	incidentHistoryLimit: "",
 	localDockerCommandTimeoutMs: "",
-	metricHistoryLimit: "",
 	offlineAfterMs: "",
 	realtimeBroadcastMs: "",
 	sshCommandTimeoutMs: "",
