@@ -63,7 +63,7 @@ const thresholds = (
 	...overrides,
 });
 
-test("creates disk warning incidents and stores disk metric history", () => {
+test("creates disk warning incidents", () => {
 	const server = createStoredServerFromSnapshot(
 		payloadWithDisk(82.4),
 		undefined,
@@ -74,26 +74,6 @@ test("creates disk warning incidents and stores disk metric history", () => {
 	assert.equal(server.incidents.length, 1);
 	assert.equal(server.incidents[0]?.kind, "disk-usage");
 	assert.equal(server.incidents[0]?.severity, "warning");
-	assert.equal(server.metricsHistory[0]?.diskUsedPercent, 82.4);
-});
-
-test("uses configured metric history limit", () => {
-	const firstServer = createStoredServerFromSnapshot(
-		payloadWithDisk(50),
-		undefined,
-		new Date("2026-05-15T00:00:00.000Z"),
-	);
-	const secondServer = createStoredServerFromSnapshot(
-		payloadWithDisk(51),
-		firstServer,
-		new Date("2026-05-15T00:01:00.000Z"),
-		[],
-		undefined,
-		{ metricHistoryLimit: 1 },
-	);
-
-	assert.equal(secondServer.metricsHistory.length, 1);
-	assert.equal(secondServer.metricsHistory[0]?.diskUsedPercent, 51);
 });
 
 test("uses configured incident history limit", () => {

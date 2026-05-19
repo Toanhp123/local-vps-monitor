@@ -35,7 +35,6 @@ const storedServer = (
 			monitoring: { importance: "normal" },
 		},
 	],
-	metricsHistory: [],
 	incidents: [],
 });
 

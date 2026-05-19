@@ -68,7 +68,6 @@ test("persists snapshot metrics and new incidents through callbacks", () => {
 			() => 60_000,
 			() => [],
 			() => defaultServerAlertPolicy,
-			() => 60,
 			() => 100,
 			{
 				recordIncident: (item) => incidents.push(item),

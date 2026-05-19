@@ -1,8 +1,4 @@
-import type {
-	IncidentEvent,
-	ServerMetricPoint,
-	StoredServer,
-} from "../../shared/types";
+import type { IncidentEvent, StoredServer } from "../../shared/types";
 import { ConfigDocumentStore } from "./database/configDocumentStore";
 
 interface MonitorState {
@@ -13,27 +9,28 @@ const configKey = "monitor_state";
 
 type LegacyStoredServer = Omit<
 	StoredServer,
-	"collectorVersion" | "incidents" | "metricsHistory"
+	"collectorVersion" | "incidents"
 > & {
 	agentVersion?: string;
 	collectorVersion?: string;
 	incidents?: IncidentEvent[];
-	metricsHistory?: ServerMetricPoint[];
 };
 
 const emptyState = (): MonitorState => ({ servers: {} });
 
 const normalizeStoredServer = (server: LegacyStoredServer): StoredServer => {
-	const { agentVersion, collectorVersion, ...serverWithoutLegacyVersion } =
-		server;
-
 	return {
-		...serverWithoutLegacyVersion,
-		collectorVersion: collectorVersion || agentVersion || "unknown",
+		apps: server.apps,
+		collectorVersion:
+			server.collectorVersion || server.agentVersion || "unknown",
+		host: server.host,
 		incidents: Array.isArray(server.incidents) ? server.incidents : [],
-		metricsHistory: Array.isArray(server.metricsHistory)
-			? server.metricsHistory
-			: [],
+		lastSeenAt: server.lastSeenAt,
+		observedAt: server.observedAt,
+		online: server.online,
+		serverId: server.serverId,
+		serverName: server.serverName,
+		status: server.status,
 	};
 };
 

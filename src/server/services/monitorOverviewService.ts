@@ -13,6 +13,7 @@ import {
 	buildOverview,
 	createStoredServerFromSnapshot,
 } from "../domain/monitoring/overviewProjection";
+import { createServerMetricPoint } from "../domain/monitoring/metrics/serverMetricHistory";
 import type { MonitorStateStore } from "../stores/monitorStateStore";
 
 type OverviewListener = (overview: OverviewResponse) => void;
@@ -35,29 +36,29 @@ export class MonitorOverviewService {
 		private readonly appPolicies: () => AppPolicy[] = () => [],
 		private readonly serverAlertPolicy: () => ServerAlertPolicy = () =>
 			defaultServerAlertPolicy,
-		private readonly metricHistoryLimit: () => number = () => 60,
 		private readonly incidentHistoryLimit: () => number = () => 100,
 		private readonly persistence?: MonitorOverviewPersistence,
 	) {}
 
 	ingestSnapshot(payload: ServerSnapshotPayload) {
+		const receivedAt = new Date();
 		const previousServer = this.monitorStateStore.getServer(
 			payload.serverId,
 		);
 		const server = createStoredServerFromSnapshot(
 			payload,
 			previousServer,
-			new Date(),
+			receivedAt,
 			this.appPolicies(),
 			this.serverAlertPolicy(),
 			{
 				incidentHistoryLimit: this.incidentHistoryLimit(),
-				metricHistoryLimit: this.metricHistoryLimit(),
 			},
 		);
+		const metric = createServerMetricPoint(server.apps, payload, receivedAt);
 
 		this.monitorStateStore.upsertServer(server);
-		this.recordSnapshotPersistence(server, payload, previousServer);
+		this.recordSnapshotPersistence(server, payload, previousServer, metric);
 		this.notifyOverviewUpdated();
 
 		return server;
@@ -100,10 +101,6 @@ export class MonitorOverviewService {
 	}
 
 	applyRetentionLimits() {
-		const metricHistoryLimit = Math.max(
-			1,
-			Math.round(this.metricHistoryLimit()),
-		);
 		const incidentHistoryLimit = Math.max(
 			1,
 			Math.round(this.incidentHistoryLimit()),
@@ -111,19 +108,14 @@ export class MonitorOverviewService {
 		let changed = false;
 
 		for (const server of this.monitorStateStore.listServers()) {
-			const metricsHistory = server.metricsHistory.slice(-metricHistoryLimit);
 			const incidents = server.incidents.slice(0, incidentHistoryLimit);
-			if (
-				metricsHistory.length === server.metricsHistory.length &&
-				incidents.length === server.incidents.length
-			) {
+			if (incidents.length === server.incidents.length) {
 				continue;
 			}
 
 			this.monitorStateStore.upsertServer({
 				...server,
 				incidents,
-				metricsHistory,
 			});
 			changed = true;
 		}
@@ -157,16 +149,14 @@ export class MonitorOverviewService {
 		server: StoredServer,
 		payload: ServerSnapshotPayload,
 		previousServer: StoredServer | undefined,
+		metric: ServerMetricPoint,
 	) {
 		if (!this.persistence) return;
 
-		const metric = server.metricsHistory.at(-1);
-		if (metric) {
-			try {
-				this.persistence.recordServerMetric(server, payload, metric);
-			} catch (error) {
-				console.error("Failed to persist server metric:", error);
-			}
+		try {
+			this.persistence.recordServerMetric(server, payload, metric);
+		} catch (error) {
+			console.error("Failed to persist server metric:", error);
 		}
 
 		const previousIncidentIds = new Set(

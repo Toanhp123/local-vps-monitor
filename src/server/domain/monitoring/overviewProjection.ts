@@ -18,10 +18,6 @@ import {
 	createIncidentEvents,
 } from "./incidents/incidentTimeline";
 import {
-	appendMetricHistory,
-	createServerMetricPoint,
-} from "./metrics/serverMetricHistory";
-import {
 	serverHealthStatus,
 	withRuntimeStatus,
 } from "./policies/serverHealthPolicy";
@@ -32,7 +28,6 @@ import {
 
 interface OverviewProjectionOptions {
 	incidentHistoryLimit?: number;
-	metricHistoryLimit?: number;
 }
 
 type OfflineAfterMsResolver = (serverId: string) => number;
@@ -80,7 +75,6 @@ export const createStoredServerFromSnapshot = (
 	const previousServerWithPolicy = previousServer
 		? applyServerAppPolicy(previousServer, appPolicies)
 		: undefined;
-	const metricPoint = createServerMetricPoint(apps, payload, receivedAt);
 	const incidents = createIncidentEvents(
 		apps,
 		payload,
@@ -93,11 +87,6 @@ export const createStoredServerFromSnapshot = (
 		...payload,
 		apps,
 		lastSeenAt: receivedAt.toISOString(),
-		metricsHistory: appendMetricHistory(
-			previousServer?.metricsHistory,
-			metricPoint,
-			options.metricHistoryLimit,
-		),
 		incidents: appendIncidentTimeline(
 			previousServer?.incidents,
 			incidents,
