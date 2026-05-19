@@ -31,7 +31,6 @@ const server = ({
 		memoryFreeBytes: 1,
 	},
 	apps: [],
-	metricsHistory: [],
 	incidents: [],
 	...overrides,
 });

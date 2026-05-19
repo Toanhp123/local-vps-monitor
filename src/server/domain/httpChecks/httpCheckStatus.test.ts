@@ -33,7 +33,6 @@ const server = {
 	},
 	incidents: [],
 	lastSeenAt: "2026-05-15T00:00:00.000Z",
-	metricsHistory: [],
 	observedAt: "2026-05-15T00:00:00.000Z",
 	online: true,
 	serverId: "server-1",
