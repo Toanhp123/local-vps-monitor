@@ -8,6 +8,7 @@ export const createDatabaseRouter = (databaseService: DatabaseService) => {
 
 	router.get("/stats", controller.getStats);
 	router.get("/settings", controller.getSettings);
+	router.get("/servers/:serverId/metrics", controller.getServerMetricHistory);
 	router.put("/settings", controller.updateSettings);
 	router.post("/cleanup", controller.cleanupOldData);
 	router.post("/vacuum", controller.vacuum);

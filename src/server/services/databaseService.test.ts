@@ -72,6 +72,52 @@ test("stores metrics and incidents in sqlite", () => {
 	}
 });
 
+test("loads server metric history by range in chronological order", () => {
+	const { close, service } = createTempService();
+	const firstObservedAt = new Date(Date.now() - 2_000).toISOString();
+	const secondObservedAt = new Date(Date.now() - 1_000).toISOString();
+
+	try {
+		service.addServerMetric("server-1", "Server 1", "2000-01-01T00:00:00.000Z", {
+			appCpuPercent: 99,
+			memoryTotalBytes: 100,
+			memoryUsedBytes: 90,
+		});
+		service.addServerMetric("server-1", "Server 1", firstObservedAt, {
+			appCount: 2,
+			appCpuPercent: 12.5,
+			cpuCount: 4,
+			loadAverage: [0.5, 0.4, 0.3],
+			memoryFreeBytes: 60,
+			memoryTotalBytes: 100,
+			memoryUsedBytes: 40,
+			restartCount: 1,
+		});
+		service.addServerMetric("server-1", "Server 1", secondObservedAt, {
+			appCount: 3,
+			appCpuPercent: 18.5,
+			cpuCount: 4,
+			loadAverage: [1, 0.8, 0.5],
+			memoryFreeBytes: 45,
+			memoryTotalBytes: 100,
+			memoryUsedBytes: 55,
+			restartCount: 2,
+		});
+
+		const history = service.getServerMetricHistory("server-1", "24h");
+
+		assert.equal(history.length, 2);
+		assert.equal(history[0]?.observedAt, firstObservedAt);
+		assert.equal(history[0]?.appCount, 2);
+		assert.equal(history[0]?.loadAverage1m, 0.5);
+		assert.equal(history[0]?.memoryFreeBytes, 60);
+		assert.equal(history[1]?.observedAt, secondObservedAt);
+		assert.equal(history[1]?.appCpuPercent, 18.5);
+	} finally {
+		close();
+	}
+});
+
 test("persists retention settings in database metadata", () => {
 	const first = createTempService();
 	const settings = {

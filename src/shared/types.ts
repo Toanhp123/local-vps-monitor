@@ -79,6 +79,23 @@ export interface ServerMetricPoint {
   restartCount: number;
 }
 
+export type ServerMetricHistoryRange = "1h" | "24h" | "7d" | "30d";
+
+export interface ServerHistoricalMetricPoint extends ServerMetricPoint {
+	appCount?: number;
+	cpuCount?: number;
+	loadAverage1m?: number;
+	loadAverage5m?: number;
+	loadAverage15m?: number;
+	memoryFreeBytes?: number;
+}
+
+export interface ServerMetricHistoryResponse {
+	metrics: ServerHistoricalMetricPoint[];
+	range: ServerMetricHistoryRange;
+	serverId: string;
+}
+
 export type IncidentSeverity = "info" | "warning" | "critical" | "resolved";
 
 export type IncidentKind =
@@ -200,7 +217,6 @@ export interface MonitorRuntimeSettings {
 	httpCheckConcurrency: number;
 	incidentHistoryLimit: number;
 	localDockerCommandTimeoutMs: number;
-	metricHistoryLimit: number;
 	offlineAfterMs: number;
 	realtimeBroadcastMs: number;
 	serverOverrides: Record<string, ServerMonitorRuntimeOverrides>;
@@ -216,7 +232,6 @@ export type MonitorRuntimeSettingsUpdateInput = MonitorRuntimeSettings;
 
 export interface StoredServer extends ServerSnapshotPayload {
   lastSeenAt: string;
-  metricsHistory: ServerMetricPoint[];
   incidents: IncidentEvent[];
   online: boolean;
   status: HealthStatus;

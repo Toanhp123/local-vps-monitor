@@ -5,6 +5,8 @@ import type {
 	DataRetentionSettings,
 	DataRetentionSettingsUpdateInput,
 	IncidentEvent,
+	ServerHistoricalMetricPoint,
+	ServerMetricHistoryRange,
 	ServerMetricPoint,
 	ServerSnapshotPayload,
 	StoredServer,
@@ -15,6 +17,16 @@ export type DatabaseServiceConfig = DataRetentionSettings;
 const metricsRetentionKey = "retention.metricsRetentionDays";
 const incidentsRetentionKey = "retention.incidentsRetentionDays";
 const dataRetentionEnabledKey = "retention.dataRetentionEnabled";
+
+const metricHistoryRanges: Record<
+	ServerMetricHistoryRange,
+	{ limit: number; ms: number }
+> = {
+	"1h": { limit: 360, ms: 60 * 60 * 1000 },
+	"24h": { limit: 720, ms: 24 * 60 * 60 * 1000 },
+	"7d": { limit: 1008, ms: 7 * 24 * 60 * 60 * 1000 },
+	"30d": { limit: 1440, ms: 30 * 24 * 60 * 60 * 1000 },
+};
 
 const clampDays = (value: unknown, fallback: number) => {
 	if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
@@ -132,6 +144,20 @@ export class DatabaseService {
 
 	public getServerMetrics(serverId: string, limit = 100): ServerMetricPoint[] {
 		return this.metricsRepo.getByServerId(serverId, limit);
+	}
+
+	public getServerMetricHistory(
+		serverId: string,
+		range: ServerMetricHistoryRange,
+	): ServerHistoricalMetricPoint[] {
+		const config = metricHistoryRanges[range];
+		const cutoffIso = new Date(Date.now() - config.ms).toISOString();
+
+		return this.metricsRepo.getHistoryByServerId(
+			serverId,
+			cutoffIso,
+			config.limit,
+		);
 	}
 
 	// Incidents
