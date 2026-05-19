@@ -5,6 +5,8 @@ import type {
 	MonitorRuntimeSettingsUpdateInput,
 	ServerAlertPolicy,
 	ServerAlertPolicyUpdateInput,
+	ServerHistoricalMetricPoint,
+	ServerMetricHistoryRange,
 	StoredServer,
 } from "@shared/types";
 import { ServerMetricCharts } from "@/entities/server";
@@ -25,10 +27,15 @@ export function ServerDetailsView({
 	isSavingAlertPolicy,
 	isSavingMonitorRuntime,
 	isScanning,
+	metricHistory,
+	metricHistoryError,
+	metricHistoryIsLoading,
+	metricHistoryRange,
 	monitorRuntimeError,
 	monitorRuntimeSettings,
 	now,
 	onBack,
+	onMetricHistoryRangeChange,
 	onOpenAppLogs,
 	onRunQuickAction,
 	onSaveAlertPolicy,
@@ -48,10 +55,15 @@ export function ServerDetailsView({
 	isSavingAlertPolicy: boolean;
 	isSavingMonitorRuntime: boolean;
 	isScanning: boolean;
+	metricHistory: ServerHistoricalMetricPoint[];
+	metricHistoryError: string;
+	metricHistoryIsLoading: boolean;
+	metricHistoryRange: ServerMetricHistoryRange;
 	monitorRuntimeError: string;
 	monitorRuntimeSettings: MonitorRuntimeSettings | null;
 	now: number;
 	onBack: () => void;
+	onMetricHistoryRangeChange: (range: ServerMetricHistoryRange) => void;
 	onOpenAppLogs: (app: AppSnapshot) => void;
 	onRunQuickAction: (action: QuickActionDefinition) => void;
 	onSaveAlertPolicy: (input: ServerAlertPolicyUpdateInput) => Promise<boolean>;
@@ -87,7 +99,13 @@ export function ServerDetailsView({
 
 			<div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
 				<ServerMetricsGrid server={server} />
-				<ServerMetricCharts server={server} />
+				<ServerMetricCharts
+					error={metricHistoryError}
+					history={metricHistory}
+					isLoading={metricHistoryIsLoading}
+					onRangeChange={onMetricHistoryRangeChange}
+					range={metricHistoryRange}
+				/>
 
 				<ApplicationGroupsSection
 					activeAppPolicyKey={activeAppPolicyKey}

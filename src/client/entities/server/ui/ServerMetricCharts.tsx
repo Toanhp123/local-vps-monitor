@@ -1,8 +1,12 @@
 import { useState } from "react";
-import type { ServerMetricPoint, StoredServer } from "@shared/types";
+import type {
+	ServerHistoricalMetricPoint,
+	ServerMetricHistoryRange,
+} from "@shared/types";
 import { formatBytes } from "@/shared/lib/format";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 
-const chartWindow = 24;
+type ChartMetricPoint = ServerHistoricalMetricPoint;
 
 interface ChartSeries {
 	color: string;
@@ -29,17 +33,55 @@ interface HoverState {
 	top: number;
 }
 
-const memoryPercent = (point: ServerMetricPoint) => {
+const rangeLabels: Record<ServerMetricHistoryRange, string> = {
+	"1h": "1H",
+	"24h": "24H",
+	"7d": "7D",
+	"30d": "30D",
+};
+
+const rangeOptions = (
+	Object.entries(rangeLabels) as Array<[ServerMetricHistoryRange, string]>
+).map(([value, label]) => ({
+	label,
+	value,
+}));
+
+const memoryPercent = (point: ChartMetricPoint) => {
 	if (!point.memoryTotalBytes) return 0;
 	return Math.round((point.memoryUsedBytes / point.memoryTotalBytes) * 100);
 };
 
 const hasDiskPercent = (
-	point: ServerMetricPoint,
-): point is ServerMetricPoint & {
+	point: ChartMetricPoint,
+): point is ChartMetricPoint & {
 	diskUsedPercent: number;
 } => {
 	return typeof point.diskUsedPercent === "number";
+};
+
+const hasCpuLoadPercent = (
+	point: ChartMetricPoint,
+): point is ServerHistoricalMetricPoint & {
+	cpuCount: number;
+	loadAverage1m: number;
+} => {
+	return (
+		"cpuCount" in point &&
+		"loadAverage1m" in point &&
+		typeof point.cpuCount === "number" &&
+		point.cpuCount > 0 &&
+		typeof point.loadAverage1m === "number"
+	);
+};
+
+const cpuLoadPercent = (
+	point: ServerHistoricalMetricPoint & {
+		cpuCount: number;
+		loadAverage1m: number;
+	},
+) => {
+	return Math.round((point.loadAverage1m / point.cpuCount) * 1000) / 10;
 };
 
 const chartPoints = (values: number[]) => {
@@ -93,9 +135,11 @@ const scanLabel = (value: string) => {
 	const date = new Date(value);
 	if (!Number.isFinite(date.getTime())) return "Scan";
 
-	return date.toLocaleTimeString([], {
+	return date.toLocaleString([], {
+		day: "2-digit",
 		hour: "2-digit",
 		minute: "2-digit",
+		month: "short",
 	});
 };
 
@@ -287,21 +331,38 @@ function MetricChartCard({ series }: { series: ChartSeries }) {
 	);
 }
 
-export function ServerMetricCharts({ server }: { server: StoredServer }) {
-	const history = server.metricsHistory.slice(-chartWindow);
-	const latest = history.at(-1);
-	const diskHistory = history.filter(hasDiskPercent);
+export function ServerMetricCharts({
+	error,
+	history,
+	isLoading,
+	onRangeChange,
+	range,
+}: {
+	error: string;
+	history: ServerHistoricalMetricPoint[];
+	isLoading: boolean;
+	onRangeChange: (range: ServerMetricHistoryRange) => void;
+	range: ServerMetricHistoryRange;
+}) {
+	const chartHistory: ChartMetricPoint[] = history;
+	const hasHistory = chartHistory.length > 0;
+	const latest = chartHistory.at(-1);
+	const diskHistory = chartHistory.filter(hasDiskPercent);
+	const loadHistory = chartHistory.filter(hasCpuLoadPercent);
 	const latestMemory = latest ? memoryPercent(latest) : 0;
 	const latestDisk = diskHistory.at(-1);
+	const latestLoad = loadHistory.at(-1);
 	const subtitle =
-		history.length > 0 ? `Last ${history.length} scans` : "No history";
+		chartHistory.length > 0
+			? `${rangeLabels[range]} - ${chartHistory.length} points`
+			: "No history";
 	const series: ChartSeries[] = [
 		{
 			color: "#2563eb",
 			fill: "rgba(37, 99, 235, 0.12)",
 			formatValue: (value) => `${value.toFixed(1)}%`,
-			labels: history.map((point) => scanLabel(point.observedAt)),
-			points: history.map((point) => point.appCpuPercent),
+			labels: chartHistory.map((point) => scanLabel(point.observedAt)),
+			points: chartHistory.map((point) => point.appCpuPercent),
 			subtitle,
 			title: "App CPU",
 			value: latest?.appCpuPercent ?? 0,
@@ -311,13 +372,14 @@ export function ServerMetricCharts({ server }: { server: StoredServer }) {
 			fill: "rgba(22, 163, 74, 0.12)",
 			formatSummaryValue: (value) => `${Math.round(value)}%`,
 			formatValue: (value, index) => {
-				const point = index === undefined ? latest : history[index];
+				const point =
+					index === undefined ? latest : chartHistory[index];
 				const memory = point ? ` (${formatBytes(point.memoryUsedBytes)})` : "";
 
 				return `${Math.round(value)}%${memory}`;
 			},
-			labels: history.map((point) => scanLabel(point.observedAt)),
-			points: history.map(memoryPercent),
+			labels: chartHistory.map((point) => scanLabel(point.observedAt)),
+			points: chartHistory.map(memoryPercent),
 			subtitle,
 			title: "RAM Used",
 			value: latestMemory,
@@ -343,18 +405,78 @@ export function ServerMetricCharts({ server }: { server: StoredServer }) {
 			points: diskHistory.map((point) => point.diskUsedPercent),
 			subtitle:
 				diskHistory.length > 0
-					? `Last ${diskHistory.length} scans`
+					? `${rangeLabels[range]} - ${diskHistory.length} points`
 					: "No disk history",
 			title: "Disk Used",
 			value: latestDisk.diskUsedPercent,
 		});
 	}
 
+	if (latestLoad) {
+		series.push({
+			color: "#7c3aed",
+			fill: "rgba(124, 58, 237, 0.12)",
+			formatSummaryValue: (value) => `${Math.round(value)}%`,
+			formatValue: (value, index) => {
+				const point =
+					index === undefined ? latestLoad : loadHistory[index];
+				const loadAverage =
+					point?.loadAverage1m !== undefined
+						? ` (${point.loadAverage1m.toFixed(2)} load)`
+						: "";
+
+				return `${Math.round(value)}%${loadAverage}`;
+			},
+			labels: loadHistory.map((point) => scanLabel(point.observedAt)),
+			points: loadHistory.map(cpuLoadPercent),
+			subtitle:
+				loadHistory.length > 0
+					? `${rangeLabels[range]} - ${loadHistory.length} points`
+					: "No CPU load history",
+			title: "CPU Load",
+			value: cpuLoadPercent(latestLoad),
+		});
+	}
+
 	return (
-		<div className="grid grid-cols-3 gap-3 border-t border-slate-200 bg-slate-50 p-3 max-xl:grid-cols-2 max-lg:grid-cols-1">
-			{series.map((item) => (
-				<MetricChartCard key={item.title} series={item} />
-			))}
+		<div className="border-t border-slate-200 bg-slate-50">
+			<div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4.5 py-3.5 max-lg:flex-col max-lg:items-stretch">
+				<div className="min-w-0">
+					<h2 className="text-base leading-tight font-extrabold text-slate-900">
+						Historical metrics
+					</h2>
+					<p className="mt-1 text-sm font-semibold text-slate-500">
+						{hasHistory
+							? `Loaded from database - ${chartHistory.length} points`
+							: "No database metrics in this range"}
+					</p>
+				</div>
+				<div className="flex shrink-0 items-center gap-2 max-md:flex-col max-md:items-stretch">
+					{isLoading && (
+						<span className="text-xs font-extrabold text-slate-400 uppercase">
+							Loading
+						</span>
+					)}
+					<SegmentedControl
+						ariaLabel="Metric history range"
+						onChange={onRangeChange}
+						options={rangeOptions}
+						size="sm"
+						tone="dark"
+						value={range}
+					/>
+				</div>
+			</div>
+			{error && (
+				<div className="border-b border-rose-100 bg-rose-50 px-4.5 py-3 text-sm font-bold text-rose-700">
+					{error}
+				</div>
+			)}
+			<div className="grid grid-cols-3 gap-3 p-3 max-xl:grid-cols-2 max-lg:grid-cols-1">
+				{series.map((item) => (
+					<MetricChartCard key={item.title} series={item} />
+				))}
+			</div>
 		</div>
 	);
 }

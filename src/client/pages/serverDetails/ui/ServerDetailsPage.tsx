@@ -4,6 +4,7 @@ import { useAppLogs } from "@/features/appLogs";
 import { AppLogsPanel } from "@/features/appLogs";
 import { useQuickActionRunner } from "@/features/quickActions";
 import { QuickActionPanel } from "@/features/quickActions";
+import { useServerMetricHistory } from "@/features/serverMetricHistory";
 import { routes } from "@/shared/config/routes";
 import { ServerDetailsView } from "@/widgets/serverDetails";
 import { useMonitorShellContext } from "@/widgets/monitorShell";
@@ -27,6 +28,10 @@ export function ServerDetailsPage() {
 			null
 		: null;
 	const appLogs = useAppLogs(serverId || "", 200);
+	const metricHistory = useServerMetricHistory(
+		serverId || "",
+		selectedServer?.lastSeenAt,
+	);
 	const quickActions = useQuickActionRunner();
 
 	useEffect(() => {
@@ -66,6 +71,10 @@ export function ServerDetailsPage() {
 				isScanning={activeScanId === selectedServer.serverId}
 				monitorRuntimeError={monitorRuntime.error}
 				monitorRuntimeSettings={monitorRuntime.settings}
+				metricHistoryError={metricHistory.error}
+				metricHistoryIsLoading={metricHistory.isLoading}
+				metricHistoryRange={metricHistory.range}
+				metricHistory={metricHistory.metrics}
 				now={now}
 				onBack={() => {
 					navigate(routes.dashboard);
@@ -75,6 +84,7 @@ export function ServerDetailsPage() {
 				onRunQuickAction={quickActions.requestAction}
 				onSaveAlertPolicy={serverAlertPolicy.savePolicy}
 				onSaveMonitorRuntime={monitorRuntime.saveSettings}
+				onMetricHistoryRangeChange={metricHistory.setRange}
 				onUpdateAppPolicy={appPolicies.upsertAppOverride}
 				onScan={() => handleScanServer(selectedServer.serverId)}
 				pinnedItems={pinnedItems}
